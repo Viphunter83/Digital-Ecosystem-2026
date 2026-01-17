@@ -25,8 +25,8 @@ async def search_catalog(q: Optional[str] = None, db: Session = Depends(get_db))
         results = db.execute(query).unique().scalars().all()
         return {"results": [ProductSchema.model_validate(p) for p in results]}
 
-    # Check if this looks like a semantic query (e.g. > 2 words or long)
-    is_semantic = len(q.split()) > 2
+    # Check if this looks like a semantic query (e.g. > 1 word)
+    is_semantic = len(q.split()) > 1
     
     if is_semantic:
         try:

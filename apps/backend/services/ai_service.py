@@ -5,8 +5,14 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 class AIService:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.embedding_model = "text-embedding-3-small"
+        # Explicitly load from env or let OpenAI client handle it if standard vars are used.
+        # However, prioritizing explicit passed args from our specific env vars.
+        self.client = AsyncOpenAI(
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_BASE_URL")
+        )
+        self.embedding_model = os.getenv("OPENAI_MODEL_EMBEDDING", "text-embedding-3-small")
+        self.chat_model = os.getenv("OPENAI_MODEL_CHAT", "gpt-4o")
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def get_embedding(self, text: str) -> List[float]:
@@ -29,7 +35,7 @@ class AIService:
         user_content = f"Product Data:\nName: {data.get('name')}\nSpecs: {data.get('specs')}\nCategory: {data.get('category')}\n"
         
         response = await self.client.chat.completions.create(
-            model="gpt-4o", # Using a high quality model for text generation
+            model=self.chat_model,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content}

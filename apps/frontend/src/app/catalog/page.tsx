@@ -11,16 +11,27 @@ export default function CatalogPage() {
     const [loading, setLoading] = useState(true);
 
     const [activeFilter, setActiveFilter] = useState("ВСЕ");
+    const [searchQuery, setSearchQuery] = useState("");
 
-    useEffect(() => {
-        async function loadData() {
-            setLoading(true);
-            const data = await fetchCatalog();
+    async function loadData(query: string = "") {
+        setLoading(true);
+        try {
+            const data = await fetchCatalog(query);
             setProducts(data);
+        } catch (error) {
+            console.error("Failed to fetch catalog:", error);
+        } finally {
             setLoading(false);
         }
+    }
+
+    useEffect(() => {
         loadData();
     }, []);
+
+    const handleSearch = () => {
+        loadData(searchQuery);
+    };
 
     const filteredProducts = activeFilter === "ВСЕ"
         ? products
@@ -70,21 +81,48 @@ export default function CatalogPage() {
                 </div>
             </div>
 
-            {/* Filters */}
+            {/* Filters & Search */}
             <div className="container mx-auto px-6 mb-12">
-                <div className="flex flex-wrap gap-4 p-4 border-y border-industrial-border bg-industrial-panel/30 backdrop-blur-sm">
-                    {["ВСЕ", "МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"].map((filter, i) => (
+                <div className="flex flex-col md:flex-row gap-6 p-6 border-y border-industrial-border bg-industrial-panel/30 backdrop-blur-sm items-center">
+
+                    {/* Search Input */}
+                    <div className="flex-1 w-full relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-4 w-4 text-muted-foreground group-focus-within:text-safety-orange transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="ПОИСК ПО НАЗВАНИЮ ИЛИ ОПИСАНИЮ (AI-POWERED)..."
+                            className="w-full bg-industrial-surface border border-industrial-border text-white text-sm font-mono pl-10 pr-4 py-3 focus:outline-none focus:border-safety-orange focus:ring-1 focus:ring-safety-orange transition-all placeholder:text-muted-foreground/50 uppercase tracking-wider"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        />
                         <button
-                            key={i}
-                            onClick={() => setActiveFilter(filter)}
-                            className={`text-xs font-mono px-4 py-2 border transition-all uppercase tracking-wider ${activeFilter === filter
-                                ? "bg-safety-orange text-white border-safety-orange"
-                                : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
-                                }`}
+                            onClick={handleSearch}
+                            className="absolute right-2 top-2 bottom-2 px-4 bg-safety-orange/10 hover:bg-safety-orange/20 text-safety-orange text-xs font-bold uppercase tracking-wider transition-colors border border-safety-orange/20 hover:border-safety-orange/50"
                         >
-                            {filter}
+                            Найти
                         </button>
-                    ))}
+                    </div>
+
+                    {/* Filters */}
+                    <div className="flex flex-wrap gap-2">
+                        {["ВСЕ", "МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"].map((filter, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setActiveFilter(filter)}
+                                className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeFilter === filter
+                                    ? "bg-safety-orange text-white border-safety-orange"
+                                    : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
+                                    }`}
+                            >
+                                {filter}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
