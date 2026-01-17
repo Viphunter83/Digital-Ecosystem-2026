@@ -39,19 +39,25 @@ export function NavBar() {
                 </Link>
 
                 <nav className="hidden md:flex items-center space-x-1">
-                    {["Каталог", "Решения", "О компании", "Контакты"].map((item) => (
-                        <Link
-                            key={item}
-                            href={`/${item.toLowerCase()}`}
-                            className={cn(
-                                "px-4 py-2 text-sm font-medium transition-all duration-200 relative group overflow-hidden",
-                                isScrolled ? "text-muted-foreground hover:text-safety-orange" : "text-white/80 hover:text-white"
-                            )}
-                        >
-                            <span className="relative z-10 font-mono tracking-wide uppercase text-xs">{item}</span>
-                            <span className="absolute inset-x-0 bottom-0 h-[1px] bg-safety-orange transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                        </Link>
-                    ))}
+                    {
+                        [
+                            { label: "Каталог", href: "/catalog" },
+                            { label: "Решения", href: "/solutions" },
+                            { label: "О компании", href: "/company" },
+                            { label: "Контакты", href: "/contacts" },
+                        ].map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className={cn(
+                                    "px-4 py-2 text-sm font-medium transition-all duration-200 relative group overflow-hidden",
+                                    isScrolled ? "text-muted-foreground hover:text-safety-orange" : "text-white/80 hover:text-white"
+                                )}
+                            >
+                                <span className="relative z-10 font-mono tracking-wide uppercase text-xs">{item.label}</span>
+                                <span className="absolute inset-x-0 bottom-0 h-[1px] bg-safety-orange transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                            </Link>
+                        ))}
                 </nav>
 
                 <div className="flex items-center space-x-4">

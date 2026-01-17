@@ -1,103 +1,125 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { fetchCatalog, Product } from '@/lib/api';
+import { useState } from 'react';
 import { ProductCard } from '@/components/ProductCard';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import { useDebounce } from '@/hooks/use-debounce';
-import { motion } from 'framer-motion'; // Assuming we create this or simple debounce
+import { Product, fetchCatalog } from '@/lib/api';
+
+// Placeholder data for the catalog
+const PLACEHOLDER_PRODUCTS: Product[] = [
+    {
+        id: 1001,
+        name: "CNC MACHINING CENTER X5",
+        description: "5-axis simultaneous machining center for aerospace components.",
+        image_url: "",
+        category: "MACHINING",
+        specs: {
+            "Power": "15kW",
+            "Speed": "12000 RPM"
+        }
+    },
+    {
+        id: 1002,
+        name: "ROBOTIC ARM A-500",
+        description: "High-precision robotic arm for automated assembly lines.",
+        image_url: "",
+        category: "AUTOMATION",
+        specs: {
+            "Payload": "50kg",
+            "Reach": "2.5m"
+        }
+    },
+    {
+        id: 1003,
+        name: "HYDRAULIC PRESS H-200",
+        description: "200-ton hydraulic press for heavy metal forming.",
+        image_url: "",
+        category: "FORMING",
+        specs: {
+            "Force": "200T",
+            "Area": "1.5x1.5m"
+        }
+    },
+    {
+        id: 1004,
+        name: "LASER CUTTER L-3000",
+        description: "High-speed fiber laser cutting machine.",
+        image_url: "",
+        category: "CUTTING",
+        specs: {
+            "Power": "3kW",
+            "Table": "3x1.5m"
+        }
+    },
+    {
+        id: 1005,
+        name: "INDUSTRIAL 3D PRINTER",
+        description: "Large scale additive manufacturing system.",
+        image_url: "",
+        category: "ADDITIVE",
+        specs: {
+            "Volume": "1m3",
+            "Material": "Polymer"
+        }
+    },
+    {
+        id: 1006,
+        name: "CONVEYOR SYSTEM C-10",
+        description: "Modular conveyor system for automated warehousing.",
+        image_url: "",
+        category: "LOGISTICS",
+        specs: {
+            "Speed": "2m/s",
+            "Load": "100kg/m"
+        }
+    }
+];
 
 export default function CatalogPage() {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    // Simple debounce logic
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            loadProducts(searchQuery);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchQuery]);
-
-    const loadProducts = async (query: string) => {
-        setLoading(true);
-        const data = await fetchCatalog(query);
-        setProducts(data);
-        setLoading(false);
-    };
-
     return (
-        <div className="container mx-auto py-12 px-4">
-            <h1 className="text-4xl font-bold mb-8 uppercase tracking-widest text-deep-graphite dark:text-white">Smart Catalog</h1>
-
-            <div className="flex flex-col lg:flex-row gap-8">
-                {/* Sidebar Filter Area (Static for now) */}
-                <aside className="w-full lg:w-1/4 space-y-6">
-                    <div className="bg-card p-6 rounded-lg border border-border">
-                        <h3 className="font-bold mb-4 uppercase tracking-wider text-safety-orange">Категории</h3>
-                        <div className="space-y-2 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2"><div className="w-4 h-4 border border-input rounded bg-primary" /> Все</div>
-                            <div className="flex items-center gap-2"><div className="w-4 h-4 border border-input rounded" /> Турбины</div>
-                            <div className="flex items-center gap-2"><div className="w-4 h-4 border border-input rounded" /> Котлы</div>
-                            <div className="flex items-center gap-2"><div className="w-4 h-4 border border-input rounded" /> Генераторы</div>
-                        </div>
+        <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
+            {/* Header */}
+            <div className="container mx-auto px-6 mb-12">
+                <div className="flex flex-col md:flex-row justify-between items-end border-b border-industrial-border pb-6">
+                    <div>
+                        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-2 text-white">
+                            Каталог <span className="text-safety-orange">Оборудования</span>
+                        </h1>
+                        <p className="text-muted-foreground font-mono text-sm max-w-xl">
+                            ВЫСОКОТЕХНОЛОГИЧНЫЕ РЕШЕНИЯ ДЛЯ ПРОМЫШЛЕННОСТИ. ПОЛНЫЙ СПЕКТР ОБОРУДОВАНИЯ.
+                        </p>
                     </div>
-                </aside>
-
-                {/* Main Content */}
-                <div className="flex-1 space-y-8">
-                    {/* Search Bar */}
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                        <Input
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Поиск оборудования (Live Search)..."
-                            className="pl-10 h-12 text-lg border-2 focus-visible:ring-safety-orange"
-                        />
+                    <div className="flex items-center space-x-4 mt-4 md:mt-0 font-mono text-xs text-safety-orange">
+                        <span>[ ВСЕГО ПОЗИЦИЙ: {PLACEHOLDER_PRODUCTS.length} ]</span>
+                        <span>[ ОБНОВЛЕНО: 17.01.2026 ]</span>
                     </div>
+                </div>
+            </div>
 
-                    {/* Grid */}
-                    {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-50 animate-pulse">
-                            {[1, 2, 3].map(i => <div key={i} className="h-[400px] bg-muted rounded-xl" />)}
-                        </div>
-                    ) : (
-                        <motion.div
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                            initial="hidden"
-                            animate="show"
-                            variants={{
-                                hidden: { opacity: 0 },
-                                show: {
-                                    opacity: 1,
-                                    transition: {
-                                        staggerChildren: 0.1
-                                    }
-                                }
-                            }}
+            {/* Filters (Placeholder) */}
+            <div className="container mx-auto px-6 mb-12">
+                <div className="flex flex-wrap gap-4 p-4 border-y border-industrial-border bg-industrial-panel/30 backdrop-blur-sm">
+                    {["ВСЕ", "МЕТАЛЛООБРАБОТКА", "АВТОМАТИЗАЦИЯ", "ФОРМОВКА", "РЕЗКА", "АДДИТИВНЫЕ"].map((filter, i) => (
+                        <button
+                            key={i}
+                            className={`text-xs font-mono px-4 py-2 border transition-all uppercase tracking-wider ${i === 0
+                                ? "bg-safety-orange text-white border-safety-orange"
+                                : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
+                                }`}
                         >
-                            {products.length > 0 ? (
-                                products.map(product => (
-                                    <motion.div
-                                        key={product.id}
-                                        variants={{
-                                            hidden: { opacity: 0, y: 20 },
-                                            show: { opacity: 1, y: 0 }
-                                        }}
-                                    >
-                                        <ProductCard product={product} />
-                                    </motion.div>
-                                ))
-                            ) : (
-                                <div className="col-span-full text-center py-20 text-muted-foreground">
-                                    Нет товаров по вашему запросу
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
+                            {filter}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Grid */}
+            <div className="container mx-auto px-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {PLACEHOLDER_PRODUCTS.map((product) => (
+                        <div key={product.id} className="h-[400px]">
+                            <ProductCard product={product} />
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
