@@ -47,13 +47,13 @@ export const fetchProjects = async (): Promise<Project[]> => {
     try {
         // Fallback Mock Data
         return [
-            { id: '1', title: 'Гигафабрика Берлин', client: { name: 'Tesla Inc.' }, region: 'Европа', latitude: 52.3906, longitude: 13.7936 },
-            { id: '2', title: 'Завод Полупроводников', client: { name: 'TSMC' }, region: 'Азия', latitude: 24.8138, longitude: 121.0074 },
-            { id: '3', title: 'Литиевый Рудник Невада', client: { name: 'Albemarle' }, region: 'Северная Америка', latitude: 37.9577, longitude: -117.5445 },
-            { id: '4', title: 'Офшорная Ветроэлектростанция', client: { name: 'Ørsted' }, region: 'Северное Море', latitude: 54.5, longitude: 5.5 },
-            { id: '5', title: 'Комплекс Солнечных Батарей', client: { name: 'NextEra Energy' }, region: 'Северная Америка', latitude: 35.0, longitude: -115.0 },
-            { id: '6', title: 'Модернизация Сталелитейного Завода', client: { name: 'ArcelorMittal' }, region: 'Европа', latitude: 49.6116, longitude: 6.1319 },
-            { id: '7', title: 'СПГ Терминал', client: { name: 'QatarEnergy' }, region: 'Ближний Восток', latitude: 25.9, longitude: 51.5 }
+            { id: '1', title: 'Гигафабрика Берлин', client: { name: 'Tesla Inc.' }, region: 'Европа', latitude: 52.3906, longitude: 13.7936, image_url: '/images/backgrounds/bg_1.jpg' },
+            { id: '2', title: 'Завод Полупроводников', client: { name: 'TSMC' }, region: 'Азия', latitude: 24.8138, longitude: 121.0074, image_url: '/images/backgrounds/bg_2.jpg' },
+            { id: '3', title: 'Литиевый Рудник Невада', client: { name: 'Albemarle' }, region: 'Северная Америка', latitude: 37.9577, longitude: -117.5445, image_url: '/images/backgrounds/bg_3.jpg' },
+            { id: '4', title: 'Офшорная Ветроэлектростанция', client: { name: 'Ørsted' }, region: 'Северное Море', latitude: 54.5, longitude: 5.5, image_url: '/images/backgrounds/bg_4.jpg' },
+            { id: '5', title: 'Комплекс Солнечных Батарей', client: { name: 'NextEra Energy' }, region: 'Северная Америка', latitude: 35.0, longitude: -115.0, image_url: '/images/backgrounds/bg_1.jpg' },
+            { id: '6', title: 'Модернизация Сталелитейного Завода', client: { name: 'ArcelorMittal' }, region: 'Европа', latitude: 49.6116, longitude: 6.1319, image_url: '/images/backgrounds/bg_2.jpg' },
+            { id: '7', title: 'СПГ Терминал', client: { name: 'QatarEnergy' }, region: 'Ближний Восток', latitude: 25.9, longitude: 51.5, image_url: '/images/backgrounds/bg_3.jpg' }
         ];
     } catch (error) {
         console.error('Error fetching projects:', error);
