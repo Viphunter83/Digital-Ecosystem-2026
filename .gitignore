@@ -1,0 +1,25 @@
+# Input Materials (Business Logic & Data)
+_input_materials/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+.next/
+dist/
+build/
+.env

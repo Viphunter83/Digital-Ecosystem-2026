@@ -5,13 +5,19 @@ Please organize the input materials in `_input_materials` as follows to ensure t
 ## Structure
 
 ### `/products`
-Place product-related files here. Create a subfolder for each product category or specific machine if possible, but a flat list is also acceptable if well-named.
-- **Excel/CSV**: `metrics.xlsx` or `specs.csv` containing technical specifications.
-- **Images**: `*.jpg`, `*.png` (High resolution preferred).
-- **PDF**: Manuals, brochures.
+Place product-related files here.
+- **Heavy Machinery**: `ТП Шкода W200.docx` -> Parse for "Specs" and "Price".
+- **Documentation**: `Prezentacija_Zvezdochka.pdf` -> Extract project details.
 
 ### `/customers`
 - CRM exports or customer lists in Excel/CSV format.
+
+### `/references`
+- Place `Справка_референс_*.xlsx` files here.
+- **Parsing Rule**:
+  - Row 2 (Index 1): Company Info (Name, INN).
+  - Column 2 ("Оборот"): Annual Turnover.
+  - Column 8 ("Общая сумма"): Total Contract Sum.
 
 ### `/knowledge_base`
 - General technical documentation, standards (GOST/ISO), and FAQs.

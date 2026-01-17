@@ -4,37 +4,78 @@ Target: PostgreSQL with `pgvector` extension.
 
 ## Tables
 
-### `products`
-Core product information.
+### `products` (Machines)
+Core product information (Heavy Machinery).
 - `id` (UUID, PK)
 - `name` (VARCHAR)
 - `slug` (VARCHAR, Unique)
 - `category` (VARCHAR)
+- `manufacturer` (VARCHAR, nullable)
 - `description` (TEXT)
-- `specs` (JSONB) - Key-value pairs of technical specifications (e.g., {"power": "15kW", "weight": "1200kg"}).
+- `specs` (JSONB)
 - `price` (DECIMAL)
 - `currency` (VARCHAR, default 'RUB')
 - `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
 
-### `product_images`
+### `spare_parts`
+Consumables and parts.
 - `id` (UUID, PK)
-- `product_id` (UUID, FK -> products.id)
-- `url` (VARCHAR)
-- `is_primary` (BOOLEAN)
-- `order` (INTEGER)
+- `name` (VARCHAR)
+- `specs` (JSONB)
+- `price` (DECIMAL)
+- `embedding` (VECTOR(1536))
 
-### `documents`
-Stores parsed content from PDFs/Excel for RAG (Retrieval-Augmented Generation).
+### `clients`
 - `id` (UUID, PK)
-- `product_id` (UUID, FK -> products.id, nullable)
+- `name` (VARCHAR)
+- `inn` (VARCHAR, nullable)
+- `contact_info` (JSONB)
+
+### `projects` (Cases)
+Replaces 'references'.
+- `id` (UUID, PK)
+- `client_id` (UUID, FK -> clients.id)
+- `contract_number` (VARCHAR)
+- `year` (INTEGER)
+- `contract_sum` (DECIMAL)
+- `description` (TEXT) - "Work Type"
+- `region` (VARCHAR)
+- `coordinates` (JSONB) - {lat: float, lon: float}
+- `raw_data` (JSONB)
+
+### `articles` (Engineering Journal)
+- `id` (UUID, PK)
+- `title` (VARCHAR)
+- `slug` (VARCHAR, Unique)
+- `content` (TEXT) - Markdown
+- `tags` (ARRAY[VARCHAR])
+- `cover_image` (VARCHAR)
+- `embedding` (VECTOR(1536))
+
+### `article_ctas`
+- `id` (UUID, PK)
+- `article_id` (UUID, FK -> articles.id)
+- `text` (VARCHAR)
+- `link` (VARCHAR)
+
+### `documents` (Machine Knowledge Base)
+- `id` (UUID, PK)
 - `title` (VARCHAR)
 - `content` (TEXT)
-- `metadata` (JSONB) - Source file, page number, etc.
-- `embedding` (VECTOR(1536)) - For semantic search.
+- `source_type` (VARCHAR) - e.g. 'tech_proposal', 'manual'
+- `embedding` (VECTOR(1536))
 
-### `leads`
-Potential customers.
+### `telegram_users` (Service Assistant)
+- `id` (UUID, PK)
+- `tg_id` (BIGINT, Unique)
+- `phone` (VARCHAR)
+- `client_id` (UUID, FK -> clients.id)
+
+### `notifications`
+- `id` (UUID, PK)
+- `user_id` (UUID, FK -> telegram_users.id)
+- `message` (TEXT)
+- `status` (VARCHAR) - 'pending', 'sent'
 - `id` (UUID, PK)
 - `name` (VARCHAR)
 - `email` (VARCHAR)
