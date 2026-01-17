@@ -99,79 +99,89 @@ export const fetchProjects = async (): Promise<Project[]> => {
     }
 };
 
+// Real Data from "ТД РУССтанкоСбыт"
+const CATALOG_DATA: Product[] = [
+    {
+        id: 1001,
+        name: "ТОКАРНАЯ ОБРАБОТКА (ЧПУ)",
+        description: "Высокоточная токарная обработка деталей сложной конфигурации на станках с ЧПУ.",
+        image_url: "/images/product_cnc.png",
+        category: "МЕХАНООБРАБОТКА",
+        specs: { "Диаметр": "До 1000 мм", "Длина": "До 3000 мм" }
+    },
+    {
+        id: 1002,
+        name: "ФРЕЗЕРНАЯ ОБРАБОТКА",
+        description: "Обработка корпусных деталей и сложных поверхностей на широкоформатных фрезерных станках.",
+        image_url: "/images/product_laser.png",
+        category: "МЕХАНООБРАБОТКА",
+        specs: { "Рабочее поле": "1200x5000 мм", "Оси": "3-5 координат" }
+    },
+    {
+        id: 1003,
+        name: "ШЛИФОВАНИЕ (КРУГЛОЕ/ПЛОСКОЕ)",
+        description: "Финишная обработка поверхностей с микронной точностью.",
+        image_url: "/images/product_press.png",
+        category: "МЕХАНООБРАБОТКА",
+        specs: { "Круглое": "Ø400x1200 мм", "Тип": "Координатное" }
+    },
+    {
+        id: 1004,
+        name: "РАСТОЧНАЯ ОБРАБОТКА",
+        description: "Растачивание отверстий в крупногабаритных корпусных деталях.",
+        image_url: "/images/product_3d_printer.png",
+        category: "МЕХАНООБРАБОТКА",
+        specs: { "Стол": "1200x1200 мм", "Вес детали": "До 5 т" }
+    },
+    {
+        id: 1005,
+        name: "ЗУБООБРАБОТКА",
+        description: "Производство цилиндрических и конических зубчатых колес различных модулей.",
+        image_url: "/images/product_conveyor.png",
+        category: "ПРОИЗВОДСТВО",
+        specs: { "Тип": "Конические/Цилиндрические", "Модуль": "Любой" }
+    },
+    {
+        id: 1006,
+        name: "РЕВОЛЬВЕРНЫЕ ГОЛОВКИ",
+        description: "Собственное производство револьверных головок для токарных станков.",
+        image_url: "/images/product_cnc.png",
+        category: "ПРОИЗВОДСТВО",
+        specs: { "Технология": "Собственная", "Надежность": "Высокая" }
+    },
+    {
+        id: 1007,
+        name: "ВАЛЫ И ШПИНДЕЛИ",
+        description: "Полный цикл изготовления валов и шпиндельных узлов, включая термообработку.",
+        image_url: "/images/product_laser.png",
+        category: "ПРОИЗВОДСТВО",
+        specs: { "Цикл": "Полный", "Обработка": "Термо/Финиш" }
+    },
+    {
+        id: 1008,
+        name: "МОСТОВОЙ КРАН 60/160Т",
+        description: "Уникальное грузоподъемное оборудование для работы с тяжелыми грузами (Воронеж).",
+        image_url: "/images/product_press.png",
+        category: "ОБОРУДОВАНИЕ",
+        specs: { "Г/П Основной": "160 тонн", "Пролет": "24 м" }
+    }
+];
+
 export const fetchCatalog = async (query?: string): Promise<Product[]> => {
     try {
-        // Real Data from "ТД РУССтанкоСбыт"
-        const products: Product[] = [
-            {
-                id: 1001,
-                name: "ТОКАРНАЯ ОБРАБОТКА (ЧПУ)",
-                description: "Высокоточная токарная обработка деталей сложной конфигурации на станках с ЧПУ.",
-                image_url: "/images/product_cnc.png",
-                category: "МЕХАНООБРАБОТКА",
-                specs: { "Диаметр": "До 1000 мм", "Длина": "До 3000 мм" }
-            },
-            {
-                id: 1002,
-                name: "ФРЕЗЕРНАЯ ОБРАБОТКА",
-                description: "Обработка корпусных деталей и сложных поверхностей на широкоформатных фрезерных станках.",
-                image_url: "/images/product_laser.png",
-                category: "МЕХАНООБРАБОТКА",
-                specs: { "Рабочее поле": "1200x5000 мм", "Оси": "3-5 координат" }
-            },
-            {
-                id: 1003,
-                name: "ШЛИФОВАНИЕ (КРУГЛОЕ/ПЛОСКОЕ)",
-                description: "Финишная обработка поверхностей с микронной точностью.",
-                image_url: "/images/product_press.png",
-                category: "МЕХАНООБРАБОТКА",
-                specs: { "Круглое": "Ø400x1200 мм", "Тип": "Координатное" }
-            },
-            {
-                id: 1004,
-                name: "РАСТОЧНАЯ ОБРАБОТКА",
-                description: "Растачивание отверстий в крупногабаритных корпусных деталях.",
-                image_url: "/images/product_3d_printer.png",
-                category: "МЕХАНООБРАБОТКА",
-                specs: { "Стол": "1200x1200 мм", "Вес детали": "До 5 т" }
-            },
-            {
-                id: 1005,
-                name: "ЗУБООБРАБОТКА",
-                description: "Производство цилиндрических и конических зубчатых колес различных модулей.",
-                image_url: "/images/product_conveyor.png",
-                category: "ПРОИЗВОДСТВО",
-                specs: { "Тип": "Конические/Цилиндрические", "Модуль": "Любой" }
-            },
-            {
-                id: 1006,
-                name: "РЕВОЛЬВЕРНЫЕ ГОЛОВКИ",
-                description: "Собственное производство револьверных головок для токарных станков.",
-                image_url: "/images/product_cnc.png",
-                category: "ПРОИЗВОДСТВО",
-                specs: { "Технология": "Собственная", "Надежность": "Высокая" }
-            },
-            {
-                id: 1007,
-                name: "ВАЛЫ И ШПИНДЕЛИ",
-                description: "Полный цикл изготовления валов и шпиндельных узлов, включая термообработку.",
-                image_url: "/images/product_laser.png",
-                category: "ПРОИЗВОДСТВО",
-                specs: { "Цикл": "Полный", "Обработка": "Термо/Финиш" }
-            },
-            {
-                id: 1008,
-                name: "МОСТОВОЙ КРАН 60/160Т",
-                description: "Уникальное грузоподъемное оборудование для работы с тяжелыми грузами (Воронеж).",
-                image_url: "/images/product_press.png",
-                category: "ОБОРУДОВАНИЕ",
-                specs: { "Г/П Основной": "160 тонн", "Пролет": "24 м" }
-            }
-        ];
-        return products;
+        return CATALOG_DATA;
     } catch (error) {
         console.error('Error fetching catalog:', error);
         return [];
+    }
+};
+
+export const fetchProductById = async (id: number): Promise<Product | undefined> => {
+    try {
+        return CATALOG_DATA.find(p => p.id === id);
+    } catch (error) {
+        console.error('Error fetching product:', error);
+        return undefined;
     }
 };
 
