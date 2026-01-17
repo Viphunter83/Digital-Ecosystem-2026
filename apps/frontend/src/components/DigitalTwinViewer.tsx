@@ -117,21 +117,13 @@ export function DigitalTwinViewer() {
 
                 {/* Post Processing */}
                 <EffectComposer>
-                    <Bloom luminanceThreshold={0.5} luminanceSmoothing={0.9} height={300} intensity={0.5} />
+                    <Bloom luminanceThreshold={0.5} luminanceSmoothing={0.9} height={300} intensity={0.2} />
                     <Vignette eskil={false} offset={0.1} darkness={1.1} />
-                    {glitchActive && <Glitch delay={[1.5, 3.5]} duration={[0.6, 1.0]} strength={[0.3, 1.0]} />}
                 </EffectComposer>
             </Canvas>
 
             {/* Overlay UI Controls */}
-            <div className="absolute top-4 right-4 flex flex-col gap-2">
-                <button
-                    className="bg-black/50 backdrop-blur border border-safety-orange text-safety-orange px-4 py-2 font-mono text-xs uppercase hover:bg-safety-orange hover:text-white transition-colors"
-                    onClick={() => setGlitchActive(!glitchActive)}
-                >
-                    Toggle Simulation Glitch
-                </button>
-            </div>
+            {/* Glitch toggle removed for stability */}
             <div className="absolute bottom-4 left-4 pointer-events-none">
                 <div className="text-white/50 font-mono text-xs">
                     DIGITAL TWIN ENGINE v2.0
