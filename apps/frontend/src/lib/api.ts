@@ -45,15 +45,53 @@ const api = axios.create({
 
 export const fetchProjects = async (): Promise<Project[]> => {
     try {
-        // Fallback Mock Data
+        // Real Data from "ТД РУССтанкоСбыт"
         return [
-            { id: '1', title: 'Гигафабрика Берлин', client: { name: 'Tesla Inc.' }, region: 'Европа', latitude: 52.3906, longitude: 13.7936, image_url: '/images/backgrounds/bg_1.jpg' },
-            { id: '2', title: 'Завод Полупроводников', client: { name: 'TSMC' }, region: 'Азия', latitude: 24.8138, longitude: 121.0074, image_url: '/images/backgrounds/bg_2.jpg' },
-            { id: '3', title: 'Литиевый Рудник Невада', client: { name: 'Albemarle' }, region: 'Северная Америка', latitude: 37.9577, longitude: -117.5445, image_url: '/images/backgrounds/bg_3.jpg' },
-            { id: '4', title: 'Офшорная Ветроэлектростанция', client: { name: 'Ørsted' }, region: 'Северное Море', latitude: 54.5, longitude: 5.5, image_url: '/images/backgrounds/bg_4.jpg' },
-            { id: '5', title: 'Комплекс Солнечных Батарей', client: { name: 'NextEra Energy' }, region: 'Северная Америка', latitude: 35.0, longitude: -115.0, image_url: '/images/backgrounds/bg_1.jpg' },
-            { id: '6', title: 'Модернизация Сталелитейного Завода', client: { name: 'ArcelorMittal' }, region: 'Европа', latitude: 49.6116, longitude: 6.1319, image_url: '/images/backgrounds/bg_2.jpg' },
-            { id: '7', title: 'СПГ Терминал', client: { name: 'QatarEnergy' }, region: 'Ближний Восток', latitude: 25.9, longitude: 51.5, image_url: '/images/backgrounds/bg_3.jpg' }
+            {
+                id: '1',
+                title: 'ПЛОЩАДКА №1 - РЯЗАНЬ',
+                client: { name: 'ТД РУССтанкоСбыт' },
+                region: 'Рязанская обл.',
+                latitude: 54.6269,
+                longitude: 39.6916,
+                image_url: '/images/backgrounds/bg_1.jpg',
+                description: "Производство полного цикла токарных и трубонарезных станков. Участок зубчатых колес."
+            },
+            {
+                id: '2',
+                title: 'ПЛОЩАДКА №2 - ВОРОНЕЖ',
+                client: { name: 'ТД РУССтанкоСбыт' },
+                region: 'Воронежская обл.',
+                latitude: 51.6720,
+                longitude: 39.1843,
+                image_url: '/images/backgrounds/bg_2.jpg',
+                description: "Тяжелая обработка до 150т. Мостовой кран 160т."
+            },
+            {
+                id: '3',
+                title: 'ПЛОЩАДКА №3 - ИЖЕВСК',
+                client: { name: 'ТД РУССтанкоСбыт' },
+                region: 'Удмуртия',
+                latitude: 56.8498,
+                longitude: 53.2045,
+                image_url: '/images/backgrounds/bg_3.jpg',
+                description: "Производство конических зубчатых колес. Механическая обработка."
+            },
+            {
+                id: '4',
+                title: 'ПЛОЩАДКА №4 - БЕЛАРУСЬ',
+                client: { name: 'Партнерское производство' },
+                region: 'Минск',
+                latitude: 53.9000,
+                longitude: 27.5667,
+                image_url: '/images/backgrounds/bg_4.jpg',
+                description: "Партнерская производственная площадка."
+            },
+            // Major Clients (For lists/reference, coords approximate/faked for now or just omitted if not needed on map)
+            { id: 'c1', title: 'АО "Завод "Сельмаш"', client: { name: 'Клиент' }, region: 'Киров', description: "Крупный заказчик" },
+            { id: 'c2', title: 'АО "Таганрогский мет. завод"', client: { name: 'Клиент' }, region: 'Таганрог', description: "Крупный заказчик" },
+            { id: 'c3', title: 'КАО "АЗОТ"', client: { name: 'Клиент' }, region: 'Кемерово', description: "Крупный заказчик" },
+            { id: 'c4', title: 'АО "Туламашзавод"', client: { name: 'Клиент' }, region: 'Тула', description: "Крупный заказчик" }
         ];
     } catch (error) {
         console.error('Error fetching projects:', error);

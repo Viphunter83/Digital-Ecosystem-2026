@@ -11,7 +11,8 @@ export default function MapComponent({ projects }: MapComponentProps) {
     const defaultState = {
         center: [55.751574, 37.573856],
         zoom: 3,
-        controls: [] // Clean controls
+        controls: [],
+        behaviors: ["default", "-scrollZoom"]
     };
 
     return (
@@ -25,7 +26,6 @@ export default function MapComponent({ projects }: MapComponentProps) {
                         options={{
                             suppressMapOpenBlock: true,
                             yandexMapDisablePoiInteractivity: true,
-                            scrollZoom: false, // Requirement: Disable scroll zoom
                         }}
                     >
                         {/* Custom Zoom Control */}
@@ -39,8 +39,9 @@ export default function MapComponent({ projects }: MapComponentProps) {
                                     geometry={[project.latitude, project.longitude]}
                                     properties={{
                                         hintContent: project.title,
-                                        balloonContentHeader: `<span style="color:#000; font-weight:bold;">${project.title}</span>`,
-                                        balloonContentBody: `${project.client?.name || ''}<br/><span style="color:#666">${project.region}</span>`,
+                                        balloonContentBody: `<h3 class="font-bold text-sm uppercase tracking-wider text-safety-orange mb-1" style="color: #FF3D00; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${project.title}</h3>
+                        <p class="text-xs text-gray-300 font-mono mb-2" style="color: #d1d5db;">${project.description || project.client?.name || ''}</p>
+                        <div class="text-[10px] text-gray-500" style="color: #6b7280;">${project.region}</div>`,
                                     }}
                                     options={{
                                         iconColor: '#FF4500', // Safety Orange

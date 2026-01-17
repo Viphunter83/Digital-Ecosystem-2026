@@ -67,12 +67,19 @@ export function Footer() {
                         <div className="space-y-4 text-sm text-muted-foreground">
                             <p>
                                 <strong className="text-white block mb-1">Центральный офис</strong>
-                                Индустриальный проспект, 123<br />
-                                Москва, Россия, 101000
+                                Москва, Россия
                             </p>
                             <p>
                                 <strong className="text-white block mb-1">Отдел продаж</strong>
-                                <a href="tel:+70000000000" className="hover:text-safety-orange transition-colors">+7 (000) 000-00-00</a>
+                                <a href="tel:+74993908504" className="hover:text-safety-orange transition-colors">+7 (499) 390-85-04</a>
+                            </p>
+                            <p>
+                                <strong className="text-white block mb-1">Email</strong>
+                                <a href="mailto:zakaz@tdrusstankosbyt.ru" className="hover:text-safety-orange transition-colors">zakaz@tdrusstankosbyt.ru</a>
+                            </p>
+                            <p>
+                                <strong className="text-white block mb-1">Telegram</strong>
+                                <a href="https://t.me/tdrusstankosbyt" target="_blank" rel="noopener noreferrer" className="hover:text-safety-orange transition-colors">@tdrusstankosbyt</a>
                             </p>
                             <Button className="w-full bg-white/5 border border-white/10 hover:bg-safety-orange hover:border-safety-orange text-white transition-all uppercase text-xs font-bold tracking-wider rounded-none mt-2">
                                 Заказать звонок
@@ -82,7 +89,7 @@ export function Footer() {
                 </div>
 
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-muted-foreground font-mono uppercase tracking-wide">
-                    <p>&copy; 2026 РУССТАНКОСБЫТ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</p>
+                    <p>&copy; 2026 ТД РУССТАНКОСБЫТ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</p>
                     <div className="flex gap-6 mt-4 md:mt-0">
                         <Link href="#" className="hover:text-white">Политика конфиденциальности</Link>
                         <Link href="#" className="hover:text-white">Условия использования</Link>
