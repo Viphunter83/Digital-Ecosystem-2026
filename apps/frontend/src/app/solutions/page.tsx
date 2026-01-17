@@ -11,28 +11,28 @@ const SOLUTIONS = [
         title: "Оснащение под ключ",
         description: "Комплексное техническое перевооружение предприятий. От аудита технологии до запуска производства.",
         icon: Box,
-        image: "/images/backgrounds/bg_1.jpg"
+        gradient: "from-blue-900/20 to-black"
     },
     {
         id: "automation",
         title: "Автоматизация и Роботизация",
         description: "Внедрение роботизированных ячеек и автоматических линий для серийного производства.",
         icon: Zap,
-        image: "/images/backgrounds/bg_2.jpg"
+        gradient: "from-purple-900/20 to-black"
     },
     {
         id: "digital",
         title: "Цифровой Двойник",
         description: "Разработка цифровых двойников производства для оптимизации процессов и предиктивного обслуживания.",
         icon: Cpu,
-        image: "/images/backgrounds/bg_3.jpg"
+        gradient: "from-emerald-900/20 to-black"
     },
     {
         id: "service",
         title: "Сервис и Экспертиза",
         description: "24/7 техническая поддержка, обучение персонала и проведение пуско-наладочных работ.",
         icon: ShieldCheck,
-        image: "/images/backgrounds/bg_4.jpg"
+        gradient: "from-orange-900/20 to-black"
     }
 ];
 
@@ -54,16 +54,9 @@ export default function SolutionsPage() {
             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                 {SOLUTIONS.map((solution, index) => (
                     <div key={solution.id} className="group relative bg-industrial-panel border border-industrial-border overflow-hidden min-h-[300px] flex flex-col justify-end p-8 transition-all duration-500 hover:border-safety-orange hover:shadow-[0_0_30px_rgba(255,61,0,0.15)]">
-                        {/* Background Image with Overlay */}
-                        <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-40 transition-opacity duration-700">
-                            <Image
-                                src={solution.image}
-                                alt={solution.title}
-                                fill
-                                className="object-cover object-center grayscale group-hover:grayscale-0 transition-all duration-700"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
-                        </div>
+                        {/* Abstract Background Gradient */}
+                        <div className={`absolute inset-0 z-0 bg-gradient-to-br ${solution.gradient} opacity-50 group-hover:opacity-100 transition-all duration-700`} />
+                        <div className="absolute inset-0 bg-[url('/images/pattern_grid.png')] opacity-10 group-hover:opacity-20 transition-opacity" />
 
                         {/* Content */}
                         <div className="relative z-10">
@@ -98,7 +91,7 @@ export default function SolutionsPage() {
                             <p className="font-mono text-white/80">Оставьте заявку на аудит вашего производства уже сегодня.</p>
                         </div>
                         <Link href="/contacts">
-                            <Button className="bg-white text-safety-orange hover:bg-black hover:text-white font-bold uppercase tracking-wider px-8 py-6 rounded-none transition-colors border-2 border-transparent hover:border-white">
+                            <Button className="bg-black text-white hover:bg-zinc-900 hover:text-white font-bold uppercase tracking-wider px-8 py-6 rounded-none transition-colors border-2 border-black hover:border-black">
                                 Получить Консультацию
                             </Button>
                         </Link>
