@@ -2,6 +2,7 @@
 
 ## Overview
 A PWA platform for **"RusStankoSbyt"** designed to be the "Super Weapon" for sales. 
+> **Latest Context**: [ARCHITECTURE_HANDOFF.md](./ARCHITECTURE_HANDOFF.md)
 The platform serves as a digital catalog and reference system for high-value industrial machinery (e.g., Skoda W200, Lathes, Mills).
 
 ## Business Context
