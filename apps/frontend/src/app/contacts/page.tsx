@@ -67,22 +67,26 @@ export default function ContactsPage() {
                     {/* Feedback Form */}
                     <div className="bg-industrial-panel/50 border border-industrial-border p-8 rounded-sm">
                         <h3 className="text-xl font-bold uppercase text-white mb-6">Обратная связь</h3>
-                        <form className="space-y-4">
+                        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert("Сообщение отправлено (демо)!"); }}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-xs font-mono uppercase text-muted-foreground">Имя</label>
-                                    <input type="text" className="w-full bg-black/20 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors" placeholder="Иван Иванов" />
+                                    <input type="text" className="w-full bg-black/20 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors" placeholder="Иван Иванов" required />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-mono uppercase text-muted-foreground">Телефон</label>
-                                    <input type="tel" className="w-full bg-black/20 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors" placeholder="+7 (___) ___-__-__" />
+                                    <input type="tel" className="w-full bg-black/20 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors" placeholder="+7 (___) ___-__-__" required />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-mono uppercase text-muted-foreground">Сообщение</label>
-                                <textarea rows={4} className="w-full bg-black/20 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors" placeholder="Опишите вашу задачу..." />
+                                <label className="text-xs font-mono uppercase text-muted-foreground">Email</label>
+                                <input type="email" className="w-full bg-black/20 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors" placeholder="email@example.com" required />
                             </div>
-                            <button type="button" className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-xs transition-colors">
+                            <div className="space-y-2">
+                                <label className="text-xs font-mono uppercase text-muted-foreground">Сообщение</label>
+                                <textarea rows={4} className="w-full bg-black/20 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors" placeholder="Опишите вашу задачу..." required />
+                            </div>
+                            <button type="submit" className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-xs transition-colors">
                                 Отправить
                             </button>
                         </form>

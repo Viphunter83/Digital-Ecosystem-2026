@@ -33,11 +33,16 @@ export function Footer() {
                     <div>
                         <h4 className="font-bold uppercase tracking-wider mb-6 text-sm">Навигация</h4>
                         <ul className="space-y-3 text-sm text-muted-foreground">
-                            {["Каталог", "Решения", "О компании", "Контакты"].map((item) => (
-                                <li key={item}>
-                                    <Link href={`/${item.toLowerCase()}`} className="hover:text-safety-orange transition-colors flex items-center group">
+                            {[
+                                { label: "Каталог", href: "/catalog" },
+                                { label: "Решения", href: "/solutions" },
+                                { label: "О компании", href: "/company" },
+                                { label: "Контакты", href: "/contacts" },
+                            ].map((item) => (
+                                <li key={item.label}>
+                                    <Link href={item.href} className="hover:text-safety-orange transition-colors flex items-center group">
                                         <span className="w-1 h-1 rounded-full bg-safety-orange mr-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        {item}
+                                        {item.label}
                                     </Link>
                                 </li>
                             ))}

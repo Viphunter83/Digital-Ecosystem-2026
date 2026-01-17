@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { motion } from 'framer-motion';
 import { ProductCard } from "@/components/ProductCard";
+import { HeroSection } from "@/components/home/HeroSection";
+import { DiagnosticsWidget } from "@/components/features/DiagnosticsWidget";
 
 // Dynamically import Map to avoid SSR issues with Leaflet
 const MapComponent = dynamic(() => import('@/components/MapComponent'), { ssr: false });
@@ -18,6 +20,7 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -34,75 +37,8 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-industrial-surface text-foreground selection:bg-safety-orange selection:text-white">
 
-      {/* HERO SECTION */}
-      <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-industrial-surface">
-        {/* Dynamic Industrial Background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-industrial-panel/50 via-industrial-surface to-black" />
-        </div>
-
-        <div className="container relative z-10 px-6 flex flex-col items-start justify-center h-full max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            className="mb-8 inline-flex items-center gap-3 border-l-2 border-safety-orange pl-4"
-          >
-            <span className="text-sm font-mono tracking-[0.2em] uppercase text-safety-orange font-bold">Статус системы: Номинальный</span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.9] mb-8 text-white uppercase mix-blend-screen"
-          >
-            ИНЖИНИРИНГ<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gray-500">БУДУЩЕГО</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-2xl font-light leading-relaxed border-t border-white/10 pt-8"
-          >
-            Передовая цифровая экосистема управления жизненным циклом.
-            <span className="text-white font-medium"> Точность. Эффективность. Контроль.</span>
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto"
-          >
-            <Link href="/catalog" className="w-full sm:w-auto">
-              <ShimmerButton className="w-full sm:w-auto bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold h-16 px-10 text-lg rounded-none uppercase tracking-widest shadow-[0_0_40px_rgba(255,61,0,0.2)] hover:shadow-[0_0_60px_rgba(255,61,0,0.4)] transition-all flex items-center justify-between group">
-                Оформить заказ
-                <ArrowRight className="ml-4 transition-transform group-hover:translate-x-1" />
-              </ShimmerButton>
-            </Link>
-            <Link href="/solutions" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/20 hover:bg-white/5 hover:border-white/40 text-white h-16 px-10 text-lg rounded-none uppercase tracking-widest backdrop-blur-sm font-mono">
-                Диагностика системы
-              </Button>
-            </Link>
-          </motion.div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5, duration: 1 }}
-          className="absolute bottom-10 right-10 flex flex-col items-center gap-2"
-        >
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground vertical-rl rotate-180">Листайте для просмотра</span>
-          <div className="w-[1px] h-16 bg-gradient-to-b from-safety-orange to-transparent" />
-        </motion.div>
-      </section>
+      {/* HERO SECTION - REPLACED WITH DYNAMIC COMPONENT */}
+      <HeroSection onOpenDiagnostics={() => setDiagnosticsOpen(true)} />
 
       {/* CATALOG PREVIEW SECTION */}
       <section className="py-32 bg-industrial-surface relative z-10 border-t border-white/5">
@@ -154,14 +90,14 @@ export default function Home() {
         <div className="bg-industrial-panel border-y border-industrial-border py-4 px-6 flex justify-between items-center overflow-hidden">
           <div className="flex gap-8 animate-marquee whitespace-nowrap">
             {[1, 2, 3, 4, 5].map(i => (
-              <span key={i} className="text-2xl font-black uppercase italic text-industrial-surface text-stroke-1 opacity-20">
+              <span key={i} className="text-2xl font-black uppercase italic text-industrial-surface text-stroke-1 opacity-40">
                 Глобальная логистическая сеть // Доставка по всему миру // Поддержка 24/7
               </span>
             ))}
           </div>
         </div>
 
-        <div className="relative h-[600px] w-full bg-deep-graphite grayscale invert-[0.1]">
+        <div className="relative h-[600px] w-full bg-deep-graphite">
           <MapComponent projects={projects} />
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-industrial-surface to-transparent opacity-50" />
           <div className="absolute bottom-0 left-0 p-8 z-10">
@@ -214,6 +150,7 @@ export default function Home() {
         </div>
       </section>
 
+      <DiagnosticsWidget isOpen={diagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} />
     </div>
   );
 }

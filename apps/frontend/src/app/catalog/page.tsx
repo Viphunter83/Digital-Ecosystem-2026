@@ -1,82 +1,30 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductTable } from '@/components/ProductTable';
 import { Product, fetchCatalog } from '@/lib/api';
 
-// Placeholder data for the catalog
-const PLACEHOLDER_PRODUCTS: Product[] = [
-    {
-        id: 1001,
-        name: "CNC MACHINING CENTER X5",
-        description: "5-axis simultaneous machining center for aerospace components.",
-        image_url: "",
-        category: "MACHINING",
-        specs: {
-            "Power": "15kW",
-            "Speed": "12000 RPM"
-        }
-    },
-    {
-        id: 1002,
-        name: "ROBOTIC ARM A-500",
-        description: "High-precision robotic arm for automated assembly lines.",
-        image_url: "",
-        category: "AUTOMATION",
-        specs: {
-            "Payload": "50kg",
-            "Reach": "2.5m"
-        }
-    },
-    {
-        id: 1003,
-        name: "HYDRAULIC PRESS H-200",
-        description: "200-ton hydraulic press for heavy metal forming.",
-        image_url: "",
-        category: "FORMING",
-        specs: {
-            "Force": "200T",
-            "Area": "1.5x1.5m"
-        }
-    },
-    {
-        id: 1004,
-        name: "LASER CUTTER L-3000",
-        description: "High-speed fiber laser cutting machine.",
-        image_url: "",
-        category: "CUTTING",
-        specs: {
-            "Power": "3kW",
-            "Table": "3x1.5m"
-        }
-    },
-    {
-        id: 1005,
-        name: "INDUSTRIAL 3D PRINTER",
-        description: "Large scale additive manufacturing system.",
-        image_url: "",
-        category: "ADDITIVE",
-        specs: {
-            "Volume": "1m3",
-            "Material": "Polymer"
-        }
-    },
-    {
-        id: 1006,
-        name: "CONVEYOR SYSTEM C-10",
-        description: "Modular conveyor system for automated warehousing.",
-        image_url: "",
-        category: "LOGISTICS",
-        specs: {
-            "Speed": "2m/s",
-            "Load": "100kg/m"
-        }
-    }
-];
-
 export default function CatalogPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const [activeFilter, setActiveFilter] = useState("ВСЕ");
+
+    useEffect(() => {
+        async function loadData() {
+            setLoading(true);
+            const data = await fetchCatalog();
+            setProducts(data);
+            setLoading(false);
+        }
+        loadData();
+    }, []);
+
+    const filteredProducts = activeFilter === "ВСЕ"
+        ? products
+        : products.filter(p => p.category === activeFilter);
 
     return (
         <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
@@ -93,7 +41,7 @@ export default function CatalogPage() {
                     </div>
                     <div className="flex flex-col items-end gap-4 mt-4 md:mt-0">
                         <div className="font-mono text-xs text-safety-orange text-right">
-                            <span className="mr-4">[ ВСЕГО ПОЗИЦИЙ: {PLACEHOLDER_PRODUCTS.length} ]</span>
+                            <span className="mr-4">[ ВСЕГО ПОЗИЦИЙ: {products.length} ]</span>
                             <span>[ ОБНОВЛЕНО: 17.01.2026 ]</span>
                         </div>
 
@@ -122,13 +70,14 @@ export default function CatalogPage() {
                 </div>
             </div>
 
-            {/* Filters (Placeholder) */}
+            {/* Filters */}
             <div className="container mx-auto px-6 mb-12">
                 <div className="flex flex-wrap gap-4 p-4 border-y border-industrial-border bg-industrial-panel/30 backdrop-blur-sm">
-                    {["ВСЕ", "МЕТАЛЛООБРАБОТКА", "АВТОМАТИЗАЦИЯ", "ФОРМОВКА", "РЕЗКА", "АДДИТИВНЫЕ"].map((filter, i) => (
+                    {["ВСЕ", "МЕХАНООБРАБОТКА", "АВТОМАТИЗАЦИЯ", "ФОРМОВКА", "РЕЗКА", "АДДИТИВНЫЕ", "ЛОГИСТИКА"].map((filter, i) => (
                         <button
                             key={i}
-                            className={`text-xs font-mono px-4 py-2 border transition-all uppercase tracking-wider ${i === 0
+                            onClick={() => setActiveFilter(filter)}
+                            className={`text-xs font-mono px-4 py-2 border transition-all uppercase tracking-wider ${activeFilter === filter
                                 ? "bg-safety-orange text-white border-safety-orange"
                                 : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
                                 }`}
@@ -141,16 +90,22 @@ export default function CatalogPage() {
 
             {/* Content */}
             <div className="container mx-auto px-6">
-                {viewMode === 'grid' ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {PLACEHOLDER_PRODUCTS.map((product) => (
-                            <div key={product.id} className="h-[400px]">
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
+                {loading ? (
+                    <div className="text-center py-20 font-mono text-safety-orange animate-pulse">
+                        [ ЗАГРУЗКА БАЗЫ ДАННЫХ... ]
                     </div>
                 ) : (
-                    <ProductTable products={PLACEHOLDER_PRODUCTS} />
+                    viewMode === 'grid' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredProducts.map((product) => (
+                                <div key={product.id} className="flex flex-col">
+                                    <ProductCard product={product} />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <ProductTable products={filteredProducts} />
+                    )
                 )}
             </div>
         </div>
