@@ -9,6 +9,10 @@ const config: Config = {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                sans: ['var(--font-manrope)', 'sans-serif'],
+                mono: ['var(--font-jetbrains-mono)', 'monospace'],
+            },
             colors: {
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',

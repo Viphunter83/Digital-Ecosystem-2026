@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
+import { ShimmerButton } from "@/components/ShimmerButton";
 import dynamic from 'next/dynamic';
 import { fetchProjects, fetchArticles, fetchCatalog, Project, Article, Product } from '@/lib/api';
 import { useEffect, useState } from "react";
@@ -78,10 +79,10 @@ export default function Home() {
             className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto"
           >
             <Link href="/catalog" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold h-16 px-10 text-lg rounded-none uppercase tracking-widest shadow-[0_0_40px_rgba(255,61,0,0.2)] hover:shadow-[0_0_60px_rgba(255,61,0,0.4)] transition-all flex items-center justify-between group">
+              <ShimmerButton className="w-full sm:w-auto bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold h-16 px-10 text-lg rounded-none uppercase tracking-widest shadow-[0_0_40px_rgba(255,61,0,0.2)] hover:shadow-[0_0_60px_rgba(255,61,0,0.4)] transition-all flex items-center justify-between group">
                 Оформить заказ
                 <ArrowRight className="ml-4 transition-transform group-hover:translate-x-1" />
-              </Button>
+              </ShimmerButton>
             </Link>
             <Link href="/solutions" className="w-full sm:w-auto">
               <Button size="lg" variant="outline" className="w-full sm:w-auto border-white/20 hover:bg-white/5 hover:border-white/40 text-white h-16 px-10 text-lg rounded-none uppercase tracking-widest backdrop-blur-sm font-mono">

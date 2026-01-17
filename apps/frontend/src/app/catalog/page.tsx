@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ProductCard } from '@/components/ProductCard';
+import { ProductTable } from '@/components/ProductTable';
 import { Product, fetchCatalog } from '@/lib/api';
 
 // Placeholder data for the catalog
@@ -75,6 +76,8 @@ const PLACEHOLDER_PRODUCTS: Product[] = [
 ];
 
 export default function CatalogPage() {
+    const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+
     return (
         <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
             {/* Header */}
@@ -88,9 +91,33 @@ export default function CatalogPage() {
                             ВЫСОКОТЕХНОЛОГИЧНЫЕ РЕШЕНИЯ ДЛЯ ПРОМЫШЛЕННОСТИ. ПОЛНЫЙ СПЕКТР ОБОРУДОВАНИЯ.
                         </p>
                     </div>
-                    <div className="flex items-center space-x-4 mt-4 md:mt-0 font-mono text-xs text-safety-orange">
-                        <span>[ ВСЕГО ПОЗИЦИЙ: {PLACEHOLDER_PRODUCTS.length} ]</span>
-                        <span>[ ОБНОВЛЕНО: 17.01.2026 ]</span>
+                    <div className="flex flex-col items-end gap-4 mt-4 md:mt-0">
+                        <div className="font-mono text-xs text-safety-orange text-right">
+                            <span className="mr-4">[ ВСЕГО ПОЗИЦИЙ: {PLACEHOLDER_PRODUCTS.length} ]</span>
+                            <span>[ ОБНОВЛЕНО: 17.01.2026 ]</span>
+                        </div>
+
+                        {/* View Toggle */}
+                        <div className="flex bg-industrial-panel border border-industrial-border p-1 gap-1">
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-safety-orange text-white' : 'text-muted-foreground hover:text-white'}`}
+                                title="Grid View"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M1 1h6v6H1V1zm8 0h6v6H9V1zM1 9h6v6H1V9zm8 0h6v6H9V9z" />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={() => setViewMode('table')}
+                                className={`p-2 transition-colors ${viewMode === 'table' ? 'bg-safety-orange text-white' : 'text-muted-foreground hover:text-white'}`}
+                                title="Table View"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M1 2h14v2H1V2zm0 4h14v2H1V6zm0 4h14v2H1v-2zm0 4h14v2H1v-2z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -112,15 +139,19 @@ export default function CatalogPage() {
                 </div>
             </div>
 
-            {/* Grid */}
+            {/* Content */}
             <div className="container mx-auto px-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {PLACEHOLDER_PRODUCTS.map((product) => (
-                        <div key={product.id} className="h-[400px]">
-                            <ProductCard product={product} />
-                        </div>
-                    ))}
-                </div>
+                {viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {PLACEHOLDER_PRODUCTS.map((product) => (
+                            <div key={product.id} className="h-[400px]">
+                                <ProductCard product={product} />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <ProductTable products={PLACEHOLDER_PRODUCTS} />
+                )}
             </div>
         </div>
     );

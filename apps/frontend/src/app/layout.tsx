@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 
-const inter = Inter({ subsets: ["latin"] });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
 
 export const metadata: Metadata = {
   title: "Digital Ecosystem 2026",
@@ -18,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased bg-industrial-surface text-foreground flex flex-col min-h-screen`} suppressHydrationWarning>
+      <body className={`${manrope.variable} ${jetbrainsMono.variable} font-sans antialiased bg-industrial-surface text-foreground flex flex-col min-h-screen`} suppressHydrationWarning>
         <NavBar />
         <main className="flex-grow pt-[80px]">
           {children}

@@ -89,40 +89,5 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-manrope), sans-serif;
   }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  20% {
-    transform: translateX(100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Leaflet Popup Glassmorphism */
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-  background: rgba(26, 26, 26, 0.8) !important;
-  backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 69, 0, 0.3);
-  color: #EDEDED !important;
-  border-radius: 0 !important;
-  /* Industrial square look */
-}
-
-.leaflet-popup-content {
-  margin: 12px !important;
-  font-family: var(--font-manrope), sans-serif !important;
-}
-
-.leaflet-container a.leaflet-popup-close-button {
-  color: #FF3D00 !important;
 }

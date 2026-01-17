@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { ShimmerButton } from "@/components/ShimmerButton";
 import {
     Card,
     CardContent,
@@ -55,7 +55,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
 
             <CardHeader className="pt-5 pb-2 relative z-10">
-                <CardTitle className="text-lg font-bold text-white leading-tight group-hover:text-safety-orange transition-colors duration-300 font-mono tracking-tight">
+                <CardTitle className="text-lg font-bold text-white leading-tight group-hover:text-safety-orange transition-colors duration-300 font-manrope tracking-tight">
                     {product.name}
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground line-clamp-2 min-h-[32px] font-mono mt-1">
@@ -67,18 +67,17 @@ export function ProductCard({ product }: ProductCardProps) {
                 <div className="grid gap-[1px] bg-industrial-border border border-industrial-border my-2">
                     {specsArray.slice(0, 3).map((spec, index) => (
                         <div key={index} className="flex justify-between items-center bg-industrial-panel px-3 py-2">
-                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{spec.parameter}</span>
-                            <span className="text-xs font-mono text-white">{spec.value}</span>
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold font-mono">{spec.parameter}</span>
+                            <span className="text-[10px] font-mono text-white/90">{spec.value}</span>
                         </div>
                     ))}
                 </div>
             </CardContent>
 
             <CardFooter className="pt-2 pb-5 px-6 relative z-10">
-                <Button className="w-full bg-transparent border border-white/20 text-white hover:bg-safety-orange hover:border-safety-orange hover:text-white transition-all duration-300 rounded-none uppercase tracking-[0.15em] text-[10px] font-bold h-10 group/btn relative overflow-hidden">
-                    <span className="relative z-10">Характеристики</span>
-                    <div className="absolute inset-0 bg-white/10 translate-y-[100%] group-hover/btn:translate-y-0 transition-transform duration-300" />
-                </Button>
+                <ShimmerButton className="w-full bg-transparent border border-white/20 text-white hover:bg-safety-orange hover:border-safety-orange hover:text-white h-10 text-[10px]">
+                    Характеристики
+                </ShimmerButton>
             </CardFooter>
         </Card>
     );

@@ -79,7 +79,7 @@ export default function MapComponent({ projects }: MapComponentProps) {
                 const popupContent = `
                     <div class="p-2 min-w-[200px] bg-deep-graphite text-white rounded-md border border-safety-orange/30 font-sans">
                         <h3 class="font-bold text-sm uppercase tracking-wider text-safety-orange mb-1" style="color: #FF3D00; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${project.title}</h3>
-                        <p class="text-xs text-gray-300 font-mono mb-2" style="color: #d1d5db;">${project.client.name}</p>
+                        <p class="text-xs text-gray-300 font-mono mb-2" style="color: #d1d5db;">${project.client?.name || 'Unknown Client'}</p>
                         <div class="text-[10px] text-gray-500" style="color: #6b7280;">${project.region}</div>
                     </div>
                 `;
@@ -98,16 +98,6 @@ export default function MapComponent({ projects }: MapComponentProps) {
         <div className="h-[500px] w-full overflow-hidden rounded-xl border border-border bg-deep-graphite/50 relative z-0">
             <div ref={mapContainerRef} className="h-full w-full" />
             <style jsx global>{`
-                .leaflet-popup-content-wrapper {
-                    background: #1E1E1E !important; /* industrial-panel */
-                    border: 1px solid #333;
-                    border-radius: 0px;
-                    padding: 0;
-                    overflow: hidden;
-                }
-                .leaflet-popup-tip {
-                    background: #1E1E1E !important;
-                }
                 .leaflet-container {
                     background: #121212;
                 }
