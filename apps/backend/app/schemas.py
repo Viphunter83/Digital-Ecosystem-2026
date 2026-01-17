@@ -7,7 +7,7 @@ class ClientSchema(BaseModel):
 
 class ProjectSchema(BaseModel):
     id: UUID
-    title: str = "" # Generated from model logic or raw_data if needed
+
     description: Optional[str] = None
     year: Optional[int] = None
     region: Optional[str] = None
