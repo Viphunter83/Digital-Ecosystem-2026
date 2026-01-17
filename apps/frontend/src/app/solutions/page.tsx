@@ -1,119 +1,108 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { Settings, Truck, Code, Wrench, ShieldCheck, Cpu } from "lucide-react";
-import { ShimmerButton } from "@/components/ShimmerButton";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Box, Cpu, ShieldCheck, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const SOLUTIONS = [
     {
-        title: "ПРОМЫШЛЕННЫЙ ЛИЗИНГ",
-        description: "Гибкие финансовые инструменты для модернизации производства. Лизинг до 5 лет с минимальным авансом.",
-        icon: Truck,
-        id: "01"
+        id: "turnkey",
+        title: "Оснащение под ключ",
+        description: "Комплексное техническое перевооружение предприятий. От аудита технологии до запуска производства.",
+        icon: Box,
+        image: "/images/backgrounds/bg_1.jpg"
     },
     {
-        title: "СЕРВИСНОЕ ОБСЛУЖИВАНИЕ",
-        description: "24/7 техническая поддержка и плановое обслуживание оборудования. Собственный штат сертифицированных инженеров.",
-        icon: Wrench,
-        id: "02"
+        id: "automation",
+        title: "Автоматизация и Роботизация",
+        description: "Внедрение роботизированных ячеек и автоматических линий для серийного производства.",
+        icon: Zap,
+        image: "/images/backgrounds/bg_2.jpg"
     },
     {
-        title: "ЦИФРОВИЗАЦИЯ (IIoT)",
-        description: "Внедрение систем сбора данных и аналитики эффективности оборудования (OEE) на базе платформы PWA.",
-        icon: Code,
-        id: "03"
-    },
-    {
-        title: "ИНЖИНИРИНГ",
-        description: "Разработка технологических процессов и подбор оборудования под задачи вашего производства.",
-        icon: Settings,
-        id: "04"
-    },
-    {
-        title: "АУДИТ БЕЗОПАСНОСТИ",
-        description: "Комплексная проверка производственных линий на соответствие стандартам безопасности труда.",
-        icon: ShieldCheck,
-        id: "05"
-    },
-    {
-        title: "АВТОМАТИЗАЦИЯ",
-        description: "Проектирование и внедрение роботизированных комплексов для серийного производства.",
+        id: "digital",
+        title: "Цифровой Двойник",
+        description: "Разработка цифровых двойников производства для оптимизации процессов и предиктивного обслуживания.",
         icon: Cpu,
-        id: "06"
+        image: "/images/backgrounds/bg_3.jpg"
+    },
+    {
+        id: "service",
+        title: "Сервис и Экспертиза",
+        description: "24/7 техническая поддержка, обучение персонала и проведение пуско-наладочных работ.",
+        icon: ShieldCheck,
+        image: "/images/backgrounds/bg_4.jpg"
     }
 ];
 
 export default function SolutionsPage() {
     return (
-        <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20 relative overflow-hidden">
-            {/* Global Background Pattern for depth */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,61,0,0.05)_0%,transparent_40%)] pointer-events-none" />
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
-
+        <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
             {/* Header */}
-            <div className="container mx-auto px-6 mb-16 relative z-10">
+            <div className="container mx-auto px-6 mb-12">
                 <div className="border-b border-industrial-border pb-6">
-                    <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-4 text-white font-manrope">
-                        Технологические <span className="text-safety-orange">Решения</span>
+                    <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-4 text-white">
+                        Инженерные <span className="text-safety-orange">Решения</span>
                     </h1>
-                    <p className="text-muted-foreground font-mono text-sm max-w-2xl uppercase tracking-wider">
-                        Комплексный подход к модернизации производства. От поставки оборудования до цифровой трансформации.
+                    <p className="text-muted-foreground font-mono text-sm max-w-2xl">
+                        КОМПЛЕКСНЫЕ ПОДХОДЫ К МОДЕРНИЗАЦИИ ПРОМЫШЛЕННЫХ ПРЕДПРИЯТИЙ РОССИИ.
                     </p>
                 </div>
             </div>
 
-            {/* Grid */}
-            <div className="container mx-auto px-6 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {SOLUTIONS.map((item, i) => {
-                        const Icon = item.icon;
-                        return (
-                            <Card key={i} className="group bg-white/5 backdrop-blur-sm border border-white/10 p-8 relative overflow-hidden transition-all duration-500 hover:border-safety-orange hover:shadow-[0_0_50px_rgba(255,61,0,0.3)] rounded-none hover:bg-white/10">
-                                {/* Technical background details */}
-                                <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/5 to-transparent -mr-8 -mt-8 rotate-45 group-hover:from-safety-orange/20 transition-colors" />
-                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                <div className="relative z-10">
-                                    <div className="mb-6 flex items-start justify-between">
-                                        <div className="p-4 bg-industrial-surface border border-industrial-border group-hover:border-safety-orange group-hover:bg-safety-orange/10 group-hover:text-safety-orange transition-all duration-300 shadow-[0_0_0_0_rgba(255,61,0,0)] group-hover:shadow-[0_0_20px_rgba(255,61,0,0.4)]">
-                                            <Icon className="w-8 h-8" />
-                                        </div>
-                                        <span className="font-mono text-5xl font-black text-white/10 select-none group-hover:text-safety-orange/20 transition-colors duration-500">{item.id}</span>
-                                    </div>
-
-                                    <h3 className="text-xl font-bold uppercase tracking-wide text-white mb-4 font-manrope group-hover:text-safety-orange transition-colors group-hover:drop-shadow-[0_0_8px_rgba(255,61,0,0.5)]">
-                                        {item.title}
-                                    </h3>
-                                    <p className="text-gray-400 text-sm leading-relaxed font-mono">
-                                        {item.description}
-                                    </p>
-                                </div>
-
-                                {/* Hover line at bottom */}
-                                <div className="absolute bottom-0 left-0 w-0 h-1 bg-safety-orange group-hover:w-full transition-all duration-500 shadow-[0_0_20px_#ff3d00]" />
-                            </Card>
-                        )
-                    })}
-                </div>
-            </div>
-
-            {/* Call to Action */}
-            <div className="container mx-auto px-6 mt-20">
-                <div className="bg-gradient-to-r from-industrial-panel to-industrial-surface border border-industrial-border p-12 relative overflow-hidden group">
-                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div>
-                            <h2 className="text-3xl font-bold uppercase mb-2 font-manrope">Готовы обсудить проект?</h2>
-                            <p className="text-muted-foreground font-mono text-sm">Наши инженеры подготовят техническое решение за 48 часов.</p>
+            <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                {SOLUTIONS.map((solution, index) => (
+                    <div key={solution.id} className="group relative bg-industrial-panel border border-industrial-border overflow-hidden min-h-[300px] flex flex-col justify-end p-8 transition-all duration-500 hover:border-safety-orange hover:shadow-[0_0_30px_rgba(255,61,0,0.15)]">
+                        {/* Background Image with Overlay */}
+                        <div className="absolute inset-0 z-0 opacity-20 group-hover:opacity-40 transition-opacity duration-700">
+                            <Image
+                                src={solution.image}
+                                alt={solution.title}
+                                fill
+                                className="object-cover object-center grayscale group-hover:grayscale-0 transition-all duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" />
                         </div>
-                        <div className="w-full md:w-auto">
-                            <ShimmerButton className="w-full md:w-auto px-8 h-14 text-sm font-bold tracking-wider">
-                                СВЯЗАТЬСЯ С ИНЖЕНЕРОМ
-                            </ShimmerButton>
+
+                        {/* Content */}
+                        <div className="relative z-10">
+                            <div className="mb-4">
+                                <solution.icon className="w-10 h-10 text-safety-orange mb-4 opacity-80 group-hover:opacity-100 transition-opacity" />
+                                <h3 className="text-2xl font-bold uppercase leading-tight mb-2 group-hover:text-safety-orange transition-colors">
+                                    {solution.title}
+                                </h3>
+                                <p className="text-muted-foreground text-sm font-mono leading-relaxed mb-6">
+                                    {solution.description}
+                                </p>
+                            </div>
+
+                            <Link href="/contacts">
+                                <Button variant="outline" className="border-white/20 text-white hover:bg-safety-orange hover:border-safety-orange hover:text-white uppercase text-xs font-bold tracking-wider rounded-none group-hover:px-6 transition-all">
+                                    Обсудить Проект
+                                    <ArrowRight className="w-3 h-3 ml-2 group-hover:ml-3 transition-all" />
+                                </Button>
+                            </Link>
                         </div>
                     </div>
-                    {/* Background decoration */}
-                    <div className="absolute top-0 right-0 w-64 h-full bg-safety-orange/5 -skew-x-12 transform translate-x-32 group-hover:bg-safety-orange/10 transition-colors duration-500" />
-                    <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-safety-orange/50 to-transparent opacity-50" />
+                ))}
+            </div>
+
+            {/* CTA Section */}
+            <div className="container mx-auto px-6 mt-20">
+                <div className="bg-safety-orange text-white p-12 relative overflow-hidden clip-path-slant">
+                    <div className="absolute inset-0 bg-[url('/images/pattern_grid.png')] opacity-10" />
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div>
+                            <h2 className="text-3xl font-black uppercase mb-2">Готовы к модернизации?</h2>
+                            <p className="font-mono text-white/80">Оставьте заявку на аудит вашего производства уже сегодня.</p>
+                        </div>
+                        <Link href="/contacts">
+                            <Button className="bg-white text-safety-orange hover:bg-black hover:text-white font-bold uppercase tracking-wider px-8 py-6 rounded-none transition-colors border-2 border-transparent hover:border-white">
+                                Получить Консультацию
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>

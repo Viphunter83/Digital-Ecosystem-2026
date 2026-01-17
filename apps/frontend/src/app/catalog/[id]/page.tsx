@@ -134,13 +134,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
                     {/* Actions */}
                     <div className="pt-6 border-t border-industrial-border flex flex-col md:flex-row gap-4">
-                        <ShimmerButton
-                            className="bg-safety-orange text-white px-8 py-4 font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 hover:bg-safety-orange-vivid"
-                            onClick={() => alert("Форма КП будет открыта здесь")}
-                        >
-                            <FileText className="w-4 h-4" />
-                            Запросить КП
-                        </ShimmerButton>
+                        <Link href="/contacts">
+                            <ShimmerButton
+                                className="bg-safety-orange text-white px-8 py-4 font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 hover:bg-safety-orange-vivid w-full md:w-auto"
+                            >
+                                <FileText className="w-4 h-4" />
+                                Запросить КП
+                            </ShimmerButton>
+                        </Link>
                         <button className="px-8 py-4 border border-white/20 text-white font-mono uppercase text-sm hover:bg-white/5 transition-colors">
                             Скачать каталог (PDF)
                         </button>

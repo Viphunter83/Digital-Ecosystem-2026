@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -27,14 +28,13 @@ export function NavBar() {
         >
             <div className="container mx-auto px-6 flex items-center justify-between">
                 <Link href="/" className="flex items-center space-x-3 group">
-                    <div className="h-10 w-10 bg-gradient-to-br from-safety-orange to-safety-orange-dim rounded-sm flex items-center justify-center border border-white/10 group-hover:border-safety-orange/50 transition-colors">
-                        <span className="text-white font-mono font-bold text-lg">Z</span>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className={cn("text-xl font-bold tracking-tighter uppercase leading-none", isScrolled ? "text-foreground" : "text-white")}>
-                            RusStanko<span className="text-safety-orange">Sbyt</span>
-                        </span>
-                        <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-mono">Индустриальная Экосистема</span>
+                    <div className="relative h-12 w-48 transition-transform duration-300 group-hover:scale-105">
+                        <Image
+                            src="/images/logo.png"
+                            alt="ТД РУССтанкоСбыт"
+                            fill
+                            className="object-contain object-left"
+                        />
                     </div>
                 </Link>
 
@@ -61,12 +61,16 @@ export function NavBar() {
                 </nav>
 
                 <div className="flex items-center space-x-4">
-                    <Button variant="ghost" className={cn("hidden sm:flex font-mono text-xs uppercase tracking-wider", isScrolled ? "text-muted-foreground hover:text-safety-orange" : "text-white/80 hover:text-white hover:bg-white/5")}>
-                        [ Поиск ]
-                    </Button>
-                    <Button className="bg-safety-orange hover:bg-safety-orange-vivid text-white rounded-none border-l-2 border-white/20 font-bold uppercase tracking-wider text-xs px-6 h-10 shadow-[0_0_15px_rgba(255,61,0,0.3)] hover:shadow-[0_0_25px_rgba(255,61,0,0.5)] transition-all">
-                        Запрос КП
-                    </Button>
+                    <Link href="/catalog">
+                        <Button variant="ghost" className={cn("hidden sm:flex font-mono text-xs uppercase tracking-wider", isScrolled ? "text-muted-foreground hover:text-safety-orange" : "text-white/80 hover:text-white hover:bg-white/5")}>
+                            [ Поиск ]
+                        </Button>
+                    </Link>
+                    <Link href="/contacts">
+                        <Button className="bg-safety-orange hover:bg-safety-orange-vivid text-white rounded-none border-l-2 border-white/20 font-bold uppercase tracking-wider text-xs px-6 h-10 shadow-[0_0_15px_rgba(255,61,0,0.3)] hover:shadow-[0_0_25px_rgba(255,61,0,0.5)] transition-all">
+                            Запрос КП
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </header>
