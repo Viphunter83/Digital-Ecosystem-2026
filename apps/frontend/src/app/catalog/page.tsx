@@ -73,7 +73,7 @@ export default function CatalogPage() {
             {/* Filters */}
             <div className="container mx-auto px-6 mb-12">
                 <div className="flex flex-wrap gap-4 p-4 border-y border-industrial-border bg-industrial-panel/30 backdrop-blur-sm">
-                    {["ВСЕ", "МЕХАНООБРАБОТКА", "АВТОМАТИЗАЦИЯ", "ФОРМОВКА", "РЕЗКА", "АДДИТИВНЫЕ", "ЛОГИСТИКА"].map((filter, i) => (
+                    {["ВСЕ", "МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"].map((filter, i) => (
                         <button
                             key={i}
                             onClick={() => setActiveFilter(filter)}
