@@ -134,8 +134,8 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                             <div
                                 key={s}
                                 className={`h-1 w-8 rounded-full transition-colors ${['start', 'type', 'age', 'issues', 'analyzing', 'result'].indexOf(step) >= i
-                                        ? 'bg-safety-orange'
-                                        : 'bg-white/10'
+                                    ? 'bg-safety-orange'
+                                    : 'bg-white/10'
                                     }`}
                             />
                         ))}
@@ -187,8 +187,8 @@ function StepType({ selected, onSelect, onNext }: { selected: MachineType | null
                             key={type.id}
                             onClick={() => onSelect(type.id as MachineType)}
                             className={`p-6 border flex flex-col items-center gap-4 transition-all ${isSelected
-                                    ? 'border-safety-orange bg-safety-orange/10 text-safety-orange'
-                                    : 'border-white/10 bg-white/5 text-muted-foreground hover:border-white/30 hover:bg-white/10'
+                                ? 'border-safety-orange bg-safety-orange/10 text-safety-orange'
+                                : 'border-white/10 bg-white/5 text-muted-foreground hover:border-white/30 hover:bg-white/10'
                                 }`}
                         >
                             <Icon className="w-8 h-8" />
@@ -262,8 +262,8 @@ function StepIssues({ selected, onSelect, onNext }: { selected: string[]; onSele
                         key={issue}
                         onClick={() => toggleIssue(issue)}
                         className={`px-4 py-2 rounded-full text-xs font-mono border transition-all ${selected.includes(issue)
-                                ? 'bg-safety-orange text-white border-safety-orange'
-                                : 'bg-transparent text-muted-foreground border-white/20 hover:border-white/50'
+                            ? 'bg-safety-orange text-white border-safety-orange'
+                            : 'bg-transparent text-muted-foreground border-white/20 hover:border-white/50'
                             }`}
                     >
                         {issue}
@@ -324,37 +324,45 @@ function StepAnalyzing() {
 
 function StepResult({ data, onClose }: { data: DiagnosticData; onClose: () => void }) {
     const { register, handleSubmit } = useForm();
-    const riskLevel = data.age > 10 || data.issues.length > 2 ? 'ВЫСОКИЙ' : 'СРЕДНИЙ';
-    const color = riskLevel === 'ВЫСОКИЙ' ? 'text-red-500' : 'text-yellow-500';
+    // Logic: In real app, this calculates based on 'age' and 'issues'
+    const riskLevel = 'КРИТИЧЕСКИЙ';
+    const probability = '85%';
 
     const onSubmit = (formData: any) => {
-        console.log("LEAD GENERATED:", { ...data, ...formData });
-        alert("Отчет отправлен на ваш Email! (Demo)");
+        console.log("LEAD GENERATED (TELEGRAM):", { ...data, ...formData });
+        alert("Отчет инженера отправлен в Telegram! (Demo)");
         onClose();
     };
 
     return (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="h-full flex flex-col justify-center items-center text-center">
             <div className="mb-6">
-                <AlertTriangle className={`w-12 h-12 mx-auto mb-2 ${color}`} />
-                <h2 className="text-2xl font-black uppercase text-white">Риск Простоя: <span className={color}>{riskLevel}</span></h2>
-                <p className="text-muted-foreground text-sm mt-2 max-w-sm">
-                    Обнаружено {data.issues.length} потенциальных проблем. Рекомендуется срочная проверка узлов.
-                </p>
+                <AlertTriangle className="w-12 h-12 mx-auto mb-2 text-red-500 animate-pulse" />
+                <h2 className="text-xl font-black uppercase text-white mb-2">
+                    Риск Износа: <span className="text-red-500">{riskLevel}</span>
+                </h2>
+                <div className="bg-white/5 border border-white/10 p-4 rounded mb-4 max-w-sm mx-auto">
+                    <p className="text-sm text-gray-300 mb-2">
+                        Вероятность простоя шпинделя: <span className="text-safety-orange font-bold">{probability}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        Мы подобрали 3 варианта решения (Ремонт / Замена / Модернизация).
+                    </p>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-xs space-y-4">
                 <input
-                    {...register("email", { required: true })}
-                    type="email"
-                    placeholder="Ваш Email для отчета"
-                    className="w-full bg-white/5 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none placeholder:text-muted-foreground/50"
+                    {...register("phone", { required: true })}
+                    type="tel"
+                    placeholder="Ваш Telegram для отчета"
+                    className="w-full bg-white/5 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none placeholder:text-muted-foreground/50 text-center"
                 />
                 <button
                     type="submit"
-                    className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(255,61,0,0.4)]"
+                    className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(255,61,0,0.4)] animate-pulse"
                 >
-                    Получить План Ремонта
+                    Получить Отчет Инженера
                 </button>
             </form>
         </motion.div>

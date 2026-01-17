@@ -3,41 +3,52 @@
 import { useUserContext, UserRole } from "@/stores/user-context";
 import { ShimmerButton } from "@/components/ShimmerButton";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Settings, User, Wrench, Wallet, Briefcase } from "lucide-react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 
+// Exact Copy from User Request
 const CONTENT_BY_ROLE: Record<UserRole, { title: string; subtitle: string; cta: string }> = {
     director: {
-        title: "ОПТИМИЗАЦИЯ ПРОИЗВОДСТВА НА 30%",
-        subtitle: "Сократите простои и увеличьте ROI с нашей экосистемой умного оборудования. Полный контроль цикла.",
+        title: "ИНВЕСТИЦИИ В НАДЕЖНОСТЬ ВАШЕГО ПРОИЗВОДСТВА",
+        subtitle: "Работаем с ЗиО-Подольск. Окупаемость модернизации — 12 месяцев. Лизинг 0%.",
         cta: "РАССЧИТАТЬ ОКУПАЕМОСТЬ",
     },
     engineer: {
-        title: "ПРЕЦИЗИОННАЯ ТОЧНОСТЬ 24/7",
-        subtitle: "Станки с ЧПУ последнего поколения. Допуск <0.005мм. Интеграция с CAD/CAM и вибродиагностика.",
+        title: "ПРОДЛИМ РЕСУРС ВАШЕГО СТАНКА НА 15 ЛЕТ",
+        subtitle: "Собственное производство запчастей. Соблюдаем паспортные нормы точности (ГОСТ 8-82).",
         cta: "СКАЧАТЬ ТЕХ. СПЕЦИФИКАЦИИ",
     },
     buyer: {
-        title: "ЛУЧШЕЕ ПРЕДЛОЖЕНИЕ НА РЫНКЕ",
-        subtitle: "Лизинг под 0%. Гарантия 5 лет. Доставка и пусконаладка за счет поставщика. Склад в Москве.",
-        cta: "ПОЛУЧИТЬ КП ЗА 15 МИНУТ",
+        title: "ПОСТАВКА КОМПЛЕКТУЮЩИХ С ОТГРУЗКОЙ ЗА 24 ЧАСА",
+        subtitle: "2500 позиций на складе. Счета за 5 минут. Доставка до двери.",
+        cta: "ПОЛУЧИТЬ КП ЗА 5 МИНУТ",
     },
     default: {
-        title: "ПРОМЫШЛЕННЫЕ РЕШЕНИЯ БУДУЩЕГО",
+        title: "ОБЕСПЕЧИВАЕМ БЕСПЕРЕБОЙНУЮ РАБОТУ СТАНОЧНОГО ПАРКА",
         subtitle: "Комплексные поставки металлообрабатывающего оборудования. Сервис, лизинг, цифровизация.",
         cta: "ЗАПУСТИТЬ ДИАГНОСТИКУ",
     },
 };
 
-export function HeroSection({ onOpenDiagnostics }: { onOpenDiagnostics: () => void }) {
+function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => void }) {
     const { role, setRole } = useUserContext();
+    const searchParams = useSearchParams();
     const content = CONTENT_BY_ROLE[role];
     const [mounted, setMounted] = useState(false);
 
+    // Logic: Chameleon Detection (Strategies 1, 2, 3)
     useEffect(() => {
         setMounted(true);
-    }, []);
+
+        // 1. UTM / Query Param Strategy (?role=director)
+        const roleParam = searchParams.get('role') as UserRole | null;
+        if (roleParam && ['director', 'engineer', 'buyer'].includes(roleParam)) {
+            setRole(roleParam);
+        }
+
+    }, [searchParams, setRole]);
 
     if (!mounted) return null;
 
@@ -69,7 +80,7 @@ export function HeroSection({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                                 </span>
                             </div>
 
-                            <h1 className="text-5xl md:text-7xl font-black text-white leading-[0.9] tracking-tighter uppercase mb-6">
+                            <h1 className="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter uppercase mb-6">
                                 {content.title}
                             </h1>
 
@@ -121,6 +132,15 @@ export function HeroSection({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
             {/* Debug Panel - Dev Only (Collapsible) */}
             <DebugPanel role={role} setRole={setRole} />
         </section>
+    );
+}
+
+// Wrap in Suspense for useSearchParams
+export function HeroSection(props: { onOpenDiagnostics: () => void }) {
+    return (
+        <Suspense fallback={<div className="h-[600px] w-full bg-industrial-bg animate-pulse" />}>
+            <HeroSectionContent {...props} />
+        </Suspense>
     );
 }
 
