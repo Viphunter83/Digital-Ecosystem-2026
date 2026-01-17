@@ -7,6 +7,7 @@ import { useState, useEffect, Suspense } from "react";
 import { Settings, User, Wrench, Wallet, Briefcase } from "lucide-react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { HeroStats } from "./HeroStats";
 
 // Exact Copy from User Request
 const CONTENT_BY_ROLE: Record<UserRole, { title: string; subtitle: string; cta: string }> = {
@@ -61,7 +62,7 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                 <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-safety-orange/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
             </div>
 
-            <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center lg:pb-32">
 
                 {/* Text Content */}
                 <div className="space-y-8">
@@ -128,6 +129,9 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                     </div>
                 </div>
             </div>
+
+            {/* Hero Stats Bar */}
+            <HeroStats />
 
             {/* Debug Panel - Dev Only (Collapsible) */}
             <DebugPanel role={role} setRole={setRole} />
