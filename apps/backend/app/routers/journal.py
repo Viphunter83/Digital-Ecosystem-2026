@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from apps.backend.app.core.database import get_db
 from packages.database.models import Article
+from apps.backend.app.schemas import ArticleSchema
 
 router = APIRouter()
 
@@ -14,4 +15,5 @@ def get_journal(db: Session = Depends(get_db)):
     """
     query = select(Article).order_by(Article.created_at.desc())
     results = db.execute(query).scalars().all()
-    return {"articles": results}
+    data = [ArticleSchema.model_validate(a) for a in results]
+    return {"articles": data}

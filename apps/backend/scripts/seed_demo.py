@@ -101,7 +101,7 @@ def seed_data():
                 year=2025,
                 contract_sum=150000000,
                 coordinates={"lat": 55.4312, "lon": 37.5458},
-                raw_data={"title": "ЗиО-Подольск: Модернизация"}
+                raw_data={"title": "ЗиО-Подольск: Модернизация", "image_url": "/images/backgrounds/bg_1.jpg"}
             ),
             Project(
                 client_id=client_lmz.id,
@@ -110,7 +110,7 @@ def seed_data():
                 year=2024,
                 contract_sum=45000000,
                 coordinates={"lat": 59.9343, "lon": 30.3351},
-                raw_data={"title": "Силовые Машины: Капремонт"}
+                raw_data={"title": "Силовые Машины: Капремонт", "image_url": "/images/backgrounds/bg_2.jpg"}
             ),
             Project(
                 client_id=client_mtz.id,
@@ -119,7 +119,7 @@ def seed_data():
                 year=2025,
                 contract_sum=320000000,
                 coordinates={"lat": 53.9006, "lon": 27.5590},
-                raw_data={"title": "МТЗ: Линия валов"}
+                raw_data={"title": "МТЗ: Линия валов", "image_url": "/images/backgrounds/bg_4.jpg"}
             )
         ]
         db.add_all(projects)

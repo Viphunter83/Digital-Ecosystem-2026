@@ -24,7 +24,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
     useEffect(() => {
         if (resolvedParams?.id) {
-            fetchProductById(Number(resolvedParams.id)).then((data) => {
+            fetchProductById(resolvedParams.id).then((data) => {
                 setProduct(data || null);
                 setLoading(false);
             });
