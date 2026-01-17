@@ -77,9 +77,9 @@ export default function SolutionsPage() {
                                 </p>
                             </div>
 
-                            <Link href="/contacts">
+                            <Link href={solution.id === 'digital' ? "/digital-twin" : "/contacts"}>
                                 <Button variant="outline" className="border-white/20 text-white hover:bg-safety-orange hover:border-safety-orange hover:text-white uppercase text-xs font-bold tracking-wider rounded-none group-hover:px-6 transition-all">
-                                    Обсудить Проект
+                                    {solution.id === 'digital' ? "Запустить Демо" : "Обсудить Проект"}
                                     <ArrowRight className="w-3 h-3 ml-2 group-hover:ml-3 transition-all" />
                                 </Button>
                             </Link>
