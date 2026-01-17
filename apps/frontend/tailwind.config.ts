@@ -50,11 +50,22 @@ const config: Config = {
                     '4': 'hsl(var(--chart-4))',
                     '5': 'hsl(var(--chart-5))'
                 },
-                // Industrial Premium Palette
-                'deep-graphite': '#1A1A1A',
-                'safety-orange': '#FF5F00',
-                'industrial-steel': '#4A4A4A',
-                'machine-grey': '#E5E7EB',
+                // Enhanced Premium Industrial Palette
+                'industrial-surface': '#121212',
+                'industrial-panel': '#1E1E1E',
+                'industrial-border': '#333333',
+                'safety-orange': {
+                    DEFAULT: '#FF3D00',
+                    vivid: '#FF5F00',
+                    dim: '#992400',
+                },
+                'signal-green': '#00E676',
+                'tech-blue': '#00B0FF',
+                'machine-grey': {
+                    DEFAULT: '#E5E7EB',
+                    dark: '#4B5563',
+                    light: '#F3F4F6'
+                }
             },
             borderRadius: {
                 lg: 'var(--radius)',

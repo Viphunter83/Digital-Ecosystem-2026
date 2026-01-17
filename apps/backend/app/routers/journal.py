@@ -1,0 +1,17 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from apps.backend.app.core.database import get_db
+from packages.database.models import Article
+
+router = APIRouter()
+
+@router.get("/")
+def get_journal(db: Session = Depends(get_db)):
+    """
+    Get list of articles.
+    """
+    query = select(Article).order_by(Article.created_at.desc())
+    results = db.execute(query).scalars().all()
+    return {"articles": results}

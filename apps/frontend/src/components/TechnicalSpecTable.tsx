@@ -20,7 +20,7 @@ interface TechnicalSpecTableProps {
 
 export function TechnicalSpecTable({ specs, className }: TechnicalSpecTableProps) {
     return (
-        <div className={`overflow-hidden rounded-md border border-border ${className}`}>
+        <div className={`w-full overflow-x-auto rounded-md border border-border ${className}`}>
             <Table>
                 <TableHeader>
                     <TableRow className="bg-muted/50 hover:bg-muted/50">

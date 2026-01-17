@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, Wrench } from "lucide-react";
+import QRCode from "react-qr-code";
 
 export default function ServicePage() {
     // Mock data for timeline
@@ -21,6 +22,32 @@ export default function ServicePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Main Status Card */}
                 <div className="md:col-span-2 space-y-8">
+                    {/* Digital Passport QR Section */}
+                    <Card className="bg-gradient-to-r from-deep-graphite to-black border-safety-orange/30 text-white overflow-hidden">
+                        <CardContent className="p-6 flex flex-col sm:flex-row items-center gap-8">
+                            <div className="bg-white p-2 rounded-lg shrink-0">
+                                <QRCode
+                                    value="https://digital-ecosystem-2026.app/service/CNC-2026-X"
+                                    size={120}
+                                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                                    viewBox={`0 0 256 256`}
+                                />
+                            </div>
+                            <div className="space-y-4 text-center sm:text-left">
+                                <h3 className="text-xl font-bold uppercase tracking-widest text-safety-orange">Цифровой Паспорт Станка</h3>
+                                <p className="text-gray-400 max-w-md text-sm leading-relaxed">
+                                    Этот QR-код содержит уникальный идентификатор оборудования.
+                                    Отсканируйте его для мгновенного доступа к полной истории ремонтов,
+                                    чертежам и списку запчастей прямо в цеху.
+                                </p>
+                                <div className="inline-flex items-center gap-2 text-xs font-mono text-safety-orange/80 bg-safety-orange/10 px-3 py-1 rounded-full border border-safety-orange/20">
+                                    <div className="w-2 h-2 bg-safety-orange rounded-full animate-pulse" />
+                                    LIVE DATA CONNECTION
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     <Card className="border-safety-orange/50 shadow-md">
                         <CardHeader>
                             <CardTitle className="uppercase tracking-wide text-safety-orange">Текущий статус заявки</CardTitle>

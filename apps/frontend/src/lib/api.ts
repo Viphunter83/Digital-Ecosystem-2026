@@ -1,12 +1,17 @@
 import axios from 'axios';
 
 // Types derived from backend models
+export interface Client {
+    name: string;
+}
+
 export interface Project {
-    id: number;
+    id: string; // UUID is string in JS
     title: string;
     description?: string;
-    client?: string;
+    client?: Client;
     year?: number;
+    region?: string;
     latitude?: number;
     longitude?: number;
     image_url?: string;
@@ -32,7 +37,7 @@ export interface Article {
 }
 
 const api = axios.create({
-    baseURL: 'http://localhost:8000',
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
     headers: {
         'Content-Type': 'application/json',
     },

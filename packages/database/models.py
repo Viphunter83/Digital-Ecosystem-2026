@@ -41,7 +41,7 @@ class SparePart(Base):
     name = Column(String, nullable=False)
     specs = Column(JSONB)
     price = Column(DECIMAL)
-    embedding = Column(Vector(1536))
+    # embedding = Column(Vector(1536))
 
 class Client(Base):
     __tablename__ = "clients"
@@ -78,7 +78,7 @@ class Article(Base):
     content = Column(Text)
     tags = Column(ARRAY(String))
     cover_image = Column(String)
-    embedding = Column(Vector(1536))
+    # embedding = Column(Vector(1536))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     ctas = relationship("ArticleCTA", back_populates="article")
@@ -101,7 +101,7 @@ class Document(Base):
     content = Column(Text)
     source_type = Column(String) # 'tech_proposal', 'manual', etc.
     metadata_ = Column("metadata", JSONB)
-    embedding = Column(Vector(1536))
+    # embedding = Column(Vector(1536))
 
 class TelegramUser(Base):
     __tablename__ = "telegram_users"
