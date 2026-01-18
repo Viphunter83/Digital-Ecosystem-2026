@@ -1,10 +1,16 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, DECIMAL, DateTime, func, BigInteger, ARRAY
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, DECIMAL, DateTime, func, BigInteger, ARRAY, Enum
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import declarative_base, relationship
 from pgvector.sqlalchemy import Vector
 import uuid
+import enum
 
 Base = declarative_base()
+
+class UserRole(str, enum.Enum):
+    director = "director"
+    engineer = "engineer"
+    procurement = "procurement"
 
 class Product(Base):
     __tablename__ = "products"
@@ -110,6 +116,11 @@ class TelegramUser(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tg_id = Column(BigInteger, unique=True, nullable=False)
     phone = Column(String)
+    # Role-based architecture fields
+    role = Column(Enum(UserRole), nullable=True)
+    company_name = Column(String, nullable=True)
+    is_verified = Column(Boolean, default=False)
+    
     client_id = Column(UUID(as_uuid=True), ForeignKey("clients.id"), nullable=True)
 
     client = relationship("Client", back_populates="telegram_users")

@@ -1,0 +1,158 @@
+import logging
+import aiohttp
+import os
+from aiogram import Router, F, types
+from aiogram.filters import CommandStart
+from aiogram.types import Message, CallbackQuery
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+
+from apps.bot.keyboards import (
+    role_selection_kb, 
+    engineer_kb, 
+    procurement_kb, 
+    director_kb,
+    invoice_method_kb
+)
+
+# Constants
+BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
+
+# Router setup
+router = Router()
+logger = logging.getLogger(__name__)
+
+# --- Mock Database for Role Persistence (Runtime only for this demo level) ---
+# In production, use SQLAlchemy with packages.database.models.TelegramUser
+USER_ROLES = {} 
+
+class Registration(StatesGroup):
+    choosing_role = State()
+
+# --- Command: /start ---
+@router.message(CommandStart())
+async def cmd_start(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    
+    # Check if user exists (Mock check)
+    if user_id in USER_ROLES:
+        role = USER_ROLES[user_id]
+        await send_role_menu(message, role)
+    else:
+        # Start onboarding
+        await message.answer(
+            "👋 Вас приветствует Цифровой Ассистент «РусСтанкоСбыт».\n\n"
+            "Для настройки интерфейса, выберите вашу роль:",
+            reply_markup=role_selection_kb
+        )
+        await state.set_state(Registration.choosing_role)
+
+# --- Role Selection Callback ---
+@router.callback_query(F.data.startswith("role_"))
+async def process_role_selection(callback: CallbackQuery, state: FSMContext):
+    role_code = callback.data.split("_")[1] # engineer, procurement, director
+    user_id = callback.from_user.id
+    
+    # Save to "DB"
+    USER_ROLES[user_id] = role_code
+    
+    await callback.message.delete()
+    await callback.message.answer(f"✅ Роль установлена: *{role_code.upper()}*")
+    
+    # Send appropriate menu
+    if role_code == "engineer":
+        await callback.message.answer("Режим: 🛠 Техническое обслуживание", reply_markup=engineer_kb)
+    elif role_code == "procurement":
+        await callback.message.answer("Режим: 💼 Закупки и логистика", reply_markup=procurement_kb)
+    elif role_code == "director":
+        await callback.message.answer("Режим: 👔 Управление активами", reply_markup=director_kb)
+    
+    await state.clear()
+    await callback.answer()
+
+async def send_role_menu(message: Message, role: str):
+    if role == "engineer":
+        await message.answer("С возвращением, Инженер.", reply_markup=engineer_kb)
+    elif role == "procurement":
+        await message.answer("С возвращением! Меню снабжения:", reply_markup=procurement_kb)
+    elif role == "director":
+        await message.answer("С возвращением. Сводка готова.", reply_markup=director_kb)
+
+# --- Procurement Handlers ---
+
+@router.message(F.text == "📄 Запросить Счёт/КП")
+async def procurement_invoice(message: Message):
+    await message.answer(
+        "Как вы хотите передать заявку?",
+        reply_markup=invoice_method_kb
+    )
+
+@router.callback_query(F.data == "invoice_photo")
+async def invoice_photo_handler(callback: CallbackQuery):
+    await callback.message.edit_text("📸 Пожалуйста, отправьте фото шильдика станка или списка запчастей.")
+    await callback.answer()
+
+@router.callback_query(F.data == "invoice_excel")
+async def invoice_excel_handler(callback: CallbackQuery):
+    await callback.message.edit_text("📎 Ожидаю файл (.xlsx, .pdf). Я автоматически распознаю номенклатуру.")
+    await callback.answer()
+
+@router.message(F.text == "🚚 Где мой груз?")
+async def procurement_cargo(message: Message):
+    await message.answer(
+        "Введите номер заказа или накладной для отслеживания (интеграция СДЭК/Деловые Линии)."
+    )
+
+@router.message(F.text == "📦 Каталог Запчастей")
+async def procurement_catalog(message: Message):
+    await message.answer(
+        "Перейти в онлайн-каталог запчастей:\nhttps://russtankosbyt.ru/catalog (Demo Link)"
+    )
+
+# --- Engineer Handlers ---
+
+@router.message(F.text == "🏭 Мой Парк")
+async def engineer_machines(message: Message):
+    # Same logic as before allow fetch
+    await message.answer("Загружаю список оборудования...")
+    try:
+        async with aiohttp.ClientSession() as session:
+             async with session.get(f"{BACKEND_URL}/projects", timeout=2) as resp:
+                 if resp.status == 200:
+                     data = await resp.json()
+                     # Mock display
+                     await message.answer(f"Найдено единиц оборудования: {len(data)}")
+                 else:
+                     await message.answer("Список пуст (или нет связи).")
+    except:
+        await message.answer("⚠️ Нет связи с сервером.")
+
+@router.message(F.text == "🛠 Вызвать Сервис")
+async def engineer_sos(message: Message):
+    await message.answer("🆘 Аварийный сигнал отправлен дежурной бригаде. Ожидайте звонка.")
+
+# --- Director Handlers ---
+
+@router.message(F.text == "📊 Сводка Расходов")
+async def director_stats(message: Message):
+    await message.answer(
+        "📊 *Финансовая Сводка (2025)*\n\n"
+        "Всего потрачено на ТО: 1.2 млн ₽\n"
+        "Капитальные ремонты: 4.5 млн ₽\n"
+        "Закупка запчастей: 350 тыс ₽\n\n"
+        "📈 Экономия за счет планово-предупредительного ремонта: ~15%"
+    )
+    
+@router.message(F.text == "🏆 Активные Проекты")
+async def director_projects(message: Message):
+    await message.answer(
+        "🏭 *Модернизация Цеха №2*\n"
+        "Статус: 🟡 В работе\n"
+        "Бюджет: 12.5 млн ₽\n"
+        "Срок сдачи: Март 2026"
+    )
+
+# --- Universal Handlers ---
+@router.message(F.text.contains("Менеджер"))
+async def call_manager(message: Message):
+    await message.answer("📞 Ваш менеджер Алексей: +7 (999) 000-00-00")
