@@ -24,7 +24,7 @@ const CONTENT_BY_ROLE: Record<UserRole, { title: string; subtitle: string; cta: 
     buyer: {
         title: "ПОСТАВКА КОМПЛЕКТУЮЩИХ С ОТГРУЗКОЙ ЗА 24 ЧАСА",
         subtitle: "2500 позиций на складе. Счета за 5 минут. Доставка до двери.",
-        cta: "ПОЛУЧИТЬ КП ЗА 5 МИНУТ",
+        cta: "ЗАПРОСИТЬ КП",
     },
     default: {
         title: "ОБЕСПЕЧИВАЕМ БЕСПЕРЕБОЙНУЮ РАБОТУ СТАНОЧНОГО ПАРКА",
@@ -98,9 +98,13 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                         >
                             {content.cta}
                         </ShimmerButton>
-                        <button className="h-14 px-8 border border-white/20 text-white font-mono uppercase tracking-wider text-sm hover:bg-white/5 transition-colors">
-                            Видео презентация
-                        </button>
+                        <a
+                            href="/catalog_2026.pdf"
+                            download
+                            className="h-14 px-8 flex items-center justify-center border border-white/20 text-white font-mono uppercase tracking-wider text-sm hover:bg-white/5 transition-colors"
+                        >
+                            СКАЧАТЬ КАТАЛОГ (PDF)
+                        </a>
                     </div>
                 </div>
 
