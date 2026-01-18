@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from apps.backend.app.core.config import settings
 from apps.backend.app.core.database import engine, get_db
-from apps.backend.app.routers import catalog, journal, projects, services, diagnostics, integrations, leads
+from apps.backend.app.routers import catalog, journal, projects, services, diagnostics, integrations, leads, auth
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -46,6 +46,7 @@ app.include_router(projects.router, prefix="/projects", tags=["projects"])
 app.include_router(diagnostics.router, prefix="/diagnostics", tags=["diagnostics"])
 app.include_router(integrations.router, prefix="/integrations", tags=["integrations"])
 app.include_router(leads.router, prefix="/ingest", tags=["leads"])
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
 @app.get("/")
 def read_root():

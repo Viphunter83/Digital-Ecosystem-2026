@@ -1,18 +1,31 @@
-FROM python:3.13-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies (for pgvector/sqlalchemy)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    python3-dev \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install python dependencies
+# Copy requirements from MONOREPO context
 COPY apps/backend/requirements.txt .
+
+# Install Python deps
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+# Copy Shared Packages
+COPY packages /app/packages
 
+# Copy Backend Code
+COPY apps/backend /app/apps/backend
+
+# Set Python Path to root so imports work like 'from apps.backend...' or 'from packages...'
 ENV PYTHONPATH=/app
-CMD ["uvicorn", "apps.backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Expose port
+EXPOSE 8000
+
+# Start Uvicorn
+CMD ["uvicorn", "apps.backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]

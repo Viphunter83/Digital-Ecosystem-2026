@@ -18,6 +18,14 @@ class Settings(BaseSettings):
         "*" # Warning: unsafe for production, but kept for dev parity
     ]
 
+    # Security
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_THIS_IN_PROD_TO_SOMETHING_STRONG")
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 # 1 day
+    
+    # Telegram
+    TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+
     class Config:
         case_sensitive = True
 
