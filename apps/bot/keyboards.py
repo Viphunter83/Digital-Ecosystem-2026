@@ -18,11 +18,17 @@ engineer_kb = ReplyKeyboardMarkup(
     input_field_placeholder="Инженерное меню"
 )
 
+# Check ENV for WebApp URL
+import os
+from aiogram.types import WebAppInfo
+
+WEB_APP_URL = os.getenv("WEB_APP_URL", "https://russtankosbyt.ru/catalog")
+
 # --- Role: Procurement (Logistic/Finance Focus) ---
 procurement_kb = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="📄 Запросить Счёт/КП"), KeyboardButton(text="🚚 Где мой груз?")],
-        [KeyboardButton(text="📦 Каталог Запчастей"), KeyboardButton(text="📞 Менеджер")]
+        [KeyboardButton(text="📦 Каталог Запчастей", web_app=WebAppInfo(url=WEB_APP_URL)), KeyboardButton(text="📞 Менеджер")]
     ],
     resize_keyboard=True,
     is_persistent=True,

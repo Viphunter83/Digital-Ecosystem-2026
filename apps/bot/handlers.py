@@ -133,11 +133,18 @@ async def procurement_cargo(message: Message):
 
 @router.message(F.text == "📦 Каталог Запчастей")
 async def procurement_catalog(message: Message):
-    # BONUS: Web App Button Logic if updated in keyboards
-    # Fallback to link
+    # Fallback if user's client doesn't support WebApp (unlikely nowadays)
     await message.answer(
-        "Перейти в онлайн-каталог запчастей:\nhttps://russtankosbyt.ru/catalog (Demo Link)"
+        "Нажмите кнопку ниже, чтобы открыть каталог.",
+        reply_markup=procurement_kb
     )
+
+@router.message(F.content_type == types.ContentType.WEB_APP_DATA)
+async def web_app_data_handler(message: Message):
+    data = message.web_app_data.data
+    # Expecting JSON or simple string ID
+    await message.answer(f"🛒 *Заявка получена из каталога*\n\nДанные: `{data}`\n\nМенеджер свяжется для подтверждения.")
+
 
 # --- Engineer Handlers ---
 
