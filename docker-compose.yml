@@ -62,5 +62,27 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  directus:
+    image: directus/directus:latest
+    ports:
+      - "8055:8055"
+    volumes:
+      - ./apps/backend/uploads:/directus/uploads
+    depends_on:
+      - db
+    environment:
+      KEY: "25566879-1300-4560-8430-802c5243890f"
+      SECRET: "62683830-4152-4416-8041-326034176378"
+      ADMIN_EMAIL: "admin@russtanko.ru"
+      ADMIN_PASSWORD: "admin"
+      DB_CLIENT: "pg"
+      DB_HOST: "db"
+      DB_PORT: "5432"
+      DB_DATABASE: "${POSTGRES_DB}"
+      DB_USER: "${POSTGRES_USER}"
+      DB_PASSWORD: "${POSTGRES_PASSWORD}"
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "true"
+
 volumes:
   db_data:

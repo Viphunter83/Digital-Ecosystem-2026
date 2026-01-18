@@ -176,7 +176,7 @@ function DebugPanel({ role, setRole }: { role: UserRole, setRole: (r: UserRole) 
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-[calc(100%-40px)]'}`}>
+        <div className={`fixed bottom-28 right-4 z-50 transition-all duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-[calc(100%-40px)]'}`}>
             <div className="bg-black/80 border border-industrial-border backdrop-blur rounded-lg shadow-2xl overflow-hidden">
                 <button
                     onClick={() => setIsOpen(!isOpen)}

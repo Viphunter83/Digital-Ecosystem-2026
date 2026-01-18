@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // Disable dev indicators on mobile
+    devIndicators: {
+        buildActivity: false,
+        appIsrStatus: false,
+    },
     images: {
         remotePatterns: [
             {
@@ -13,6 +18,11 @@ const nextConfig = {
             {
                 protocol: 'https',
                 hostname: 'placehold.co',
+            },
+            {
+                protocol: 'http',
+                hostname: 'localhost',
+                port: '8055',
             },
         ],
     },

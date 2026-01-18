@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 
 export function Footer() {
@@ -12,14 +12,7 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                     <div className="space-y-6">
                         <Link href="/" className="flex items-center space-x-2 group">
-                            <div className="relative h-12 w-48 transition-transform duration-300 group-hover:scale-105">
-                                <Image
-                                    src="/images/logo.png"
-                                    alt="ТД РУССтанкоСбыт"
-                                    fill
-                                    className="object-contain object-left"
-                                />
-                            </div>
+                            <Logo className="w-auto h-12" variant="light" />
                         </Link>
                         <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
                             Ведущий поставщик передовых промышленных инженерных решений.

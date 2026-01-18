@@ -6,23 +6,20 @@ This document summarizes the current state of the **Digital Ecosystem 2026** pro
 
 ### ✅ Completed
 - **Infrastructure**: Monorepo with Docker Compose. Fixed **Mixed Content** issues via Nginx/Uvicorn proxy headers.
-- **Backend API**: FastAPI running on port 8000 (accessible via `/api` proxy).
-    - Endpoints: `/projects`, `/journal`, `/catalog/search` (Hybrid Search).
+- **Backend API**: FastAPI running on port 8000.
+    - Endpoints: `/projects` (List/Detail), `/journal`, `/catalog/search` (Hybrid Search), `/ingest/leads`.
     - Middleware: Request logging and Proxy Headers support.
+    - Database: PostgreSQL with `pgvector` and UUIDs.
 - **Frontend**: Next.js 15 + Shadcn/UI + Tailwind.
-    - **UI/UX**: "Industrial Premium" theme with high-contrast fixes, neon effects, and holographic assets.
-    - **Localization**: Full Russian translation for Product Cards (Specs, Categories) and System Messages.
-    - **Telegram Mini App (TMA)**:
-        - `TelegramProvider`: Auto-detects user, expands app, handles Haptic Feedback.
-        - `BottomNav`: Sticky mobile navigation (Home, Catalog, Diagnostics, Cart).
-        - `DiagnosticsWidget`: Integrated with native `MainButton`.
+    - **UX**: Dynamic Hero Section (Role-based content & images), Typographic fixes (Hyphens).
+    - **Map & Projects**: Interactive Map with Popups -> Dynamic Project Detail Pages (`/projects/[id]`).
+    - **Visuals**: "Cyber-Industrial" theme with custom generated backgrounds (`bg_tech.png`).
 - **Data Ingestion**:
     - AI-powered parsing for Excel/PDF.
-    - Data seeding scripts for initial deployment.
+    - Demo Data Seeding with consistent Project Backgrounds.
 
 ### 🚧 In Progress / Next Steps
 - **Cart Functionality**: `BottomNav` has a Cart tab, but the checkout flow is not fully implemented.
-- **Admin Panel**: Need a dedicated interface for managing products/projects without DB access.
 - **Production Deployment**: SSL certificate configuration and final Docker optimization.
 
 ## 2. Technical Stack & Configuration

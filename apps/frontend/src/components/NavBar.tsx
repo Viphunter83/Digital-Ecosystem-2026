@@ -2,9 +2,27 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useCartStore } from "@/lib/stores/useCartStore";
+
+function CartBadge() {
+    const cartItemsCount = useCartStore((state) => state.items.length);
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted || cartItemsCount === 0) return <span>[ ЗАКАЗ ]</span>;
+
+    return (
+        <span className="flex items-center gap-2">
+            [ ЗАКАЗ: <span className="text-safety-orange font-bold">{cartItemsCount}</span> ]
+        </span>
+    );
+}
 
 export function NavBar() {
     const [isScrolled, setIsScrolled] = React.useState(false);
@@ -28,14 +46,7 @@ export function NavBar() {
         >
             <div className="container mx-auto px-6 flex items-center justify-between">
                 <Link href="/" className="flex items-center space-x-3 group">
-                    <div className="relative h-12 w-48 transition-transform duration-300 group-hover:scale-105">
-                        <Image
-                            src="/images/logo.png"
-                            alt="ТД РУССтанкоСбыт"
-                            fill
-                            className="object-contain object-left"
-                        />
-                    </div>
+                    <Logo className="h-12 w-auto" />
                 </Link>
 
                 <nav className="hidden md:flex items-center space-x-1">
@@ -50,7 +61,7 @@ export function NavBar() {
                                 key={item.label}
                                 href={item.href}
                                 className={cn(
-                                    "px-4 py-2 text-sm font-medium transition-all duration-200 relative group overflow-hidden",
+                                    "px-4 py-2 text-sm font-medium transition-all duration-200 relative group overflow-hidden whitespace-nowrap",
                                     isScrolled ? "text-muted-foreground hover:text-safety-orange" : "text-white/80 hover:text-white"
                                 )}
                             >
@@ -62,8 +73,14 @@ export function NavBar() {
 
                 <div className="flex items-center space-x-4">
                     <Link href="/catalog">
-                        <Button variant="ghost" className={cn("hidden sm:flex font-mono text-xs uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 px-4", isScrolled ? "text-muted-foreground hover:text-safety-orange border-industrial-border" : "text-white/80 hover:text-white hover:border-white/30")}>
-                            <span className="mr-2 opacity-50">🔍</span> [ Поиск ]
+                        <Button variant="ghost" className={cn("hidden sm:flex font-mono text-xs uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 px-4 whitespace-nowrap", isScrolled ? "text-muted-foreground hover:text-safety-orange border-industrial-border" : "text-white/80 hover:text-white hover:border-white/30")}>
+                            <span className="mr-2 opacity-50">🔍</span> [ ПОИСК ]
+                        </Button>
+                    </Link>
+                    <Link href="/cart">
+                        <Button variant="ghost" className={cn("hidden sm:flex font-mono text-xs uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 px-4 relative whitespace-nowrap", isScrolled ? "text-muted-foreground hover:text-safety-orange border-industrial-border" : "text-white/80 hover:text-white hover:border-white/30")}>
+                            <span className="mr-2 opacity-50">🛒</span>
+                            <CartBadge />
                         </Button>
                     </Link>
                     <Link href="/contacts">

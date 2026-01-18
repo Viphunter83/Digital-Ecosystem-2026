@@ -91,17 +91,43 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
         };
     }, [isOpen, step, data.type, webApp]);
 
-    const handleNext = () => {
+    const [analysisResult, setAnalysisResult] = useState<any>(null);
+
+    const handleNext = async () => {
         if (step === 'start') setStep('type');
         else if (step === 'type') setStep('age');
         else if (step === 'age') setStep('issues');
         else if (step === 'issues') {
             setStep('analyzing');
-            // Mock analysis time
-            setTimeout(() => {
-                setStep('result');
-                webApp?.HapticFeedback.notificationOccurred('success');
-            }, 3000);
+
+            try {
+                // Real API Call
+                const response = await fetch('/api/diagnostics/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        machine_type: data.type,
+                        age: data.age,
+                        symptoms: data.issues
+                    })
+                });
+
+                if (!response.ok) throw new Error("Analysis failed");
+
+                const result = await response.json();
+                setAnalysisResult(result);
+
+                // Artificial delay for UX (to show the "AI thinking" animation)
+                setTimeout(() => {
+                    setStep('result');
+                    webApp?.HapticFeedback.notificationOccurred('success');
+                }, 2000);
+
+            } catch (e) {
+                console.error(e);
+                alert("Ошибка анализа. Попробуйте еще раз.");
+                setStep('issues');
+            }
         }
     };
 
@@ -173,7 +199,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                             <StepAnalyzing key="analyzing" />
                         )}
                         {step === 'result' && (
-                            <StepResult data={data} onClose={onClose} key="result" user={user} />
+                            <StepResult data={data} result={analysisResult} onClose={onClose} key="result" user={user} />
                         )}
                     </AnimatePresence>
                 </div>
@@ -381,31 +407,36 @@ function StepAnalyzing() {
     );
 }
 
-function StepResult({ data, onClose, user }: { data: DiagnosticData; onClose: () => void; user: any }) {
+function StepResult({ data, result, onClose, user }: { data: DiagnosticData; result: any; onClose: () => void; user: any }) {
     const { register, handleSubmit } = useForm();
-    // Logic: In real app, this calculates based on 'age' and 'issues'
-    const riskLevel = 'КРИТИЧЕСКИЙ';
-    const probability = '85%';
+
+    // Use real data from backend or fallback
+    const riskLevel = result?.risk_level || 'НЕИЗВЕСТНО';
+    const probability = result?.probability ? `${result.probability}%` : '---';
+    const recommendation = result?.recommendation || "Требуется осмотр специалиста";
 
     const onSubmit = (formData: any) => {
-        console.log("LEAD GENERATED (TELEGRAM):", { ...data, ...formData });
-        alert("Отчет инженера отправлен в Telegram! (Demo)");
+        console.log("LEAD GENERATED (TELEGRAM):", { ...data, ...formData, result });
+        const message = `Заявка на ремонт:\nРиск: ${riskLevel}\nПроблема: ${recommendation}\nКонтакты: ${formData.phone || user?.username}`;
+
+        // In a real app, we would send this to backend /api/ingest/leads
+        alert("Отчет инженера отправлен куратору! (Demo)");
         onClose();
     };
 
     return (
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="h-full flex flex-col justify-center items-center text-center">
             <div className="mb-6">
-                <AlertTriangle className="w-12 h-12 mx-auto mb-2 text-red-500 animate-pulse" />
+                <AlertTriangle className={`w-12 h-12 mx-auto mb-2 animate-pulse ${riskLevel === 'Critical' ? 'text-red-600' : 'text-yellow-500'}`} />
                 <h2 className="text-xl font-black uppercase text-white mb-2">
-                    Риск Износа: <span className="text-red-500">{riskLevel}</span>
+                    Риск Износа: <span className={riskLevel === 'Critical' ? 'text-red-500' : 'text-yellow-500'}>{riskLevel}</span>
                 </h2>
                 <div className="bg-white/5 border border-white/10 p-4 rounded mb-4 max-w-sm mx-auto">
                     <p className="text-sm text-gray-300 mb-2">
-                        Вероятность простоя шпинделя: <span className="text-safety-orange font-bold">{probability}</span>
+                        Вероятность отказа: <span className="text-safety-orange font-bold">{probability}</span>
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                        Мы подобрали 3 варианта решения (Ремонт / Замена / Модернизация).
+                    <p className="text-xs text-muted-foreground border-t border-white/10 pt-2 mt-2">
+                        {recommendation}
                     </p>
                 </div>
             </div>
