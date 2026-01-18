@@ -101,9 +101,15 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                         <a
                             href="/catalog_2026.pdf"
                             download
-                            className="h-14 px-8 flex items-center justify-center border border-white/20 text-white font-mono uppercase tracking-wider text-sm hover:bg-white/5 transition-colors"
+                            className="group"
                         >
-                            СКАЧАТЬ КАТАЛОГ (PDF)
+                            <ShimmerButton
+                                variant="outline"
+                                className="h-14 px-8 border-white/20 text-white hover:bg-white/5"
+                                shimmerColor="rgba(255, 255, 255, 0.1)"
+                            >
+                                СКАЧАТЬ КАТАЛОГ (PDF)
+                            </ShimmerButton>
                         </a>
                     </div>
                 </div>

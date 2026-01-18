@@ -134,17 +134,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
                     {/* Actions */}
                     <div className="pt-6 border-t border-industrial-border flex flex-col md:flex-row gap-4">
-                        <Link href="/contacts">
+                        <Link href="/contacts" className="w-full md:w-auto">
                             <ShimmerButton
-                                className="bg-safety-orange text-white px-8 py-4 font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 hover:bg-safety-orange-vivid w-full md:w-auto"
+                                className="bg-safety-orange text-white px-8 py-4 font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 hover:bg-safety-orange-vivid w-full"
                             >
                                 <FileText className="w-4 h-4" />
-                                Запросить КП
+                                ЗАПРОСИТЬ КП
                             </ShimmerButton>
                         </Link>
-                        <button className="px-8 py-4 border border-white/20 text-white font-mono uppercase text-sm hover:bg-white/5 transition-colors">
-                            Скачать каталог (PDF)
-                        </button>
+                        <a
+                            href="/catalog_2026.pdf"
+                            download
+                            className="px-8 py-4 flex items-center justify-center border border-white/20 text-white font-mono uppercase text-sm hover:bg-white/5 transition-colors w-full md:w-auto"
+                        >
+                            СКАЧАТЬ КАТАЛОГ (PDF)
+                        </a>
                     </div>
                 </div>
             </div>

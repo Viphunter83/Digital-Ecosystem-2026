@@ -16,7 +16,7 @@ export default function MapComponent({ projects }: MapComponentProps) {
     };
 
     return (
-        <div className="h-[500px] w-full overflow-hidden rounded-xl border border-border bg-deep-graphite/50 relative z-0">
+        <div className="h-full w-full overflow-hidden bg-deep-graphite relative z-0">
             <YMaps>
                 <div className="w-full h-full relative">
                     <Map
