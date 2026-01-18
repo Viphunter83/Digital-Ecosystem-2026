@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { RequestCallModal } from "@/components/features/RequestCallModal";
 
 export function Footer() {
     return (
@@ -83,12 +84,13 @@ export function Footer() {
                                 <strong className="text-white block mb-1">Telegram</strong>
                                 <a href="https://t.me/tdrusstankosbyt" target="_blank" rel="noopener noreferrer" className="hover:text-safety-orange transition-colors">@tdrusstankosbyt</a>
                             </p>
-                            <Button
-                                className="w-full bg-white/5 border border-white/10 hover:bg-safety-orange hover:border-safety-orange text-white transition-all uppercase text-xs font-bold tracking-wider rounded-none mt-2"
-                                onClick={() => alert("Форма заказа звонка будет доступна в ближайшем обновлении.")}
-                            >
-                                Заказать звонок
-                            </Button>
+                            <RequestCallModal>
+                                <Button
+                                    className="w-full bg-white/5 border border-white/10 hover:bg-safety-orange hover:border-safety-orange text-white transition-all uppercase text-xs font-bold tracking-wider rounded-none mt-2"
+                                >
+                                    Заказать звонок
+                                </Button>
+                            </RequestCallModal>
                         </div>
                     </div>
                 </div>

@@ -49,6 +49,8 @@ const getBaseUrl = () => {
     return process.env.INTERNAL_API_URL || 'http://backend:8000';
 };
 
+export const API_URL = getBaseUrl();
+
 const api = axios.create({
     baseURL: getBaseUrl(),
     headers: {
