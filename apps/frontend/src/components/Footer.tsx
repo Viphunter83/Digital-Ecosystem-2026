@@ -9,12 +9,13 @@ export function Footer() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-safety-orange to-transparent opacity-50" />
 
             <div className="container mx-auto px-6 relative z-10">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-                    <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
+                    {/* Column 1: Brand (Slightly wider to fit logo and text) */}
+                    <div className="md:col-span-4 space-y-6">
                         <Link href="/" className="flex items-center space-x-2 group">
                             <Logo className="w-auto h-12" variant="light" />
                         </Link>
-                        <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">
+                        <p className="text-muted-foreground text-sm leading-relaxed max-w-[300px]">
                             Ведущий поставщик передовых промышленных инженерных решений.
                             Оптимизация жизненного цикла для высокопроизводительного производства.
                         </p>
@@ -28,8 +29,9 @@ export function Footer() {
                         </div>
                     </div>
 
-                    <div>
-                        <h4 className="font-bold uppercase tracking-wider mb-6 text-sm">Навигация</h4>
+                    {/* Column 2: Navigation */}
+                    <div className="md:col-span-2">
+                        <h4 className="font-bold uppercase tracking-wider mb-6 text-sm text-white/90">Навигация</h4>
                         <ul className="space-y-3 text-sm text-muted-foreground">
                             {[
                                 { label: "Каталог", href: "/catalog" },
@@ -47,8 +49,9 @@ export function Footer() {
                         </ul>
                     </div>
 
-                    <div>
-                        <h4 className="font-bold uppercase tracking-wider mb-6 text-sm">Услуги</h4>
+                    {/* Column 3: Services */}
+                    <div className="md:col-span-3">
+                        <h4 className="font-bold uppercase tracking-wider mb-6 text-sm text-white/90">Услуги</h4>
                         <ul className="space-y-3 text-sm text-muted-foreground">
                             {["Лизинг оборудования", "Предиктивное обслуживание", "Цифровые двойники", "Поддержка 24/7"].map((item) => (
                                 <li key={item}>
@@ -60,8 +63,9 @@ export function Footer() {
                         </ul>
                     </div>
 
-                    <div>
-                        <h4 className="font-bold uppercase tracking-wider mb-6 text-sm">Контакты</h4>
+                    {/* Column 4: Contacts */}
+                    <div className="md:col-span-3">
+                        <h4 className="font-bold uppercase tracking-wider mb-6 text-sm text-white/90">Контакты</h4>
                         <div className="space-y-4 text-sm text-muted-foreground">
                             <p>
                                 <strong className="text-white block mb-1">Центральный офис</strong>
@@ -79,7 +83,10 @@ export function Footer() {
                                 <strong className="text-white block mb-1">Telegram</strong>
                                 <a href="https://t.me/tdrusstankosbyt" target="_blank" rel="noopener noreferrer" className="hover:text-safety-orange transition-colors">@tdrusstankosbyt</a>
                             </p>
-                            <Button className="w-full bg-white/5 border border-white/10 hover:bg-safety-orange hover:border-safety-orange text-white transition-all uppercase text-xs font-bold tracking-wider rounded-none mt-2">
+                            <Button
+                                className="w-full bg-white/5 border border-white/10 hover:bg-safety-orange hover:border-safety-orange text-white transition-all uppercase text-xs font-bold tracking-wider rounded-none mt-2"
+                                onClick={() => alert("Форма заказа звонка будет доступна в ближайшем обновлении.")}
+                            >
                                 Заказать звонок
                             </Button>
                         </div>

@@ -7,29 +7,21 @@ import { fetchProductById, Product } from "@/lib/api";
 import { ArrowLeft, CheckCircle, FileText, Settings } from "lucide-react";
 import { ShimmerButton } from "@/components/ShimmerButton";
 
-export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-    // In Next.js 15, params is a Promise. We need to unwrap it.
-    // Using `use` hook to unwrap params if this was a server component, but since it's "use client", we treat it cautiously.
-    // Actually, in "use client", params is still a Promise in recent Next.js versions or passed as prop. 
-    // SAFEST: Use `useEffect` and `then`. Or since I control it, I'll assumme it's passed.
-    // Update: Next.js 15 requires awaiting params.
+export default function ProductPage({ params }: { params: { id: string } }) {
+    // Next.js 14 passes params as an object, not a Promise.
+    const { id } = params;
 
-    const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        params.then(setResolvedParams);
-    }, [params]);
-
-    useEffect(() => {
-        if (resolvedParams?.id) {
-            fetchProductById(resolvedParams.id).then((data) => {
+        if (id) {
+            fetchProductById(id).then((data) => {
                 setProduct(data || null);
                 setLoading(false);
             });
         }
-    }, [resolvedParams]);
+    }, [id]);
 
     if (loading) {
         return (
