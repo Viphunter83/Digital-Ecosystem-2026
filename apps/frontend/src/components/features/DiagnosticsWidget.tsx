@@ -30,7 +30,10 @@ const COMMON_ISSUES = [
     "Ошибка ATC"
 ];
 
+import { useTelegram } from "@/providers/TelegramProvider";
+
 export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+    const { webApp } = useTelegram();
     const [step, setStep] = useState<DiagnosticStep>('start');
     const [data, setData] = useState<DiagnosticData>({
         type: null,
@@ -44,8 +47,49 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
         if (isOpen) {
             setStep('start');
             setData({ type: null, age: 5, issues: [], contact: { phone: '', email: '' } });
+            webApp?.HapticFeedback.impactOccurred('medium');
         }
-    }, [isOpen]);
+    }, [isOpen, webApp]);
+
+    // Handle MainButton
+    useEffect(() => {
+        if (!webApp) return;
+        const mainBtn = webApp.MainButton;
+
+        const onMainBtnClick = () => {
+            webApp.HapticFeedback.impactOccurred('light');
+            handleNext();
+        };
+
+        mainBtn.onClick(onMainBtnClick);
+
+        if (isOpen) {
+            if (step === 'start') {
+                mainBtn.setText("ЗАПУСТИТЬ ТЕСТ");
+                mainBtn.show();
+            } else if (step === 'type' && data.type) {
+                mainBtn.setText("ДАЛЕЕ >");
+                mainBtn.show();
+            } else if (step === 'age') {
+                mainBtn.setText("ПОДТВЕРДИТЬ ВОЗРАСТ");
+                mainBtn.show();
+            } else if (step === 'issues') {
+                mainBtn.setText("ЗАПУСТИТЬ АНАЛИЗ");
+                mainBtn.show();
+            } else if (step === 'result') {
+                // In result step, we might want a different action or hide it until form is filled
+                mainBtn.hide();
+            } else {
+                mainBtn.hide();
+            }
+        } else {
+            mainBtn.hide();
+        }
+
+        return () => {
+            mainBtn.offClick(onMainBtnClick);
+        };
+    }, [isOpen, step, data.type, webApp]);
 
     const handleNext = () => {
         if (step === 'start') setStep('type');
@@ -54,12 +98,16 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
         else if (step === 'issues') {
             setStep('analyzing');
             // Mock analysis time
-            setTimeout(() => setStep('result'), 3000);
+            setTimeout(() => {
+                setStep('result');
+                webApp?.HapticFeedback.notificationOccurred('success');
+            }, 3000);
         }
     };
 
     const updateData = (updates: Partial<DiagnosticData>) => {
         setData(prev => ({ ...prev, ...updates }));
+        webApp?.HapticFeedback.selectionChanged();
     };
 
     if (!isOpen) return null;
@@ -92,7 +140,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
 
                     <AnimatePresence mode="wait">
                         {step === 'start' && (
-                            <StepStart onNext={handleNext} key="start" />
+                            <StepStart onNext={handleNext} key="start" isTma={!!webApp} />
                         )}
                         {step === 'type' && (
                             <StepType
@@ -100,6 +148,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                                 onSelect={(type) => updateData({ type })}
                                 onNext={handleNext}
                                 key="type"
+                                isTma={!!webApp}
                             />
                         )}
                         {step === 'age' && (
@@ -108,6 +157,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                                 onChange={(age) => updateData({ age })}
                                 onNext={handleNext}
                                 key="age"
+                                isTma={!!webApp}
                             />
                         )}
                         {step === 'issues' && (
@@ -116,6 +166,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                                 onSelect={(issues) => updateData({ issues })}
                                 onNext={handleNext}
                                 key="issues"
+                                isTma={!!webApp}
                             />
                         )}
                         {step === 'analyzing' && (
@@ -149,7 +200,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
 
 // --- Steps Components ---
 
-function StepStart({ onNext }: { onNext: () => void }) {
+function StepStart({ onNext, isTma }: { onNext: () => void; isTma?: boolean }) {
     return (
         <motion.div
             initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
@@ -164,17 +215,19 @@ function StepStart({ onNext }: { onNext: () => void }) {
                     Пройдите верификацию состояния станка за 30 секунд. ИИ-алгоритм выявит риски простоя.
                 </p>
             </div>
-            <button
-                onClick={onNext}
-                className="bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 px-8 uppercase tracking-wider text-sm clip-path-slant transition-transform active:scale-95"
-            >
-                Запустить Тест
-            </button>
+            {!isTma && (
+                <button
+                    onClick={onNext}
+                    className="bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 px-8 uppercase tracking-wider text-sm clip-path-slant transition-transform active:scale-95"
+                >
+                    Запустить Тест
+                </button>
+            )}
         </motion.div>
     );
 }
 
-function StepType({ selected, onSelect, onNext }: { selected: MachineType | null; onSelect: (t: MachineType) => void; onNext: () => void }) {
+function StepType({ selected, onSelect, onNext, isTma }: { selected: MachineType | null; onSelect: (t: MachineType) => void; onNext: () => void; isTma?: boolean }) {
     return (
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full flex flex-col justify-center">
             <h3 className="text-xl font-bold text-white mb-8 text-center uppercase tracking-wider">Тип Оборудования</h3>
@@ -197,20 +250,22 @@ function StepType({ selected, onSelect, onNext }: { selected: MachineType | null
                     )
                 })}
             </div>
-            <div className="text-center">
-                <button
-                    onClick={onNext}
-                    disabled={!selected}
-                    className="disabled:opacity-50 disabled:cursor-not-allowed text-white underline underline-offset-4 font-mono text-sm hover:text-safety-orange transition-colors"
-                >
-                    ДАЛЕЕ &gt;
-                </button>
-            </div>
+            {!isTma && (
+                <div className="text-center">
+                    <button
+                        onClick={onNext}
+                        disabled={!selected}
+                        className="disabled:opacity-50 disabled:cursor-not-allowed text-white underline underline-offset-4 font-mono text-sm hover:text-safety-orange transition-colors"
+                    >
+                        ДАЛЕЕ &gt;
+                    </button>
+                </div>
+            )}
         </motion.div>
     );
 }
 
-function StepAge({ value, onChange, onNext }: { value: number; onChange: (v: number) => void; onNext: () => void }) {
+function StepAge({ value, onChange, onNext, isTma }: { value: number; onChange: (v: number) => void; onNext: () => void; isTma?: boolean }) {
     return (
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="h-full flex flex-col justify-center items-center">
             <h3 className="text-xl font-bold text-white mb-12 text-center uppercase tracking-wider">Возраст Оборудования</h3>
@@ -232,17 +287,19 @@ function StepAge({ value, onChange, onNext }: { value: number; onChange: (v: num
                 </div>
             </div>
 
-            <button
-                onClick={onNext}
-                className="bg-white/10 hover:bg-white/20 text-white font-mono py-2 px-8 uppercase text-sm border border-white/10 transition-colors"
-            >
-                Подтвердить
-            </button>
+            {!isTma && (
+                <button
+                    onClick={onNext}
+                    className="bg-white/10 hover:bg-white/20 text-white font-mono py-2 px-8 uppercase text-sm border border-white/10 transition-colors"
+                >
+                    Подтвердить
+                </button>
+            )}
         </motion.div>
     );
 }
 
-function StepIssues({ selected, onSelect, onNext }: { selected: string[]; onSelect: (s: string[]) => void; onNext: () => void }) {
+function StepIssues({ selected, onSelect, onNext, isTma }: { selected: string[]; onSelect: (s: string[]) => void; onNext: () => void; isTma?: boolean }) {
     const toggleIssue = (issue: string) => {
         if (selected.includes(issue)) {
             onSelect(selected.filter(i => i !== issue));
@@ -271,14 +328,16 @@ function StepIssues({ selected, onSelect, onNext }: { selected: string[]; onSele
                 ))}
             </div>
 
-            <div className="text-center">
-                <button
-                    onClick={onNext}
-                    className="bg-white/10 hover:bg-white/20 text-white font-mono py-2 px-8 uppercase text-sm border border-white/10 transition-colors"
-                >
-                    Запустить Анализ
-                </button>
-            </div>
+            {!isTma && (
+                <div className="text-center">
+                    <button
+                        onClick={onNext}
+                        className="bg-white/10 hover:bg-white/20 text-white font-mono py-2 px-8 uppercase text-sm border border-white/10 transition-colors"
+                    >
+                        Запустить Анализ
+                    </button>
+                </div>
+            )}
         </motion.div>
     );
 }

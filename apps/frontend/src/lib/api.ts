@@ -45,6 +45,7 @@ const api = axios.create({
 
 export const fetchProjects = async (): Promise<Project[]> => {
     try {
+        console.log('API Request:', api.defaults.baseURL, '/projects/');
         const response = await api.get('/projects');
         return response.data;
     } catch (error) {
@@ -55,7 +56,7 @@ export const fetchProjects = async (): Promise<Project[]> => {
 
 export const fetchCatalog = async (query?: string): Promise<Product[]> => {
     try {
-        console.log(`fetchCatalog called with query: '${query}'`);
+        // Catalog search defined as @router.get("/search") -> /catalog/search (NO SLASH)
         const url = query ? `/catalog/search?q=${query}` : '/catalog/search';
         console.log(`Requesting URL: ${url}`);
         const response = await api.get(url);
@@ -69,6 +70,7 @@ export const fetchCatalog = async (query?: string): Promise<Product[]> => {
 
 export const fetchProductById = async (id: string): Promise<Product | undefined> => {
     try {
+        // Defined as @router.get("/{product_id}") -> /catalog/{id} (NO SLASH)
         const response = await api.get(`/catalog/${id}`);
         if (response.data.error) return undefined;
         return response.data;
@@ -80,6 +82,7 @@ export const fetchProductById = async (id: string): Promise<Product | undefined>
 
 export const fetchArticles = async (): Promise<Article[]> => {
     try {
+        // Defined as @router.get("/") -> /journal/ (YES SLASH)
         const response = await api.get('/journal');
         // The endpoint returns { articles: Article[] } based on journal.py
         return response.data.articles || [];
@@ -91,9 +94,8 @@ export const fetchArticles = async (): Promise<Article[]> => {
 
 export const fetchArticleById = async (id: string): Promise<Article | undefined> => {
     try {
+        // Defined as @router.get("/{article_id}") -> /journal/{id} (NO SLASH)
         const response = await api.get(`/journal/${id}`);
-        // The endpoint returns ArticleSchema directly check app/routers/journal.py if it exists?
-        // Wait, I haven't implemented GET /journal/{id} backend route yet!
         return response.data;
     } catch (error) {
         console.error('Error fetching article:', error);

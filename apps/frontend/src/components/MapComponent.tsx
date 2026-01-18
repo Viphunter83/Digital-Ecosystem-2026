@@ -56,7 +56,7 @@ export default function MapComponent({ projects }: MapComponentProps) {
                     <style jsx global>{`
                         /* Invert the ground pane (tiles) to create dark mode */
                         [class*="ground-pane"] {
-                            filter: grayscale(100%) invert(100%) contrast(120%) brightness(80%);
+                            filter: invert(100%) grayscale(100%) brightness(85%);
                         }
                         /* Ensure copyright text is readable (optional) */
                         [class*="copyrights-pane"] {

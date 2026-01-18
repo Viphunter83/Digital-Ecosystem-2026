@@ -13,6 +13,22 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+# Logging Middleware
+@app.middleware("http")
+async def log_requests(request, call_next):
+    import logging
+    logger = logging.getLogger("uvicorn")
+    logger.info(f"Incoming Request: {request.method} {request.url}")
+    logger.info(f"Headers: {request.headers}")
+    
+    response = await call_next(request)
+    
+    logger.info(f"Response Status: {response.status_code}")
+    if response.status_code >= 300 and response.status_code < 400:
+        logger.info(f"Redirect Location: {response.headers.get('location')}")
+        
+    return response
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,

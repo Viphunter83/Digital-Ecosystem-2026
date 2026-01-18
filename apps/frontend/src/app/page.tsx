@@ -90,7 +90,7 @@ export default function Home() {
         <div className="bg-industrial-panel border-y border-industrial-border py-4 px-6 flex justify-between items-center overflow-hidden">
           <div className="flex gap-8 animate-marquee whitespace-nowrap">
             {[1, 2, 3, 4, 5].map(i => (
-              <span key={i} className="text-2xl font-black uppercase italic text-industrial-surface text-stroke-1 opacity-40">
+              <span key={i} className="text-2xl font-black uppercase italic text-white/10 text-stroke-1">
                 Глобальная логистическая сеть // Доставка по всему миру // Поддержка 24/7
               </span>
             ))}
@@ -133,10 +133,10 @@ export default function Home() {
                 </div>
                 <div className="flex-grow">
                   <div className="flex gap-2 mb-4">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-safety-orange font-mono">:: Последнее обновление</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-safety-orange/90 font-mono">:: Последнее обновление</span>
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-white group-hover:text-safety-orange transition-colors leading-tight uppercase tracking-tight">{article.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 font-mono">{article.summary || article.content?.substring(0, 100)}...</p>
+                  <p className="text-gray-400 text-sm leading-relaxed line-clamp-2 font-mono">{article.summary || article.content?.substring(0, 100)}...</p>
                 </div>
               </Link>
             ))}

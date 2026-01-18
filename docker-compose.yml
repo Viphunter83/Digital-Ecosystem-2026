@@ -15,7 +15,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - PYTHONPATH=/app
-    command: sh -c "python apps/backend/scripts/seed_demo.py && uvicorn apps.backend.app.main:app --host 0.0.0.0 --port 8000 --reload"
+    command: sh -c "python apps/backend/scripts/seed_demo.py && uvicorn apps.backend.app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*' --reload"
     depends_on:
       - db
 
@@ -37,12 +37,18 @@ services:
       context: .
       dockerfile: infra/Dockerfile.frontend
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./apps/frontend:/app
       - /app/node_modules
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --url http://frontend:3000
+    depends_on:
+      - frontend
 
   db:
     image: ankane/pgvector

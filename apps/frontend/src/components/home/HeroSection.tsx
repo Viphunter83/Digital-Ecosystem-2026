@@ -65,7 +65,7 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
             <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center lg:pb-32">
 
                 {/* Text Content */}
-                <div className="space-y-8">
+                <div className="space-y-8 relative z-30">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={role}
@@ -85,7 +85,7 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                                 {content.title}
                             </h1>
 
-                            <p className="text-xl text-muted-foreground font-light max-w-xl leading-relaxed">
+                            <p className="text-xl text-white/80 font-light max-w-xl leading-relaxed">
                                 {content.subtitle}
                             </p>
                         </motion.div>
@@ -169,10 +169,10 @@ function DebugPanel({ role, setRole }: { role: UserRole, setRole: (r: UserRole) 
                     className="w-full text-[10px] text-muted-foreground uppercase font-mono px-3 py-2 border-b border-white/10 flex items-center justify-between gap-4 hover:bg-white/5 transition-colors"
                 >
                     <div className="flex items-center gap-2">
-                        <Settings className={`w-3 h-3 ${isOpen ? 'text-safety-orange' : ''}`} />
-                        <span>Dev Control</span>
+                        <Settings className={`w-3 h-3 ${isOpen ? 'text-safety-orange' : 'text-gray-400'}`} />
+                        <span className="text-gray-300">Dev Control</span>
                     </div>
-                    <span className="text-[10px]">{isOpen ? '▼' : '▲'}</span>
+                    <span className="text-[10px] text-gray-400">{isOpen ? '▼' : '▲'}</span>
                 </button>
 
                 <div className={`p-2 flex gap-1 transition-all ${isOpen ? 'opacity-100' : 'opacity-0 h-0 p-0 overflow-hidden'}`}>
@@ -192,7 +192,7 @@ function RoleButton({ active, onClick, icon, label }: { active: boolean; onClick
             onClick={onClick}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-[10px] font-mono uppercase transition-all ${active
                 ? 'bg-safety-orange text-white shadow-[0_0_10px_rgba(255,61,0,0.3)]'
-                : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white'
+                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                 }`}
         >
             {icon}

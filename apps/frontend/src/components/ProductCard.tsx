@@ -16,10 +16,47 @@ interface ProductCardProps {
     product: Product;
 }
 
+const CATEGORY_MAP: Record<string, string> = {
+    'MILLING': 'ФРЕЗЕРНЫЙ',
+    'TURNING': 'ТОКАРНЫЙ',
+    'CNC_CENTER': 'ОБРАБ. ЦЕНТР',
+    'PRESS': 'ПРЕСС',
+    'LASER': 'ЛАЗЕР',
+};
+
+const SPEC_MAP: Record<string, string> = {
+    'TRAVEL_X': 'ХОД ПО ОСИ X',
+    'TABLE_SIZE': 'РАЗМЕР СТОЛА',
+    'SPINDLE_SPEED': 'ОБОРОТЫ',
+    'FORCE': 'УСИЛИЕ',
+    'SPEED': 'СКОРОСТЬ',
+    'STROKE': 'ХОД ПОЛЗУНА',
+    'POWER': 'МОЩНОСТЬ',
+};
+
+const UNIT_MAP: Record<string, string> = {
+    'mm': 'мм',
+    'mm/s': 'мм/с',
+    'rpm': 'об/мин',
+    'ton': 'т',
+    'kW': 'кВт',
+};
+
+function formatSpecValue(value: string): string {
+    let formatted = value;
+    Object.entries(UNIT_MAP).forEach(([en, ru]) => {
+        formatted = formatted.replace(new RegExp(en, 'g'), ru);
+    });
+    return formatted;
+}
+
 export function ProductCard({ product }: ProductCardProps) {
     // Transform specs record to array for display
     const specsArray = product.specs
-        ? Object.entries(product.specs).map(([key, value]) => ({ parameter: key, value: String(value) }))
+        ? Object.entries(product.specs).map(([key, value]) => ({
+            parameter: SPEC_MAP[key] || key,
+            value: formatSpecValue(String(value))
+        }))
         : [];
 
     return (
@@ -52,7 +89,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     {/* Category Badge with Industrial styling */}
                     {product.category && (
                         <div className="absolute bottom-0 left-0 bg-safety-orange text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-mono z-10 clip-path-slant">
-                            {product.category}
+                            {CATEGORY_MAP[product.category] || product.category}
                         </div>
                     )}
                 </div>
@@ -79,7 +116,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
                 <CardFooter className="pt-2 pb-5 px-6 relative z-10">
                     <ShimmerButton className="w-full bg-transparent border border-white/20 text-white hover:bg-safety-orange hover:border-safety-orange hover:text-white h-10 text-[10px]">
-                        Характеристики
+                        ПОДРОБНЕЕ
                     </ShimmerButton>
                 </CardFooter>
             </Card>

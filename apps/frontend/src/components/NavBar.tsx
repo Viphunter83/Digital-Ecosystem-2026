@@ -62,8 +62,8 @@ export function NavBar() {
 
                 <div className="flex items-center space-x-4">
                     <Link href="/catalog">
-                        <Button variant="ghost" className={cn("hidden sm:flex font-mono text-xs uppercase tracking-wider", isScrolled ? "text-muted-foreground hover:text-safety-orange" : "text-white/80 hover:text-white hover:bg-white/5")}>
-                            [ Поиск ]
+                        <Button variant="ghost" className={cn("hidden sm:flex font-mono text-xs uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 px-4", isScrolled ? "text-muted-foreground hover:text-safety-orange border-industrial-border" : "text-white/80 hover:text-white hover:border-white/30")}>
+                            <span className="mr-2 opacity-50">🔍</span> [ Поиск ]
                         </Button>
                     </Link>
                     <Link href="/contacts">

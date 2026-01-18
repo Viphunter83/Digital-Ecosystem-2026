@@ -8,7 +8,7 @@ from apps.backend.app.schemas import ArticleSchema
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("")
 def get_journal(db: Session = Depends(get_db)):
     """
     Get list of articles.

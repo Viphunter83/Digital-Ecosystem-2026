@@ -95,7 +95,7 @@ export default function CatalogPage() {
                         <input
                             type="text"
                             placeholder="ПОИСК ПО НАЗВАНИЮ ИЛИ ОПИСАНИЮ (AI-POWERED)..."
-                            className="w-full bg-industrial-surface border border-industrial-border text-white text-sm font-mono pl-10 pr-4 py-3 focus:outline-none focus:border-safety-orange focus:ring-1 focus:ring-safety-orange transition-all placeholder:text-muted-foreground/50 uppercase tracking-wider"
+                            className="w-full bg-industrial-surface border border-industrial-border text-white text-sm font-mono pl-10 pr-24 py-3 focus:outline-none focus:border-safety-orange focus:ring-1 focus:ring-safety-orange transition-all placeholder:text-muted-foreground/50 uppercase tracking-wider"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}

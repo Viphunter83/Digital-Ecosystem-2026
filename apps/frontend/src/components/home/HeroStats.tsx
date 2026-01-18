@@ -24,7 +24,7 @@ export function HeroStats() {
                             <div className="text-3xl md:text-4xl font-black text-white font-mono mt-3 mb-1">
                                 {stat.value}<span className="text-safety-orange text-2xl">{stat.suffix}</span>
                             </div>
-                            <div className="text-xs text-muted-foreground uppercase tracking-wider font-mono">
+                            <div className="text-xs text-white/60 uppercase tracking-wider font-mono">
                                 {stat.label}
                             </div>
                         </motion.div>

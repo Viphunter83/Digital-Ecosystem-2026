@@ -9,7 +9,7 @@ from apps.backend.app.schemas import ProjectSchema
 
 router = APIRouter()
 
-@router.get("/", response_model=List[ProjectSchema])
+@router.get("", response_model=List[ProjectSchema])
 def get_projects(db: Session = Depends(get_db)):
     """
     Get list of projects with client data.
