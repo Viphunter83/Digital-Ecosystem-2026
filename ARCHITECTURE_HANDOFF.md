@@ -2,46 +2,43 @@
 
 This document summarizes the current state of the **Digital Ecosystem 2026** project to facilitate a seamless transition for the next development iteration.
 
-## 1. Project Status (as of 2026-01-17)
+## 1. Project Status (as of 2026-01-18)
 
 ### ✅ Completed
-- **Infrastructure**: Monorepo with Docker Compose (Backend, Frontend, Postgres+pgvector).
-- **Database**: PostgreSQL schema designed and implemented via SQLAlchemy models.
-- **Backend API**: FastAPI running on port 8000.
-    - Endpoints: `/ingest/trigger`, `/catalog/search`, `/journal`.
-    - Dependencies: `openai` (ProxyAPI), `sqlalchemy`, `pypdf`, `pandas`, `pgvector`.
-- **Frontend**: Next.js 15 + Shadcn/UI + Tailwind (Industrial Premium Theme).
-    - Components: `ProductCard`, `TechnicalSpecTable`, `NavBar`.
+- **Infrastructure**: Monorepo with Docker Compose. Fixed **Mixed Content** issues via Nginx/Uvicorn proxy headers.
+- **Backend API**: FastAPI running on port 8000 (accessible via `/api` proxy).
+    - Endpoints: `/projects`, `/journal`, `/catalog/search` (Hybrid Search).
+    - Middleware: Request logging and Proxy Headers support.
+- **Frontend**: Next.js 15 + Shadcn/UI + Tailwind.
+    - **UI/UX**: "Industrial Premium" theme with high-contrast fixes, neon effects, and holographic assets.
+    - **Localization**: Full Russian translation for Product Cards (Specs, Categories) and System Messages.
+    - **Telegram Mini App (TMA)**:
+        - `TelegramProvider`: Auto-detects user, expands app, handles Haptic Feedback.
+        - `BottomNav`: Sticky mobile navigation (Home, Catalog, Diagnostics, Cart).
+        - `DiagnosticsWidget`: Integrated with native `MainButton`.
 - **Data Ingestion**:
-    - Scripts in `apps/backend/scripts/ingest/`.
-    - **Excel**: For References/Projects (`ingest_excel.py`).
-    - **PDF**: For Knowledge Base (`ingest_pdf.py`).
-    - **AI**: Integrated ProxyAPI for generating embeddings (`text-embedding-3-small`).
+    - AI-powered parsing for Excel/PDF.
+    - Data seeding scripts for initial deployment.
 
 ### 🚧 In Progress / Next Steps
-- **Data Parsing Logic**: The ingestion scripts currently have *connected* AI calls but use **stubbed logic** for column mapping (e.g., looking for specific columns in Excel).
-    - *Action Required*: Fine-tune `ingest_excel.py` to match the exact columns of the provided `Справка_референс_*.xlsx`.
-- **Frontend Integration**: The Frontend is currently using mock data.
-    - *Action Required*: Connect `ProductCard` and other components to the FastAPI endpoints.
-- **Search**: The current search is simple SQL `ILIKE`.
-    - *Action Required*: Implement vector search using `pgvector` operators (`ORDER BY embedding <-> query_embedding`).
+- **Cart Functionality**: `BottomNav` has a Cart tab, but the checkout flow is not fully implemented.
+- **Admin Panel**: Need a dedicated interface for managing products/projects without DB access.
+- **Production Deployment**: SSL certificate configuration and final Docker optimization.
 
 ## 2. Technical Stack & Configuration
 
 ### Environment Variables (`.env`)
-- **Database**: `DATABASE_URL` (configured for both local scripts and docker container).
-- **AI**: Uses **ProxyAPI.ru** (OpenAI compatible).
-    - `OPENAI_BASE_URL`: `https://api.proxyapi.ru/openai/v1`
-    - `OPENAI_MODEL_CHAT`: `gpt-4o-mini`
-    - `OPENAI_MODEL_EMBEDDING`: `text-embedding-3-small`
+- **Database**: `DATABASE_URL`
+- **Frontend**: `NEXT_PUBLIC_API_URL=/api` (Relative path for proxying).
+- **AI**: ProxyAPI (OpenAI compatible).
 
-### Database Schema (`packages/database/models.py`)
-Key modules:
-- **Products**: Heavy machinery with JSONB specs.
-- **Projects**: Reference track record (requires Geocoding).
-- **Articles**: Engineering journal for SEO.
-- **Documents**: Chunked text for RAG.
-- **Telegram**: User mapping for future bot.
+### Telegram Integration (New)
+- **Provider**: `TelegramProvider.tsx` wraps the app.
+- **Mocking**: `useTelegram` hook includes mock data for development outside Telegram.
+- **Native Features**:
+    - `HapticFeedback.impactOccurred('medium')`
+    - `MainButton.setText()` / `MainButton.show()`
+    - `WebApp.expand()`
 
 ## 3. How to Run
 
@@ -49,15 +46,15 @@ Key modules:
    ```bash
    docker-compose up -d --build
    ```
-2. **Trigger Ingestion** (Mock/Test):
-   ```bash
-   curl -X POST http://localhost:8000/ingest/trigger
-   ```
-3. **Access**:
-   - Frontend: http://localhost:3000
-   - API Docs: http://localhost:8000/docs
+2. **Access**:
+   - **Web**: http://localhost:3000 (Normal View)
+   - **TMA Emulation**: Open in mobile view, verify `BottomNav` appears.
+
+3. **Verify TMA**:
+   - Check console for `Telegram WebApp is undefined, using mock` (Localhost).
+   - In Telegram: `initData` will be populated, `BottomNav` visible.
 
 ## 4. Key Directives for Next Session
-- **Parsing**: Focus on robustly extracting data from the specific Excel files provided in `_input_materials`.
-- **UI**: Build the **Catalog Page** and **Project Map** (using coordinates from `projects` table).
-- **AI**: Implement the RAG pipeline for answering technical questions based on `documents`.
+- **Checkout**: Implement the "Cart" logic and order submission to Telegram bot.
+- **Diagnostics**: Connect the "Submit" action in Diagnostics to a backend endpoint or Bot API.
+- **Performance**: Optimize image loading (some holographic assets are large).

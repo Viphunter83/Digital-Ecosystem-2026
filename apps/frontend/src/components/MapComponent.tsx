@@ -2,30 +2,36 @@
 
 import { YMaps, Map, Placemark, ZoomControl } from '@pbe/react-yandex-maps';
 import { Project } from '@/lib/api';
+import { useState } from 'react';
 
 interface MapComponentProps {
     projects: Project[];
 }
 
 export default function MapComponent({ projects }: MapComponentProps) {
+    const [isInteractive, setIsInteractive] = useState(false);
+
     const defaultState = {
         center: [55.751574, 37.573856],
         zoom: 3,
         controls: [],
-        behaviors: ["default", "-scrollZoom"]
+        behaviors: isInteractive ? ["default", "scrollZoom"] : ["default", "-drag", "-scrollZoom", "-multiTouch"]
     };
 
     return (
-        <div className="h-full w-full overflow-hidden bg-deep-graphite relative z-0">
+        <div
+            className="h-full w-full overflow-hidden bg-deep-graphite relative z-0 group"
+        >
             <YMaps>
                 <div className="w-full h-full relative">
                     <Map
+                        key={isInteractive ? 'interactive' : 'static'} // Force re-render behavior
                         defaultState={defaultState}
                         width="100%"
                         height="100%"
                         options={{
                             suppressMapOpenBlock: true,
-                            yandexMapDisablePoiInteractivity: true,
+                            yandexMapDisablePoiInteractivity: !isInteractive,
                         }}
                     >
                         {/* Custom Zoom Control */}
@@ -52,6 +58,20 @@ export default function MapComponent({ projects }: MapComponentProps) {
                         })}
                     </Map>
 
+                    {/* Interaction Guard Overlay */}
+                    {!isInteractive && (
+                        <div
+                            className="absolute inset-0 z-50 bg-black/40 flex items-center justify-center cursor-pointer hover:bg-black/30 transition-colors backdrop-blur-[1px]"
+                            onClick={() => setIsInteractive(true)}
+                            onTouchEnd={() => setIsInteractive(true)}
+                        >
+                            <div className="bg-black/80 px-4 py-2 rounded border border-white/20 text-white font-mono text-xs uppercase tracking-widest flex items-center gap-2 shadow-xl backdrop-blur-md">
+                                <span className="animate-pulse">👆</span>
+                                <span>Активировать карту</span>
+                            </div>
+                        </div>
+                    )}
+
                     {/* The Dark Mode Hack: Apply filter only to the map TILES, not the markers */}
                     <style jsx global>{`
                         /* Invert the ground pane (tiles) to create dark mode */
@@ -60,7 +80,7 @@ export default function MapComponent({ projects }: MapComponentProps) {
                         }
                         /* Ensure copyright text is readable (optional) */
                         [class*="copyrights-pane"] {
-                           filter: invert(100%);
+                            filter: invert(100%);
                         }
                     `}</style>
                 </div>

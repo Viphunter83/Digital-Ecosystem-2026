@@ -54,7 +54,7 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
     if (!mounted) return null;
 
     return (
-        <section className="relative h-[90vh] min-h-[600px] flex items-center overflow-hidden border-b border-industrial-border bg-industrial-bg">
+        <section className="relative min-h-[90vh] h-auto flex items-center overflow-hidden border-b border-industrial-border bg-industrial-bg pb-24 lg:pb-0">
 
             {/* Background Effects */}
             <div className="absolute inset-0 z-0">
@@ -62,10 +62,10 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                 <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-safety-orange/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
             </div>
 
-            <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center lg:pb-32">
+            <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center pt-24 lg:pt-0 lg:pb-32">
 
                 {/* Text Content */}
-                <div className="space-y-8 relative z-30">
+                <div className="space-y-6 lg:space-y-8 relative z-30">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={role}
@@ -76,24 +76,24 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                         >
                             <div className="flex items-center space-x-2 text-safety-orange mb-4">
                                 <span className="h-[2px] w-8 bg-safety-orange" />
-                                <span className="text-xs font-mono uppercase tracking-widest font-bold">
-                                    {role === 'default' ? 'SYSTEM V.2.0.26' : `DETECTED ROLE: ${role.toUpperCase()}`}
+                                <span className="text-xs font-mono uppercase tracking-widest font-bold text-safety-orange/90">
+                                    {role === 'default' ? 'СИСТЕМА V.2.0.26' : `РОЛЬ: ${role === 'director' ? 'ДИРЕКТОР' : role === 'engineer' ? 'ИНЖЕНЕР' : 'ЗАКУПЩИК'}`}
                                 </span>
                             </div>
 
-                            <h1 className="text-4xl md:text-6xl font-black text-white leading-[0.9] tracking-tighter uppercase mb-6">
+                            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white leading-[1.0] lg:leading-[0.9] tracking-tighter uppercase mb-4 lg:mb-6 break-words">
                                 {content.title}
                             </h1>
 
-                            <p className="text-xl text-white/80 font-light max-w-xl leading-relaxed">
+                            <p className="text-lg sm:text-xl text-white/90 font-light max-w-xl leading-relaxed">
                                 {content.subtitle}
                             </p>
                         </motion.div>
                     </AnimatePresence>
 
-                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                    <div className="flex flex-col sm:flex-row gap-4 pt-2 lg:pt-4">
                         <ShimmerButton
-                            className="h-14 px-8 text-base bg-safety-orange border-none text-white hover:bg-safety-orange-vivid"
+                            className="h-14 px-8 text-sm sm:text-base bg-safety-orange border-none text-white hover:bg-safety-orange-vivid whitespace-normal leading-tight mx-auto sm:mx-0 w-full sm:w-auto"
                             onClick={onOpenDiagnostics}
                         >
                             {content.cta}
@@ -101,11 +101,11 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                         <a
                             href="/catalog_2026.pdf"
                             download
-                            className="group"
+                            className="group w-full sm:w-auto"
                         >
                             <ShimmerButton
                                 variant="outline"
-                                className="h-14 px-8 border-white/20 text-white hover:bg-white/5"
+                                className="h-14 px-8 border-white/20 text-white hover:bg-white/5 w-full sm:w-auto whitespace-normal leading-tight"
                                 shimmerColor="rgba(255, 255, 255, 0.1)"
                             >
                                 СКАЧАТЬ КАТАЛОГ (PDF)
