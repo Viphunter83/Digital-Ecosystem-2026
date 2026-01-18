@@ -117,7 +117,7 @@ class TelegramUser(Base):
     tg_id = Column(BigInteger, unique=True, nullable=False)
     phone = Column(String)
     # Role-based architecture fields
-    role = Column(Enum(UserRole), nullable=True)
+    role = Column(Enum(UserRole, name='user_role'), nullable=True)
     company_name = Column(String, nullable=True)
     is_verified = Column(Boolean, default=False)
     

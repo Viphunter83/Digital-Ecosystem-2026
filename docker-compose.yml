@@ -28,6 +28,7 @@ services:
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - BACKEND_URL=http://backend:8000
+      - PYTHONPATH=/app
     depends_on:
       - backend
 

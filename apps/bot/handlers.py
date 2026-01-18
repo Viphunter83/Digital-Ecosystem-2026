@@ -7,6 +7,9 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from apps.bot.keyboards import (
     role_selection_kb, 
     engineer_kb, 
@@ -14,6 +17,8 @@ from apps.bot.keyboards import (
     director_kb,
     invoice_method_kb
 )
+from apps.bot.database import AsyncSessionLocal
+from packages.database.models import TelegramUser, UserRole
 
 # Constants
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
@@ -22,22 +27,45 @@ BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
 router = Router()
 logger = logging.getLogger(__name__)
 
-# --- Mock Database for Role Persistence (Runtime only for this demo level) ---
-# In production, use SQLAlchemy with packages.database.models.TelegramUser
-USER_ROLES = {} 
-
 class Registration(StatesGroup):
     choosing_role = State()
+
+async def get_user_role(tg_id: int) -> str | None:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(TelegramUser).where(TelegramUser.tg_id == tg_id))
+        user = result.scalar_one_or_none()
+        if user and user.role:
+            return user.role.value if hasattr(user.role, 'value') else user.role
+        return None
+
+async def register_user_role(tg_id: int, role_key: str):
+    # role_key e.g 'engineer', 'director' matching UserRole enum
+    async with AsyncSessionLocal() as session:
+        # Check if exists
+        result = await session.execute(select(TelegramUser).where(TelegramUser.tg_id == tg_id))
+        user = result.scalar_one_or_none()
+        
+        if not user:
+            user = TelegramUser(tg_id=tg_id)
+            session.add(user)
+        
+        # Update Role
+        # Ensure role_key matches Enum value
+        role_enum = UserRole[role_key]
+        user.role = role_enum
+        
+        await session.commit()
 
 # --- Command: /start ---
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     user_id = message.from_user.id
     
-    # Check if user exists (Mock check)
-    if user_id in USER_ROLES:
-        role = USER_ROLES[user_id]
-        await send_role_menu(message, role)
+    # Check if user exists in DB
+    existing_role = await get_user_role(user_id)
+    
+    if existing_role:
+        await send_role_menu(message, existing_role)
     else:
         # Start onboarding
         await message.answer(
@@ -53,30 +81,30 @@ async def process_role_selection(callback: CallbackQuery, state: FSMContext):
     role_code = callback.data.split("_")[1] # engineer, procurement, director
     user_id = callback.from_user.id
     
-    # Save to "DB"
-    USER_ROLES[user_id] = role_code
+    # Save to DB
+    try:
+        await register_user_role(user_id, role_code)
+    except Exception as e:
+        logger.error(f"Failed to save user role: {e}")
+        await callback.answer("Ошибка сохранения данных.", show_alert=True)
+        return
     
     await callback.message.delete()
     await callback.message.answer(f"✅ Роль установлена: *{role_code.upper()}*")
     
     # Send appropriate menu
-    if role_code == "engineer":
-        await callback.message.answer("Режим: 🛠 Техническое обслуживание", reply_markup=engineer_kb)
-    elif role_code == "procurement":
-        await callback.message.answer("Режим: 💼 Закупки и логистика", reply_markup=procurement_kb)
-    elif role_code == "director":
-        await callback.message.answer("Режим: 👔 Управление активами", reply_markup=director_kb)
+    await send_role_menu(callback.message, role_code)
     
     await state.clear()
     await callback.answer()
 
 async def send_role_menu(message: Message, role: str):
     if role == "engineer":
-        await message.answer("С возвращением, Инженер.", reply_markup=engineer_kb)
+        await message.answer("Режим: 🛠 Техническое обслуживание", reply_markup=engineer_kb)
     elif role == "procurement":
-        await message.answer("С возвращением! Меню снабжения:", reply_markup=procurement_kb)
+        await message.answer("Режим: 💼 Закупки и логистика", reply_markup=procurement_kb)
     elif role == "director":
-        await message.answer("С возвращением. Сводка готова.", reply_markup=director_kb)
+        await message.answer("Режим: 👔 Управление активами", reply_markup=director_kb)
 
 # --- Procurement Handlers ---
 
@@ -105,6 +133,8 @@ async def procurement_cargo(message: Message):
 
 @router.message(F.text == "📦 Каталог Запчастей")
 async def procurement_catalog(message: Message):
+    # BONUS: Web App Button Logic if updated in keyboards
+    # Fallback to link
     await message.answer(
         "Перейти в онлайн-каталог запчастей:\nhttps://russtankosbyt.ru/catalog (Demo Link)"
     )
@@ -113,14 +143,12 @@ async def procurement_catalog(message: Message):
 
 @router.message(F.text == "🏭 Мой Парк")
 async def engineer_machines(message: Message):
-    # Same logic as before allow fetch
     await message.answer("Загружаю список оборудования...")
     try:
         async with aiohttp.ClientSession() as session:
              async with session.get(f"{BACKEND_URL}/projects", timeout=2) as resp:
                  if resp.status == 200:
                      data = await resp.json()
-                     # Mock display
                      await message.answer(f"Найдено единиц оборудования: {len(data)}")
                  else:
                      await message.answer("Список пуст (или нет связи).")
