@@ -117,7 +117,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {articles.slice(0, 3).map((article) => (
-              <div key={article.id} className="group cursor-pointer flex flex-col h-full border border-transparent hover:border-white/10 p-4 -mx-4 transition-all hover:bg-white/5 rounded-none">
+              <Link href={`/journal/${article.id}`} key={article.id} className="group cursor-pointer flex flex-col h-full border border-transparent hover:border-white/10 p-4 -mx-4 transition-all hover:bg-white/5 rounded-none">
                 <div className="relative aspect-[16/9] overflow-hidden mb-6 bg-industrial-panel border border-white/5 group-hover:border-safety-orange/50 transition-colors">
                   {article.image_url ? (
                     <Image src={article.image_url} alt={article.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0" />
@@ -138,7 +138,7 @@ export default function Home() {
                   <h3 className="text-xl font-bold mb-3 text-white group-hover:text-safety-orange transition-colors leading-tight uppercase tracking-tight">{article.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed line-clamp-2 font-mono">{article.summary || article.content?.substring(0, 100)}...</p>
                 </div>
-              </div>
+              </Link>
             ))}
 
             {articles.length === 0 && (

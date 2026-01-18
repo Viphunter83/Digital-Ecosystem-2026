@@ -75,12 +75,15 @@ class ProductSchema(BaseModel):
     class Config:
         from_attributes = True
 
+from datetime import datetime
+
 class ArticleSchema(BaseModel):
     id: UUID
     title: str
     content: Optional[str] = None
     cover_image: Optional[str] = None
     tags: Optional[List[str]] = None
+    created_at: Optional[datetime] = None
     
     @computed_field
     def image_url(self) -> Optional[str]:
@@ -90,6 +93,12 @@ class ArticleSchema(BaseModel):
     def summary(self) -> Optional[str]:
         if self.content:
             return self.content[:200] + "..."
+        return None
+
+    @computed_field
+    def published_at(self) -> Optional[str]:
+        if self.created_at:
+            return self.created_at.isoformat()
         return None
 
     class Config:

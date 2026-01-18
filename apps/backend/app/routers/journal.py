@@ -17,3 +17,22 @@ def get_journal(db: Session = Depends(get_db)):
     results = db.execute(query).scalars().all()
     data = [ArticleSchema.model_validate(a) for a in results]
     return {"articles": data}
+
+@router.get("/{article_id}")
+def get_article(article_id: str, db: Session = Depends(get_db)):
+    """
+    Get article by ID.
+    """
+    import uuid
+    try:
+        aid = uuid.UUID(article_id)
+    except ValueError:
+        return {"error": "Invalid ID format"}
+
+    query = select(Article).where(Article.id == aid)
+    article = db.execute(query).scalar_one_or_none()
+    
+    if not article:
+        return {"error": "Article not found"}
+        
+    return ArticleSchema.model_validate(article)

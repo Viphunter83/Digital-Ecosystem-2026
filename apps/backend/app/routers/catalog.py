@@ -34,13 +34,25 @@ async def search_catalog(q: Optional[str] = None, db: Session = Depends(get_db))
             query_embedding = await ai_service.get_embedding(q)
             
             # Semantic search using cosine distance (<=> operator)
-            # Order by distance ASC
-            stmt = select(Product).options(joinedload(Product.images)).order_by(
-                Product.embedding.cosine_distance(query_embedding)
-            ).limit(10)
+            # We want to filter out irrelevant results (distance > 0.6)
+            # PGVector cosine distance: 0 = exact match, 1 = orthogonal, 2 = opposite
             
-            results = db.execute(stmt).unique().scalars().all()
-            return {"results": [ProductSchema.model_validate(p) for p in results]}
+            distance_expr = Product.embedding.cosine_distance(query_embedding).label("distance")
+            
+            stmt = select(Product, distance_expr).options(
+                joinedload(Product.images)
+            ).order_by(distance_expr).limit(10)
+            
+            # Execute and filter in python (for simplicity with the tuple return)
+            results = db.execute(stmt).unique().all()
+            
+            # Filter by threshold (0.6 is a reasonable start)
+            filtered_products = []
+            for product, dist in results:
+                if dist < 0.6:
+                    filtered_products.append(product)
+            
+            return {"results": [ProductSchema.model_validate(p) for p in filtered_products]}
             
         except Exception as e:
             # Fallback to keyword search if AI fails

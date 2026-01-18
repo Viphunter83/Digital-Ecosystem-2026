@@ -55,7 +55,9 @@ export const fetchProjects = async (): Promise<Project[]> => {
 
 export const fetchCatalog = async (query?: string): Promise<Product[]> => {
     try {
+        console.log(`fetchCatalog called with query: '${query}'`);
         const url = query ? `/catalog/search?q=${query}` : '/catalog/search';
+        console.log(`Requesting URL: ${url}`);
         const response = await api.get(url);
         // The endpoint returns { results: Product[] }
         return response.data.results || [];
@@ -84,6 +86,18 @@ export const fetchArticles = async (): Promise<Article[]> => {
     } catch (error) {
         console.error('Error fetching articles:', error);
         return [];
+    }
+};
+
+export const fetchArticleById = async (id: string): Promise<Article | undefined> => {
+    try {
+        const response = await api.get(`/journal/${id}`);
+        // The endpoint returns ArticleSchema directly check app/routers/journal.py if it exists?
+        // Wait, I haven't implemented GET /journal/{id} backend route yet!
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching article:', error);
+        return undefined;
     }
 };
 
