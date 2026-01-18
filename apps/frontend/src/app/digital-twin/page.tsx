@@ -6,7 +6,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
+import { useTelegram } from "@/providers/TelegramProvider";
+
 export default function DigitalTwinPage() {
+    const { user } = useTelegram();
     const [activeTab, setActiveTab] = useState("telemetry");
 
     return (
@@ -19,11 +22,21 @@ export default function DigitalTwinPage() {
                         Назад к Экосистеме
                     </Link>
                     <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none">
-                        Цифровой <span className="text-safety-orange">Двойник</span>
+                        {user ? (
+                            <>
+                                Twin: <span className="text-safety-orange">{user.first_name || user.username}</span>
+                            </>
+                        ) : (
+                            <>
+                                Цифровой <span className="text-safety-orange">Двойник</span>
+                            </>
+                        )}
                     </h1>
                     <div className="flex items-center gap-2 mt-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-green-500 font-mono text-xs uppercase">Система в норме</span>
+                        <span className="text-green-500 font-mono text-xs uppercase">
+                            {user ? `ID: ${user.id} • ПОДКЛЮЧЕНО` : "Система в норме"}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -104,19 +117,25 @@ export default function DigitalTwinPage() {
                         {activeTab === "analytics" && (
                             <div className="flex flex-col items-center justify-center h-full text-white/30 text-xs font-mono text-center pt-10">
                                 <Activity className="w-8 h-8 mb-2 opacity-50" />
-                                Ожидание подключения к Bi-системе...
+                                {user ? (
+                                    <span>Personal config loaded for {user.id}</span>
+                                ) : (
+                                    <span>Ожидание подключения к Bi-системе...</span>
+                                )}
                             </div>
                         )}
 
                         {activeTab === "logs" && (
                             <div className="font-mono text-[10px] text-white/60 space-y-1 max-h-[250px] overflow-y-auto">
                                 <p>[22:14:03] Connection established</p>
+                                {user && <p className="text-safety-orange">[AUTH] User verified: {user.username || user.id}</p>}
                                 <p>[22:14:05] Syncing model parameters...</p>
                                 <p>[22:14:06] <span className="text-green-400">Sync Complete</span></p>
                                 <p>[22:14:10] Spindle RPM: 12000</p>
                                 <p>[22:14:15] Tool Change: T04 &rarr; T05</p>
                             </div>
                         )}
+
                     </div>
                 </div>
             </div>

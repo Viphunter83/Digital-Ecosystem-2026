@@ -30,6 +30,9 @@ logger = logging.getLogger(__name__)
 class Registration(StatesGroup):
     choosing_role = State()
 
+class InvoiceStates(StatesGroup):
+    waiting_for_file = State()
+
 async def get_user_role(tg_id: int) -> str | None:
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(TelegramUser).where(TelegramUser.tg_id == tg_id))
@@ -116,14 +119,39 @@ async def procurement_invoice(message: Message):
     )
 
 @router.callback_query(F.data == "invoice_photo")
-async def invoice_photo_handler(callback: CallbackQuery):
+async def invoice_photo_handler(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("📸 Пожалуйста, отправьте фото шильдика станка или списка запчастей.")
+    await state.set_state(InvoiceStates.waiting_for_file)
     await callback.answer()
 
 @router.callback_query(F.data == "invoice_excel")
-async def invoice_excel_handler(callback: CallbackQuery):
+async def invoice_excel_handler(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("📎 Ожидаю файл (.xlsx, .pdf). Я автоматически распознаю номенклатуру.")
+    await state.set_state(InvoiceStates.waiting_for_file)
     await callback.answer()
+
+@router.message(InvoiceStates.waiting_for_file, F.content_type.in_({types.ContentType.PHOTO, types.ContentType.DOCUMENT}))
+async def handle_invoice_upload(message: Message, state: FSMContext):
+    # Determine file type
+    file_id = None
+    file_name = "unknown"
+    
+    if message.photo:
+        file_id = message.photo[-1].file_id
+        file_name = "photo.jpg"
+    elif message.document:
+        file_id = message.document.file_id
+        file_name = message.document.file_name
+        
+    # TODO: Helper to download file using bot.get_file(file_id) and send to Backend
+    
+    await message.answer(
+        f"📥 *Файл принят:* `{file_name}`\n\n"
+        "⏳ Начинаю распознавание номенклатуры...\n"
+        "✅ Заявка сформирована. Менеджер проверит наличие и пришлет КП."
+    )
+    # Reset state so user can continue using menu
+    await state.clear()
 
 @router.message(F.text == "🚚 Где мой груз?")
 async def procurement_cargo(message: Message):
@@ -164,7 +192,39 @@ async def engineer_machines(message: Message):
 
 @router.message(F.text == "🛠 Вызвать Сервис")
 async def engineer_sos(message: Message):
-    await message.answer("🆘 Аварийный сигнал отправлен дежурной бригаде. Ожидайте звонка.")
+    # TODO: Backend Integration (POST /tickets)
+    ticket_id = "REQ-2026-001" 
+    await message.answer(
+        f"🆘 *Заявка #{ticket_id} зарегистрирована.*\n\n"
+        "Дежурный инженер уведомлен. Ожидайте звонка в течение 10 минут.\n"
+        "Статус заявки можно отследить в разделе «Статус Ремонта»."
+    )
+
+@router.message(F.text == "🔧 Статус Ремонта")
+async def engineer_status(message: Message):
+    # Mock data for Phase 1
+    await message.answer(
+        "🛠 *Текущие работы:*\n\n"
+        "1. **Токарный станок 16К20**\n"
+        "   - Статус: 🟡 Диагностика\n"
+        "   - План: Замена подшипника шпинделя\n\n"
+        "2. **ЧПУ Siemens 808D**\n"
+        "   - Статус: 🟢 Ожидает проверки\n"
+        "   - План: Тестирование после замены платы\n\n"
+        "Всего активных заявок: 2"
+    )
+
+@router.message(F.text == "📚 База Знаний")
+async def engineer_knowledge(message: Message):
+    # Link to FAQ and Docs
+    await message.answer(
+        "📚 *База Знаний РусСтанкоСбыт*\n\n"
+        "Доступные разделы:\n"
+        "1. [Инструкции по эксплуатации](https://russtankosbyt.ru/docs)\n"
+        "2. [Часто задаваемые вопросы (FAQ)](https://russtankosbyt.ru#faq)\n"
+        "3. [Каталог ошибок ЧПУ](https://russtankosbyt.ru/errors)\n\n"
+        "🔍 *Совет:* Вы также можете спросить меня: *«Как сбросить ошибку 204?»* (функция в разработке)."
+    )
 
 # --- Director Handlers ---
 
@@ -185,6 +245,16 @@ async def director_projects(message: Message):
         "Статус: 🟡 В работе\n"
         "Бюджет: 12.5 млн ₽\n"
         "Срок сдачи: Март 2026"
+    )
+
+@router.message(F.text == "💎 Персональное Предложение")
+async def director_offer(message: Message):
+    await message.answer(
+        "💎 *Спецпредложение для вашей компании:*\n\n"
+        "При заключении договора на сервисное обслуживание до *01.02.2026*:\n"
+        "✅ **Скидка 15%** на запчасти в течение года\n"
+        "✅ **Бесплатный** ежеквартальный аудит оборудования\n\n"
+        "Скачать КП: [offer_2026_premium.pdf](https://russtankosbyt.ru/promo/premium)"
     )
 
 # --- Universal Handlers ---

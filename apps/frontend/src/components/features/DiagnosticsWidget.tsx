@@ -33,7 +33,7 @@ const COMMON_ISSUES = [
 import { useTelegram } from "@/providers/TelegramProvider";
 
 export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-    const { webApp } = useTelegram();
+    const { webApp, user } = useTelegram();
     const [step, setStep] = useState<DiagnosticStep>('start');
     const [data, setData] = useState<DiagnosticData>({
         type: null,
@@ -123,18 +123,18 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                 className="relative z-10 w-full max-w-2xl bg-black border border-safety-orange/50 shadow-[0_0_50px_rgba(255,61,0,0.15)] overflow-hidden rounded-sm"
             >
                 {/* Header */}
-                <div className="flex justify-between items-center p-4 border-b border-white/10 bg-white/5">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border-b border-white/10 bg-white/5 gap-2 sm:gap-0">
                     <div className="flex items-center gap-2 text-safety-orange font-mono">
                         <Activity className="w-4 h-4" />
-                        <span className="text-xs uppercase tracking-widest font-bold">System Diagnostics v.1.0</span>
+                        <span className="text-[10px] uppercase tracking-widest font-bold">System Diagnostics v.1.0</span>
                     </div>
-                    <button onClick={onClose} className="text-white/50 hover:text-white transition-colors">
+                    <button onClick={onClose} className="text-white/50 hover:text-white transition-colors absolute top-4 right-4 sm:static">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Content */}
-                <div className="p-8 h-[400px] bg-[url('/grid-pattern.svg')] bg-center relative">
+                <div className="p-4 sm:p-8 h-[500px] sm:h-[400px] bg-[url('/grid-pattern.svg')] bg-center relative overflow-y-auto">
                     {/* Decorative Elements */}
                     <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-safety-orange/50 to-transparent" />
 
@@ -173,7 +173,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                             <StepAnalyzing key="analyzing" />
                         )}
                         {step === 'result' && (
-                            <StepResult data={data} onClose={onClose} key="result" />
+                            <StepResult data={data} onClose={onClose} key="result" user={user} />
                         )}
                     </AnimatePresence>
                 </div>
@@ -239,13 +239,13 @@ function StepType({ selected, onSelect, onNext, isTma }: { selected: MachineType
                         <button
                             key={type.id}
                             onClick={() => onSelect(type.id as MachineType)}
-                            className={`p-6 border flex flex-col items-center gap-4 transition-all ${isSelected
-                                ? 'border-safety-orange bg-safety-orange/10 text-safety-orange'
-                                : 'border-white/10 bg-white/5 text-muted-foreground hover:border-white/30 hover:bg-white/10'
+                            className={`p-6 border flex flex-col items-center gap-4 transition-all duration-300 ${isSelected
+                                ? 'border-safety-orange bg-safety-orange/20 text-safety-orange shadow-[0_0_15px_rgba(255,61,0,0.3)]'
+                                : 'border-white/20 bg-white/10 text-gray-300 hover:border-white/40 hover:bg-white/15'
                                 }`}
                         >
                             <Icon className="w-8 h-8" />
-                            <span className="text-xs font-bold font-mono uppercase">{type.label}</span>
+                            <span className="text-xs font-bold font-mono uppercase tracking-wide">{type.label}</span>
                         </button>
                     )
                 })}
@@ -320,7 +320,7 @@ function StepIssues({ selected, onSelect, onNext, isTma }: { selected: string[];
                         onClick={() => toggleIssue(issue)}
                         className={`px-4 py-2 rounded-full text-xs font-mono border transition-all ${selected.includes(issue)
                             ? 'bg-safety-orange text-white border-safety-orange'
-                            : 'bg-transparent text-muted-foreground border-white/20 hover:border-white/50'
+                            : 'bg-transparent text-gray-300 border-white/20 hover:border-white/50 hover:bg-white/5 hover:text-white'
                             }`}
                     >
                         {issue}
@@ -381,7 +381,7 @@ function StepAnalyzing() {
     );
 }
 
-function StepResult({ data, onClose }: { data: DiagnosticData; onClose: () => void }) {
+function StepResult({ data, onClose, user }: { data: DiagnosticData; onClose: () => void; user: any }) {
     const { register, handleSubmit } = useForm();
     // Logic: In real app, this calculates based on 'age' and 'issues'
     const riskLevel = 'КРИТИЧЕСКИЙ';
@@ -410,20 +410,42 @@ function StepResult({ data, onClose }: { data: DiagnosticData; onClose: () => vo
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-xs space-y-4">
-                <input
-                    {...register("phone", { required: true })}
-                    type="tel"
-                    placeholder="Ваш Telegram для отчета"
-                    className="w-full bg-white/5 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none placeholder:text-muted-foreground/50 text-center"
-                />
-                <button
-                    type="submit"
-                    className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(255,61,0,0.4)] animate-pulse"
-                >
-                    Получить Отчет Инженера
-                </button>
-            </form>
+            {user ? (
+                <div className="w-full max-w-xs space-y-4">
+                    <div className="bg-white/5 border border-white/10 p-4 rounded text-center">
+                        <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">ПОЛУЧАТЕЛЬ ОТЧЕТА</p>
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <p className="text-white font-bold">{user.first_name} {user.last_name}</p>
+                        </div>
+                        <p className="text-sm text-safety-orange font-mono">@{user.username}</p>
+                    </div>
+                    <button
+                        onClick={() => onSubmit({ phone: `@${user.username} (ID: ${user.id})` })}
+                        className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(255,61,0,0.4)] animate-pulse"
+                    >
+                        ОТПРАВИТЬ РЕЗУЛЬТАТ
+                    </button>
+                    <p className="text-[10px] text-center text-white/30">
+                        *Вы успешно идентифицированы системой
+                    </p>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-xs space-y-4">
+                    <input
+                        {...register("phone", { required: true })}
+                        type="tel"
+                        placeholder="Ваш Telegram для отчета"
+                        className="w-full bg-white/5 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none placeholder:text-muted-foreground/50 text-center"
+                    />
+                    <button
+                        type="submit"
+                        className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(255,61,0,0.4)] animate-pulse"
+                    >
+                        Получить Отчет Инженера
+                    </button>
+                </form>
+            )}
         </motion.div>
     );
 }

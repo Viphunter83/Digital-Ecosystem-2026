@@ -11,7 +11,10 @@ import { ArrowRight } from "lucide-react";
 import { motion } from 'framer-motion';
 import { ProductCard } from "@/components/ProductCard";
 import { HeroSection } from "@/components/home/HeroSection";
+import { FAQSection } from "@/components/ui/FAQSection";
 import { DiagnosticsWidget } from "@/components/features/DiagnosticsWidget";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
 
 // Dynamically import Map to avoid SSR issues with Leaflet
 const MapComponent = dynamic(() => import('@/components/MapComponent'), { ssr: false });
@@ -150,7 +153,35 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="py-24 bg-industrial-surface border-t border-white/5">
+        <FAQSection />
+      </section>
+
       <DiagnosticsWidget isOpen={diagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} />
+
+      <Suspense fallback={null}>
+        <DiagnosticsParamsHandler onOpen={() => setDiagnosticsOpen(true)} />
+      </Suspense>
     </div>
   );
+
+}
+
+function DiagnosticsParamsHandler({ onOpen }: { onOpen: () => void }) {
+  const searchParams = useSearchParams();
+  const show = searchParams.get('show_diagnostics');
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (show === 'true') {
+      onOpen();
+      // Remove query param to prevent loop/refresh issues
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('show_diagnostics');
+      router.replace(newUrl.pathname + newUrl.search);
+    }
+  }, [show, onOpen, router]);
+
+  return null;
 }

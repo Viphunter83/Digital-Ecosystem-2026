@@ -11,7 +11,7 @@ export function BottomNav() {
     const tabs = [
         { id: 'home', icon: Home, label: 'Главная', path: '/' },
         { id: 'catalog', icon: Grid, label: 'Каталог', path: '/catalog' },
-        { id: 'diagnostics', icon: Activity, label: 'Диагностика', path: '/#diagnostics' }, // Scroll to widget logic could be added
+        { id: 'diagnostics', icon: Activity, label: 'Диагностика', path: '/?show_diagnostics=true' },
         { id: 'cart', icon: ShoppingCart, label: 'Заказ', path: '/cart' },
     ];
 
@@ -19,7 +19,7 @@ export function BottomNav() {
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-md border-t border-white/10 pb-safe md:hidden">
             <div className="flex justify-around items-center h-16">
                 {tabs.map((tab) => {
-                    const isActive = pathname === tab.path || (tab.path === '/#diagnostics' && false); // Simplified logic
+                    const isActive = pathname === tab.path || (tab.path.includes('show_diagnostics') && false); // Keep inactive for action button
                     const Icon = tab.icon;
 
                     return (
