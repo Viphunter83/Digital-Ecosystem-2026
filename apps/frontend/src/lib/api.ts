@@ -58,6 +58,19 @@ const api = axios.create({
     },
 });
 
+// Add Request Interceptor for Auth
+api.interceptors.request.use(config => {
+    if (typeof window !== 'undefined') {
+        const token = sessionStorage.getItem('accessToken');
+        if (token && config.headers) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+    }
+    return config;
+}, error => {
+    return Promise.reject(error);
+});
+
 export const fetchProjects = async (): Promise<Project[]> => {
     try {
         console.log('API Request:', api.defaults.baseURL, '/projects/');
