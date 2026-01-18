@@ -43,13 +43,13 @@ export default function Home() {
       {/* CATALOG PREVIEW SECTION */}
       <section className="py-32 bg-industrial-surface relative z-10 border-t border-white/5">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
-            <div>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
+            <div className="max-w-full">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-2 h-2 bg-safety-orange rounded-full animate-pulse" />
                 <span className="text-xs font-mono uppercase tracking-widest text-safety-orange">Доступно к заказу</span>
               </div>
-              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white">Высокая производительность</h2>
+              <h2 className="text-3xl md:text-6xl font-black uppercase tracking-tighter text-white break-words hyphens-auto">Высокая производительность</h2>
             </div>
             <Link href="/catalog" className="hidden md:block group">
               <Button variant="link" className="text-muted-foreground group-hover:text-safety-orange text-sm uppercase font-mono tracking-widest transition-colors">
@@ -77,7 +77,7 @@ export default function Home() {
 
           <div className="mt-8 md:hidden text-center">
             <Link href="/catalog">
-              <Button variant="outline" className="w-full border-industrial-border hover:bg-industrial-panel uppercase font-mono tracking-widest text-xs h-12">
+              <Button variant="outline" className="w-full border-industrial-border text-white/90 hover:bg-industrial-panel uppercase font-mono tracking-widest text-xs h-12">
                 Посмотреть полный каталог
               </Button>
             </Link>

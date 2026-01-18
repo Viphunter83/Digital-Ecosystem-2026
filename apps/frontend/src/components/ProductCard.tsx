@@ -22,6 +22,9 @@ const CATEGORY_MAP: Record<string, string> = {
     'CNC_CENTER': 'ОБРАБ. ЦЕНТР',
     'PRESS': 'ПРЕСС',
     'LASER': 'ЛАЗЕР',
+    // Fallbacks for direct API values if different
+    'Turning': 'ТОКАРНЫЙ',
+    'Milling': 'ФРЕЗЕРНЫЙ',
 };
 
 const SPEC_MAP: Record<string, string> = {
@@ -32,6 +35,13 @@ const SPEC_MAP: Record<string, string> = {
     'SPEED': 'СКОРОСТЬ',
     'STROKE': 'ХОД ПОЛЗУНА',
     'POWER': 'МОЩНОСТЬ',
+    'ACCURACY': 'ТОЧНОСТЬ',
+    'MAX_LENGTH': 'МАКС. ДЛИНА',
+    'DIAMETER': 'ДИАМЕТР',
+    'WEIGHT': 'ВЕС',
+    'AXIS': 'ОСИ',
+    'SPINDLE': 'ШПИНДЕЛЬ',
+    'WORKSPACE': 'РАБ. ЗОНА',
 };
 
 const UNIT_MAP: Record<string, string> = {
@@ -40,6 +50,7 @@ const UNIT_MAP: Record<string, string> = {
     'rpm': 'об/мин',
     'ton': 'т',
     'kW': 'кВт',
+    'kg': 'кг',
 };
 
 function formatSpecValue(value: string): string {
@@ -98,7 +109,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     <CardTitle className="text-lg font-bold text-white leading-tight group-hover:text-safety-orange transition-colors duration-300 font-manrope tracking-tight">
                         {product.name}
                     </CardTitle>
-                    <CardDescription className="text-xs text-muted-foreground line-clamp-2 min-h-[32px] font-mono mt-1">
+                    <CardDescription className="text-xs text-gray-400 line-clamp-2 min-h-[32px] font-mono mt-1 leading-relaxed">
                         {product.description || "ПРОМЫШЛЕННЫЙ КЛАСС // ВЫСОКАЯ ПРОИЗВОДИТЕЛЬНОСТЬ"}
                     </CardDescription>
                 </CardHeader>
@@ -107,7 +118,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     <div className="grid gap-[1px] bg-industrial-border border border-industrial-border my-2">
                         {specsArray.slice(0, 3).map((spec, index) => (
                             <div key={index} className="flex justify-between items-center bg-industrial-panel px-3 py-2">
-                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold font-mono">{spec.parameter}</span>
+                                <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold font-mono">{spec.parameter}</span>
                                 <span className="text-[10px] font-mono text-white/90">{spec.value}</span>
                             </div>
                         ))}
