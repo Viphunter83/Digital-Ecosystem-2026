@@ -10,26 +10,31 @@ import { useSearchParams } from "next/navigation";
 import { HeroStats } from "./HeroStats";
 
 // Exact Copy from User Request
-const CONTENT_BY_ROLE: Record<UserRole, { title: string; subtitle: string; cta: string }> = {
+// Exact Copy from User Request
+const CONTENT_BY_ROLE: Record<UserRole, { title: string; subtitle: string; cta: string; image: string }> = {
     director: {
         title: "ИНВЕСТИЦИИ В НАДЕЖНОСТЬ ВАШЕГО ПРОИЗВОДСТВА",
         subtitle: "Работаем с ЗиО-Подольск. Окупаемость модернизации — 12 месяцев. Лизинг 0%.",
         cta: "РАССЧИТАТЬ ОКУПАЕМОСТЬ",
+        image: "/images/hero_roles/director.png"
     },
     engineer: {
         title: "ПРОДЛИМ РЕСУРС ВАШЕГО СТАНКА НА 15 ЛЕТ",
         subtitle: "Собственное производство запчастей. Соблюдаем паспортные нормы точности (ГОСТ 8-82).",
         cta: "СКАЧАТЬ ТЕХ. СПЕЦИФИКАЦИИ",
+        image: "/images/hero_roles/engineer.png"
     },
     buyer: {
         title: "ПОСТАВКА КОМПЛЕКТУЮЩИХ С ОТГРУЗКОЙ ЗА 24 ЧАСА",
         subtitle: "2500 позиций на складе. Счета за 5 минут. Доставка до двери.",
         cta: "ЗАПРОСИТЬ КП",
+        image: "/images/hero_roles/buyer.png"
     },
     default: {
         title: "ОБЕСПЕЧИВАЕМ БЕСПЕРЕБОЙНУЮ РАБОТУ СТАНОЧНОГО ПАРКА",
         subtitle: "Комплексные поставки металлообрабатывающего оборудования. Сервис, лизинг, цифровизация.",
         cta: "ЗАПУСТИТЬ ДИАГНОСТИКУ",
+        image: "/images/hero_roles/default.png"
     },
 };
 
@@ -118,20 +123,29 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                 <div className="relative hidden lg:block h-[600px] w-full">
                     <div className="absolute inset-0 bg-transparent flex items-center justify-center">
                         <div className="relative w-full h-full">
-                            {/* Floating Elements */}
-                            <motion.div
-                                animate={{ y: [0, -20, 0], opacity: [0.8, 1, 0.8] }}
-                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute inset-0 z-10"
-                            >
-                                <Image
-                                    src="/images/holographic_cnc.png"
-                                    alt="Holographic CNC System"
-                                    fill
-                                    className="object-contain drop-shadow-[0_0_30px_rgba(255,61,0,0.3)]"
-                                    priority
-                                />
-                            </motion.div>
+                            {/* Floating Elements (Dynamic by Role) */}
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={role}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1, y: [0, -20, 0] }}
+                                    exit={{ opacity: 0, scale: 1.1 }}
+                                    transition={{
+                                        opacity: { duration: 0.5 },
+                                        scale: { duration: 0.5 },
+                                        y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                                    }}
+                                    className="absolute inset-0 z-10"
+                                >
+                                    <Image
+                                        src={content.image}
+                                        alt={`Holographic System for ${role}`}
+                                        fill
+                                        className="object-contain drop-shadow-[0_0_30px_rgba(255,61,0,0.3)]"
+                                        priority
+                                    />
+                                </motion.div>
+                            </AnimatePresence>
 
                             {/* Scanning Effect */}
                             <div className="absolute top-0 left-0 w-full h-[2px] bg-safety-orange/50 animate-scan shadow-[0_0_20px_rgba(255,61,0,0.8)] z-20 opacity-50" />
