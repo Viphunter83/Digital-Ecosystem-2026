@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Request, HTTPException, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Request, HTTPException, Depends, BackgroundTasks
+from sqlalchemy.orm import Session
 from sqlalchemy import select
 from apps.backend.app.core.database import get_db
 from packages.database.models import Client, ClientEquipment, Product, TelegramUser, Notification

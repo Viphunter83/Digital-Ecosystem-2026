@@ -143,12 +143,34 @@ async def handle_invoice_upload(message: Message, state: FSMContext):
         file_id = message.document.file_id
         file_name = message.document.file_name
         
-    # TODO: Helper to download file using bot.get_file(file_id) and send to Backend
-    
+    # Send Lead to Backend
+    try:
+        user_info = {
+            "name": message.from_user.full_name,
+            "username": message.from_user.username
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            payload = {
+                "source": "bot",
+                "name": user_info['name'],
+                "message": f"Запрос счета (Файл: {file_name}). Username: @{user_info.get('username', 'N/A')}",
+                "meta": {"telegram_file_id": file_id}
+            }
+            # Fire and forget (or await response)
+            async with session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+                if resp.status == 200:
+                    logger.info(f"Lead created for {message.from_user.id}")
+                else:
+                    err = await resp.text()
+                    logger.error(f"Failed to create lead: {err}")
+    except Exception as e:
+        logger.error(f"Error sending lead: {e}")
+
     await message.answer(
-        f"📥 *Файл принят:* `{file_name}`\n\n"
-        "⏳ Начинаю распознавание номенклатуры...\n"
-        "✅ Заявка сформирована. Менеджер проверит наличие и пришлет КП."
+        f"✅ *Заявка зарегистрирована!*\n"
+        f"Файл `{file_name}` передан менеджеру.\n\n"
+        "Ваш персональный менеджер проверит наличие и свяжется с вами в течение 15 минут."
     )
     # Reset state so user can continue using menu
     await state.clear()

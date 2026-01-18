@@ -1,4 +1,6 @@
 "use client";
+import { useState } from 'react';
+import { submitLead } from '@/lib/leadService';
 
 import dynamic from 'next/dynamic';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
@@ -25,6 +27,33 @@ const OFFICE_LOCATION = [
 ];
 
 export default function ContactsPage() {
+    const [isLoading, setIsLoading] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setStatus('idle');
+
+        const formData = new FormData(e.currentTarget);
+        try {
+            await submitLead({
+                name: formData.get('name') as string,
+                phone: formData.get('phone') as string,
+                email: formData.get('email') as string,
+                message: formData.get('message') as string,
+                source: "site_contact_form"
+            });
+            setStatus('success');
+            (e.target as HTMLFormElement).reset();
+        } catch (err) {
+            console.error(err);
+            setStatus('error');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
             {/* Header */}
@@ -97,27 +126,39 @@ export default function ContactsPage() {
                             <span className="w-2 h-2 bg-safety-orange mr-3"></span>
                             Обратная связь
                         </h3>
-                        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert("Ваша заявка принята в обработку. Менеджер свяжется с вами в ближайшее время."); }}>
+                        <form className="space-y-4" onSubmit={handleSubmit}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-xs font-mono uppercase text-muted-foreground">ФИО / Компания</label>
-                                    <input type="text" className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="ООО 'ТехноПром'" required />
+                                    <input name="name" type="text" className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="ООО 'ТехноПром'" required />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-mono uppercase text-muted-foreground">Контактный Телефон</label>
-                                    <input type="tel" className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="+7 (___) ___-__-__" required />
+                                    <input name="phone" type="tel" className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="+7 (___) ___-__-__" required />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-mono uppercase text-muted-foreground">Email</label>
-                                <input type="email" className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="info@company.ru" required />
+                                <input name="email" type="email" className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="info@company.ru" required />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-mono uppercase text-muted-foreground">Суть Запроса</label>
-                                <textarea rows={4} className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="Интересует поставка оборудования..." required />
+                                <textarea name="message" rows={4} className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="Интересует поставка оборудования..." required />
                             </div>
-                            <button type="submit" className="w-full sm:w-auto bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 px-8 uppercase tracking-wider text-xs transition-all clip-path-slant hover:translate-x-1">
-                                Отправить Запрос
+
+                            {status === 'success' && (
+                                <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-500 text-sm font-bold">
+                                    ✅ ЗАЯВКА ОТПРАВЛЕНА. МЕНЕДЖЕР СВЯЖЕТСЯ С ВАМИ.
+                                </div>
+                            )}
+                            {status === 'error' && (
+                                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+                                    🛑 ОШИБКА ОТПРАВКИ. ПОПРОБУЙТЕ ПОЗЖЕ ИЛИ ПОЗВОНИТЕ НАМ.
+                                </div>
+                            )}
+
+                            <button disabled={isLoading} type="submit" className="w-full sm:w-auto bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 px-8 uppercase tracking-wider text-xs transition-all clip-path-slant hover:translate-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isLoading ? "ОТПРАВКА..." : "ОТПРАВИТЬ ЗАПРОС"}
                             </button>
                         </form>
                     </div>

@@ -12,6 +12,12 @@ class UserRole(str, enum.Enum):
     engineer = "engineer"
     procurement = "procurement"
 
+class LeadSource(str, enum.Enum):
+    bot = "bot"
+    site = "site"
+    app = "app"
+    diagnostics = "diagnostics"
+
 class Product(Base):
     __tablename__ = "products"
 
@@ -178,6 +184,28 @@ class ServiceTicket(Base):
 
     equipment = relationship("ClientEquipment", back_populates="tickets")
     author = relationship("TelegramUser")
+
+class Lead(Base):
+    __tablename__ = "leads"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    source = Column(Enum(LeadSource, name='lead_source'), nullable=False)
+    
+    # Contact Info
+    name = Column(String)
+    phone = Column(String)
+    email = Column(String)
+    company = Column(String)
+    
+    # Context
+    message = Column(Text) # "Interested in 16K20"
+    metadata_ = Column("metadata", JSONB) # {diagnostics_result: ...}
+    
+    # Sync Status
+    status = Column(String, default="new") # new, synced, error
+    amocrm_id = Column(String, nullable=True) # Deal ID in CRM
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 # Add back reference to Client
 Client.equipment = relationship("ClientEquipment", back_populates="client")
