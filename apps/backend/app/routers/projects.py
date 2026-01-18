@@ -26,3 +26,16 @@ def get_projects(db: Session = Depends(get_db)):
     
     return results
 
+@router.get("/{project_id}", response_model=ProjectSchema)
+def get_project(project_id: str, db: Session = Depends(get_db)):
+    """
+    Get a single project by ID.
+    """
+    query = select(Project).where(Project.id == project_id).options(joinedload(Project.client))
+    result = db.execute(query).scalar_one_or_none()
+    
+    if not result:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    return result

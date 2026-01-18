@@ -86,7 +86,7 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white leading-[1.0] lg:leading-[0.9] tracking-tighter uppercase mb-4 lg:mb-6 break-words">
+                            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white leading-[1.0] lg:leading-[0.9] tracking-tighter uppercase mb-4 lg:mb-6 break-normal hyphens-none">
                                 {content.title}
                             </h1>
 

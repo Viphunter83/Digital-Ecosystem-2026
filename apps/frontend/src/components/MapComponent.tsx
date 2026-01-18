@@ -25,10 +25,11 @@ export default function MapComponent({ projects }: MapComponentProps) {
             <YMaps>
                 <div className="w-full h-full relative">
                     <Map
-                        key={isInteractive ? 'interactive' : 'static'} // Force re-render behavior
                         defaultState={defaultState}
+                        state={{ ...defaultState, behaviors: isInteractive ? ["default", "scrollZoom"] : ["default", "-drag", "-scrollZoom", "-multiTouch"] }}
                         width="100%"
                         height="100%"
+                        modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
                         options={{
                             suppressMapOpenBlock: true,
                             yandexMapDisablePoiInteractivity: !isInteractive,
@@ -45,13 +46,21 @@ export default function MapComponent({ projects }: MapComponentProps) {
                                     geometry={[project.latitude, project.longitude]}
                                     properties={{
                                         hintContent: project.title,
-                                        balloonContentBody: `<h3 class="font-bold text-sm uppercase tracking-wider text-safety-orange mb-1" style="color: #FF3D00; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">${project.title}</h3>
-                        <p class="text-xs text-gray-300 font-mono mb-2" style="color: #d1d5db;">${project.description || project.client?.name || ''}</p>
-                        <div class="text-[10px] text-gray-500" style="color: #6b7280;">${project.region}</div>`,
+                                        balloonContentBody: `
+                                            <div class="p-2 min-w-[200px]">
+                                                <h3 class="font-bold text-sm uppercase tracking-wider text-safety-orange mb-1" style="color: #FF3D00; font-family: system-ui;">${project.title}</h3>
+                                                <p class="text-xs text-gray-800 font-mono mb-2">${project.description || project.client?.name || ''}</p>
+                                                <div class="text-[10px] text-gray-500 mb-2">${project.region}</div>
+                                                ${project.id ? `<a href="/projects/${project.id}" target="_blank" class="block w-full text-center bg-[#FF3D00] text-white text-xs font-bold py-1 px-2 rounded hover:bg-[#E63700] transition-colors" style="background-color: #FF3D00; color: white; display: block; padding: 4px; text-decoration: none; border-radius: 4px;">ПОДРОБНЕЕ</a>` : ''}
+                                            </div>
+                                        `,
                                     }}
+                                    modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
                                     options={{
                                         iconColor: '#FF4500', // Safety Orange
                                         preset: 'islands#circleIcon',
+                                        hideIconOnBalloonOpen: false,
+                                        openBalloonOnClick: true
                                     }}
                                 />
                             );

@@ -36,8 +36,20 @@ export interface Article {
     image_url?: string;
 }
 
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+        // Client-side: use relative path or env var
+        return process.env.NEXT_PUBLIC_API_URL || '/api';
+    }
+    // Server-side: use internal docker hostname
+    // We can try to use an env var for internal URL if available, otherwise default to backend:8000
+    // Note: 'localhost' won't work inside docker container unless using host network.
+    // We should use 'backend' service name.
+    return process.env.INTERNAL_API_URL || 'http://backend:8000';
+};
+
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    baseURL: getBaseUrl(),
     headers: {
         'Content-Type': 'application/json',
     },
@@ -51,6 +63,16 @@ export const fetchProjects = async (): Promise<Project[]> => {
     } catch (error) {
         console.error('Error fetching projects:', error);
         return [];
+    }
+};
+
+export const fetchProjectById = async (id: string): Promise<Project | undefined> => {
+    try {
+        const response = await api.get(`/projects/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching project:', error);
+        return undefined;
     }
 };
 
