@@ -136,3 +136,48 @@ class Notification(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("TelegramUser", back_populates="notifications")
+
+class ClientEquipment(Base):
+    __tablename__ = "client_equipment"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    client_id = Column(UUID(as_uuid=True), ForeignKey("clients.id"))
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
+    
+    serial_number = Column(String, unique=True)
+    purchase_date = Column(DateTime)
+    warranty_until = Column(DateTime)
+    
+    # Predictive Maintenance Fields
+    last_maintenance_date = Column(DateTime)
+    next_maintenance_date = Column(DateTime)
+    usage_hours = Column(Integer, default=0) # Engine hours
+    maintenance_interval_hours = Column(Integer, default=5000) # e.g. every 5000 hours
+
+    client = relationship("Client", back_populates="equipment")
+    product = relationship("Product")
+    tickets = relationship("ServiceTicket", back_populates="equipment")
+
+class ServiceTicket(Base):
+    __tablename__ = "service_tickets"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    ticket_number = Column(String, unique=True) # e.g. REQ-2026-001
+    
+    equipment_id = Column(UUID(as_uuid=True), ForeignKey("client_equipment.id"), nullable=True)
+    author_id = Column(UUID(as_uuid=True), ForeignKey("telegram_users.id"))
+    
+    status = Column(String, default="new") # new, in_progress, resolved, closed
+    priority = Column(String, default="medium") # low, medium, high, critical
+    
+    description = Column(Text)
+    engineer_comment = Column(Text)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    equipment = relationship("ClientEquipment", back_populates="tickets")
+    author = relationship("TelegramUser")
+
+# Add back reference to Client
+Client.equipment = relationship("ClientEquipment", back_populates="client")

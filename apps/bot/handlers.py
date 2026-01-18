@@ -18,7 +18,7 @@ from apps.bot.keyboards import (
     invoice_method_kb
 )
 from apps.bot.database import AsyncSessionLocal
-from packages.database.models import TelegramUser, UserRole
+from packages.database.models import TelegramUser, UserRole, ClientEquipment, ServiceTicket, Product
 
 # Constants
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
@@ -178,22 +178,70 @@ async def web_app_data_handler(message: Message):
 
 @router.message(F.text == "🏭 Мой Парк")
 async def engineer_machines(message: Message):
-    await message.answer("Загружаю список оборудования...")
-    try:
-        async with aiohttp.ClientSession() as session:
-             async with session.get(f"{BACKEND_URL}/projects", timeout=2) as resp:
-                 if resp.status == 200:
-                     data = await resp.json()
-                     await message.answer(f"Найдено единиц оборудования: {len(data)}")
-                 else:
-                     await message.answer("Список пуст (или нет связи).")
-    except:
-        await message.answer("⚠️ Нет связи с сервером.")
+    async with AsyncSessionLocal() as session:
+        # For demo: fetch all equipment (in prod: where(client_id=user.client_id))
+        stmt = select(ClientEquipment).join(Product)
+        result = await session.execute(stmt)
+        equipment_list = result.scalars().all()
+        
+        if not equipment_list:
+             await message.answer("Список оборудования пуст.")
+             return
+
+        response = "🏭 *Ваше Оборудование:*\n\n"
+        for eq in equipment_list:
+             # Need to fetch product lazy load or use joined load option
+             # Quick fix: refresh or explicit join query
+             # Since we joined, we can access if options set, but lazy load works in async usually if session open? No, async requires eager.
+             # Let's perform a specific query or assume seed data.
+             # Better: fetch product name
+             prod_res = await session.execute(select(Product).where(Product.id == eq.product_id))
+             prod = prod_res.scalar_one()
+             
+             status_icon = "🟢"
+             if eq.next_maintenance_date and (str(eq.next_maintenance_date) < "2026-02-01"):
+                 status_icon = "🟡 (Скоро ТО)"
+             
+             response += (
+                 f"**{prod.name}**\n"
+                 f"🆔 SN: `{eq.serial_number}`\n"
+                 f"⏱ Наработка: {eq.usage_hours} ч\n"
+                 f"🗓 След. ТО: {eq.next_maintenance_date.strftime('%d.%m.%Y') if eq.next_maintenance_date else 'Н/Д'}\n"
+                 f"Статус: {status_icon}\n\n"
+             )
+        await message.answer(response)
 
 @router.message(F.text == "🛠 Вызвать Сервис")
 async def engineer_sos(message: Message):
-    # TODO: Backend Integration (POST /tickets)
-    ticket_id = "REQ-2026-001" 
+    # Create Real Ticket
+    async with AsyncSessionLocal() as session:
+        # Get first equipment for demo
+        stmt = select(ClientEquipment).limit(1)
+        res = await session.execute(stmt)
+        eq = res.scalar_one_or_none()
+        
+        if not eq:
+             await message.answer("⚠️ Нет зарегистрированного оборудования.")
+             return
+
+        # Check existing user
+        user_res = await session.execute(select(TelegramUser).where(TelegramUser.tg_id == message.from_user.id))
+        user = user_res.scalar_one_or_none()
+        
+        import uuid
+        ticket_id = f"REQ-{uuid.uuid4().hex[:4].upper()}"
+        
+        ticket = ServiceTicket(
+            ticket_number=ticket_id,
+            equipment_id=eq.id,
+            author_id=user.id if user else None, # Might fail integrity if user not registered properly
+            description="Заявка из Телеграм Бота (SOS)",
+            status="new",
+            priority="critical"
+        )
+        session.add(ticket)
+        await session.commit()
+
     await message.answer(
         f"🆘 *Заявка #{ticket_id} зарегистрирована.*\n\n"
         "Дежурный инженер уведомлен. Ожидайте звонка в течение 10 минут.\n"
@@ -202,17 +250,25 @@ async def engineer_sos(message: Message):
 
 @router.message(F.text == "🔧 Статус Ремонта")
 async def engineer_status(message: Message):
-    # Mock data for Phase 1
-    await message.answer(
-        "🛠 *Текущие работы:*\n\n"
-        "1. **Токарный станок 16К20**\n"
-        "   - Статус: 🟡 Диагностика\n"
-        "   - План: Замена подшипника шпинделя\n\n"
-        "2. **ЧПУ Siemens 808D**\n"
-        "   - Статус: 🟢 Ожидает проверки\n"
-        "   - План: Тестирование после замены платы\n\n"
-        "Всего активных заявок: 2"
-    )
+    async with AsyncSessionLocal() as session:
+        stmt = select(ServiceTicket).limit(5).order_by(ServiceTicket.created_at.desc())
+        result = await session.execute(stmt)
+        tickets = result.scalars().all()
+        
+        if not tickets:
+            await message.answer("📭 Активных заявок нет.")
+            return
+
+        resp = "🛠 *Текущие Заявки:*\n\n"
+        for t in tickets:
+            icon = "🔴" if t.priority == 'critical' else "🟡"
+            if t.status == 'resolved': icon = "🟢"
+            
+            resp += (
+                f"{icon} **#{t.ticket_number}** ({t.status})\n"
+                f"📝 {t.description}\n\n"
+            )
+        await message.answer(resp)
 
 @router.message(F.text == "📚 База Знаний")
 async def engineer_knowledge(message: Message):

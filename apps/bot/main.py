@@ -29,6 +29,10 @@ async def main():
     # Include main router
     dp.include_router(router)
     
+    # Start Poller
+    from apps.bot.poller import start_notification_poller
+    asyncio.create_task(start_notification_poller(bot))
+    
     logger.info("Starting Role-Based Bot...")
     await dp.start_polling(bot)
 

@@ -2,8 +2,9 @@ import logging
 import uuid
 import json
 from sqlalchemy import select
-from apps.backend.app.core.database import SessionLocal
-from packages.database.models import Product, Project, Article, Client
+from apps.backend.app.core.database import SessionLocal, engine
+from packages.database.models import Product, Project, Article, Client, Base, ClientEquipment, ServiceTicket
+import datetime
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -11,14 +12,29 @@ logger = logging.getLogger(__name__)
 def seed_data():
     db = SessionLocal()
     try:
-        # Check if data exists
-        if db.execute(select(Product)).first():
+        # Create Tables if not exist
+        logger.info("Ensuring database schema exists...")
+        Base.metadata.create_all(bind=engine)
+
+        # Check if Equipment data exists (Incremental Seed)
+        equipment_exists = db.execute(select(ClientEquipment)).first()
+        
+        # Check if Data exists (Base)
+        if db.execute(select(Product)).first() and equipment_exists:
             logger.info("Database already contains data. Skipping seed.")
             return
 
-        logger.info("Seeding demo data...")
+        logger.info("Seeding data...")
+        
+        # Helper to get or create clients if we are in incremental mode
+        if db.execute(select(Product)).first():
+            logger.info("Base data exists, skipping base seed...")
+            # Fetch existing objects for linking
+            lathe = db.execute(select(Product).where(Product.slug == "1m63-cnc")).scalar_one()
+            client_mtz = db.execute(select(Client).where(Client.name == "МТЗ")).scalar_one()
+        else:
+            # 1. Clients
 
-        # 1. Clients
         client_zio = Client(name="ЗиО-Подольск", inn="5036040000", contact_info={"email": "info@zio.ru"})
         client_lmz = Client(name="Силовые Машины", inn="7804130000", contact_info={"email": "office@power-m.ru"})
         client_mtz = Client(name="МТЗ", inn="1000000000", contact_info={"email": "export@belarus-tractor.com"})
@@ -142,6 +158,43 @@ def seed_data():
             )
         ]
         db.add_all(articles)
+
+        if not equipment_exists:
+             # 5. Client Equipment (Predictive Maintenance)
+            # Find product 1M63 if not fetched
+            if 'lathe' not in locals():
+                 lathe = db.execute(select(Product).where(Product.slug == "1m63-cnc")).scalar_one()
+            if 'client_mtz' not in locals():
+                 client_mtz = db.execute(select(Client).where(Client.name == "МТЗ")).scalar_one()
+            
+            logger.info("Seeding Equipment and Tickets...")
+            equipment = [
+                ClientEquipment(
+                    client_id=client_mtz.id,
+                    product_id=lathe.id,
+                    serial_number="MTZ-Lathe-001",
+                    purchase_date=datetime.datetime.now() - datetime.timedelta(days=365), # 1 year ago
+                    warranty_until=datetime.datetime.now() + datetime.timedelta(days=365),
+                    last_maintenance_date=datetime.datetime.now() - datetime.timedelta(days=180),
+                    next_maintenance_date=datetime.datetime.now() + datetime.timedelta(days=5), # DUE SOON!
+                    usage_hours=2400,
+                    maintenance_interval_hours=2500
+                )
+            ]
+            db.add_all(equipment)
+            db.flush()
+            
+            # 6. Service Tickets
+            ticket = ServiceTicket(
+                ticket_number="REQ-2025-DEMO",
+                equipment_id=equipment[0].id,
+                # author_id would be needed if we had a user, waiting for bot registration
+                status="in_progress",
+                priority="high",
+                description="Шум в шпинделе при высоких оборотах.",
+                engineer_comment="Требуется замена смазки и подшипников."
+            )
+            db.add(ticket)
 
         db.commit()
         logger.info("Successfully seeded demo data!")
