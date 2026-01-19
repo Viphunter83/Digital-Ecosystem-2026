@@ -45,9 +45,16 @@ async def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
             metadata_=lead_in.meta,
             status="new"
         )
-        db.add(new_lead)
-        db.commit()
-        db.refresh(new_lead)
+        
+        # Async DB Execution
+        from fastapi.concurrency import run_in_threadpool
+        
+        def save_lead():
+            db.add(new_lead)
+            db.commit()
+            db.refresh(new_lead)
+            
+        await run_in_threadpool(save_lead)
         
         # --- Notification Logic ---
         try:

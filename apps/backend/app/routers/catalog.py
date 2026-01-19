@@ -12,6 +12,8 @@ from apps.backend.services.ai_service import AIService
 
 router = APIRouter()
 
+from fastapi.concurrency import run_in_threadpool
+
 @router.get("/search")
 @cache(expire=300) # 5 minutes cache
 async def search_products(
@@ -27,7 +29,9 @@ async def search_products(
         query = select(SparePart).options(joinedload(SparePart.images))
         if q:
             query = query.where(SparePart.name.ilike(f"%{q}%"))
-        results = db.execute(query).unique().scalars().all()
+        
+        # Async DB Execution
+        results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
         return {"results": [SparePartSchema.model_validate(p) for p in results]}
 
     # MACHINES MODE (Default)
@@ -35,7 +39,9 @@ async def search_products(
         query = select(Product).options(joinedload(Product.images))
          # Ensure we only return published products
         query = query.where(Product.is_published == True)
-        results = db.execute(query).unique().scalars().all()
+        
+        # Async DB Execution
+        results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
         return {"results": [ProductSchema.model_validate(p) for p in results]}
 
     # Check if this looks like a semantic query (e.g. > 1 word)
@@ -53,8 +59,8 @@ async def search_products(
                 joinedload(Product.images)
             ).where(Product.is_published == True).order_by(distance_expr).limit(10)
             
-            # Execute and filter in python
-            results = db.execute(stmt).unique().all()
+            # Execute and filter in python (Async DB)
+            results = await run_in_threadpool(lambda: db.execute(stmt).unique().all())
             
             filtered_products = []
             for product, dist in results:
@@ -73,7 +79,8 @@ async def search_products(
     query = query.where(Product.is_published == True)
     query = query.where(Product.name.ilike(f"%{q}%"))
     
-    results = db.execute(query).unique().scalars().all()
+    # Async DB Execution
+    results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
     data = [ProductSchema.model_validate(p) for p in results]
     return {"results": data}
 
