@@ -33,6 +33,6 @@ apps/backend/scripts/scraper_*.py
 apps/backend/data/
 
 # Scraped Assets (Allow placeholders)
-apps/frontend/public/images/products/*
-!apps/frontend/public/images/products/.gitkeep
-!apps/frontend/public/images/products/placeholder_russtanko.jpg
+# apps/frontend/public/images/products/*
+# !apps/frontend/public/images/products/.gitkeep
+# !apps/frontend/public/images/products/placeholder_russtanko.jpg
