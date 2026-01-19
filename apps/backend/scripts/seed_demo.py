@@ -14,6 +14,11 @@ def seed_data():
     try:
         # Create Tables if not exist
         logger.info("Ensuring database schema exists...")
+        # Enable pgvector extension
+        from sqlalchemy import text
+        db.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        db.commit()
+        
         Base.metadata.create_all(bind=engine)
 
         # Check if Equipment data exists (Incremental Seed)
@@ -53,7 +58,7 @@ def seed_data():
                     "description": "Предназначен для токарной обработки наружных и внутренних поверхностей деталей со ступенчатым и криволинейным профилем.",
                     "specs": {"power": "15 kW", "max_diameter": "630 mm", "max_length": "3000 mm", "accuracy": "IT7"},
                     "price": 5200000,
-                    "image_url": "/images/products/lathe.jpg"
+                    "image_url": "/images/products/product_cnc.png"
                 },
                 {
                     "name": "Вертикально-фрезерный станок 6Р12",
@@ -63,7 +68,7 @@ def seed_data():
                     "description": "Мощный станок для выполнения операций фрезерования, сверления и растачивания деталей из черных и цветных металлов.",
                     "specs": {"table_size": "400x1600 mm", "spindle_speed": "1600 rpm", "travel_x": "1000 mm"},
                     "price": 6800000,
-                    "image_url": None
+                    "image_url": "/images/products/product_cnc.png"
                 },
                 {
                     "name": "Гидравлический пресс П6330",
@@ -73,7 +78,7 @@ def seed_data():
                     "description": "Универсальный гидравлический пресс для запрессовки, выпрессовки, правки и гибки.",
                     "specs": {"force": "100 ton", "stroke": "500 mm", "speed": "15 mm/s"},
                     "price": 3100000,
-                    "image_url": None
+                    "image_url": "/images/products/product_press.png"
                 },
                 {
                     "name": "Портальный станок с ЧПУ Titan-2026",
@@ -83,7 +88,7 @@ def seed_data():
                     "description": "Высокоскоростной портальный станок для обработки крупногабаритных деталей.",
                     "specs": {"axis": "5", "workspace": "3000x2000x1000", "spindle": "24000 rpm"},
                     "price": 15000000,
-                    "image_url": None
+                    "image_url": "/images/products/product_conveyor.png"
                 },
                 {
                     "name": "Лазерный комплекс Photon-L",
@@ -93,7 +98,7 @@ def seed_data():
                     "description": "Комплекс лазерной резки металла высокой толщины.",
                     "specs": {"laser_power": "6 kW", "table": "1500x3000 mm", "max_thickness": "25 mm"},
                     "price": 12500000,
-                    "image_url": None
+                    "image_url": "/images/products/product_laser.png"
                 }
             ]
     
@@ -141,23 +146,38 @@ def seed_data():
             db.add_all(projects)
     
             # 4. Articles
-            articles = [
-                Article(
-                    title="Как выбрать ЧПУ станок в 2026 году?",
-                    slug="how-to-choose-cnc-2026",
-                    content="В 2026 году ключевым фактором становится интеграция с цифровыми экосистемами. AI-ассистенты, предиктивная аналитика и интеграция с ERP...",
-                    tags=["Technology", "CNC", "Guide"],
-                    cover_image="/images/blog/cnc-guide.jpg"
-                ),
-                Article(
-                    title="Тренды металлообработки: Аддитивные технологии",
-                    slug="metalworking-trends-2026",
-                    content="Гибридные станки, совмещающие фрезеровку и 3D-печать металлом, захватывают рынок...",
-                    tags=["Industry 4.0", "Trends", "Additive"],
-                    cover_image="/images/blog/additive.jpg"
-                )
+            existing_slugs = db.execute(select(Article.slug)).scalars().all()
+            
+            articles_data = [
+                {
+                    "title": "Как выбрать ЧПУ станок в 2026 году?",
+                    "slug": "how-to-choose-cnc-2026",
+                    "content": "В 2026 году ключевым фактором становится интеграция с цифровыми экосистемами. AI-ассистенты, предиктивная аналитика и интеграция с ERP...",
+                    "tags": ["Technology", "CNC", "Guide"],
+                    "cover_image": "/images/blog/journal_robotics.png"
+                },
+                {
+                    "title": "Тренды металлообработки: Аддитивные технологии",
+                    "slug": "metalworking-trends-2026",
+                    "content": "Гибридные станки, совмещающие фрезеровку и 3D-печать металлом, захватывают рынок...",
+                    "tags": ["Industry 4.0", "Trends", "Additive"],
+                    "cover_image": "/images/blog/journal_steel.png"
+                },
+                {
+                    "title": "Предиктивная аналитика: Как избежать простоев?",
+                    "slug": "predictive-analytics-guide",
+                    "content": "Использование AI для мониторинга состояния оборудования позволяет сократить время простоя на 40%...",
+                    "tags": ["Analytics", "AI", "Maintenance"],
+                    "cover_image": "/images/blog/journal_analytics.png"
+                }
             ]
-            db.add_all(articles)
+            
+            for art in articles_data:
+                if art["slug"] not in existing_slugs:
+                    logger.info(f"Adding Article: {art['slug']}")
+                    db.add(Article(**art))
+            
+            db.flush()
 
         if not equipment_exists:
              # 5. Client Equipment (Predictive Maintenance)

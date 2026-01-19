@@ -4,16 +4,22 @@ from sqlalchemy.orm import Session, joinedload
 from typing import Optional, List
 
 from apps.backend.app.core.database import get_db
-from packages.database.models import Product
+from apps.backend.app.core.cache import cache
+from packages.database.models import Product, ProductImage
 from apps.backend.app.schemas import ProductSchema
 
 from apps.backend.services.ai_service import AIService
-from packages.database.models import Product
+from packages.database.models import Product, ProductImage
+from apps.backend.app.core.cache import cache
 
 router = APIRouter()
 
 @router.get("/search")
-async def search_catalog(q: Optional[str] = None, db: Session = Depends(get_db)):
+@cache(expire=300) # 5 minutes cache
+async def search_products(
+    q: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     """
     Search products by name or description.
     Hybrid search:

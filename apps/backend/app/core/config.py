@@ -8,7 +8,8 @@ class Settings(BaseSettings):
     API_V1_STR: str = ""
     
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://user:password@db:5432/db")
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://redis:6379/0")
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [

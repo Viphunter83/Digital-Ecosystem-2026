@@ -27,6 +27,9 @@ const CATEGORY_MAP: Record<string, string> = {
     // Fallbacks for direct API values if different
     'Turning': 'ТОКАРНЫЙ',
     'Milling': 'ФРЕЗЕРНЫЙ',
+    'Pressing': 'ПРЕСС',
+    'Advanced Machining': 'ОБРАБ. ЦЕНТР',
+    'Laser': 'ЛАЗЕР',
 };
 
 const SPEC_MAP: Record<string, string> = {
@@ -92,7 +95,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <Link href={`/catalog/${product.id}`} className="block relative w-full h-48 sm:h-56 bg-industrial-surface overflow-hidden border-b border-industrial-border group-hover:border-safety-orange/50 transition-colors shrink-0">
                 <div className="absolute top-0 right-0 p-3 z-20 flex gap-2">
                     <Badge className="bg-industrial-surface/90 backdrop-blur text-xs font-mono text-muted-foreground border border-industrial-border rounded-none uppercase tracking-wider px-2 py-[2px] shadow-sm">
-                        ID: {product.id.toString().substring(0, 8).toUpperCase()}
+                        ID: {(product.id ? String(product.id) : "???").substring(0, 8).toUpperCase()}
                     </Badge>
                 </div>
 

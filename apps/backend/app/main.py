@@ -29,6 +29,14 @@ async def log_requests(request, call_next):
         
     return response
 
+from fastapi.staticfiles import StaticFiles
+import os
+
+# Mount Uploads
+upload_dir = os.path.join(os.path.dirname(__file__), "..", "uploads")
+os.makedirs(upload_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=upload_dir), name="uploads")
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,

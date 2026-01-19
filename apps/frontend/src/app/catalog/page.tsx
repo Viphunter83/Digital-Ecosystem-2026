@@ -35,7 +35,19 @@ export default function CatalogPage() {
 
     const filteredProducts = activeFilter === "ВСЕ"
         ? products
-        : products.filter(p => p.category === activeFilter);
+        : products.filter(p => {
+            const cat = p.category || "";
+            if (activeFilter === "МЕХАНООБРАБОТКА") {
+                return ["Turning", "Milling", "Advanced Machining"].includes(cat);
+            }
+            if (activeFilter === "ПРОИЗВОДСТВО") {
+                return ["Pressing", "Laser"].includes(cat);
+            }
+            if (activeFilter === "ОБОРУДОВАНИЕ") {
+                return true; // Catch-all or specific? For now show all or specific items
+            }
+            return false;
+        });
 
     return (
         <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">

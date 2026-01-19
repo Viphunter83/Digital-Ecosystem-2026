@@ -23,16 +23,25 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
 
   useEffect(() => {
     async function init() {
-      const p = await fetchProjects();
-      const a = await fetchArticles();
-      const prod = await fetchCatalog();
-      setProjects(p);
-      setArticles(a);
-      setProducts(prod);
+      try {
+        const [p, a, prod] = await Promise.all([
+          fetchProjects(),
+          fetchArticles(),
+          fetchCatalog()
+        ]);
+        setProjects(p);
+        setArticles(a);
+        setProducts(prod);
+      } catch (e) {
+        console.error("Failed to load home data", e);
+      } finally {
+        setLoading(false);
+      }
     }
     init();
   }, []);
@@ -62,7 +71,14 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-industrial-border border border-industrial-border">
-            {products.length > 0 ? (
+            {loading ? (
+              <div className="col-span-full py-32 text-center bg-industrial-panel">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-safety-orange"></div>
+                  <p className="text-muted-foreground font-mono text-sm uppercase tracking-wider">Загрузка активов...</p>
+                </div>
+              </div>
+            ) : products.length > 0 ? (
               products.slice(0, 4).map(product => (
                 <div key={product.id} className="h-full bg-industrial-panel">
                   <ProductCard product={product} />
@@ -70,10 +86,7 @@ export default function Home() {
               ))
             ) : (
               <div className="col-span-full py-32 text-center bg-industrial-panel">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-safety-orange"></div>
-                  <p className="text-muted-foreground font-mono text-sm uppercase tracking-wider">Загрузка активов...</p>
-                </div>
+                <p className="text-muted-foreground font-mono text-sm uppercase tracking-wider">[КАТАЛОГ ПУСТ]</p>
               </div>
             )}
           </div>

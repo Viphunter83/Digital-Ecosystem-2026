@@ -6,6 +6,7 @@ const nextConfig = {
         appIsrStatus: false,
     },
     images: {
+        unoptimized: true,
         remotePatterns: [
             {
                 protocol: 'https',
@@ -24,6 +25,11 @@ const nextConfig = {
                 hostname: 'localhost',
                 port: '8055',
             },
+            {
+                protocol: 'http',
+                hostname: 'backend',
+                port: '8000',
+            },
         ],
     },
     async rewrites() {
@@ -31,6 +37,10 @@ const nextConfig = {
             {
                 source: '/api/:path*',
                 destination: process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/:path*` : 'http://localhost:8000/:path*', // Proxy to Backend
+            },
+            {
+                source: '/uploads/:path*',
+                destination: process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/uploads/:path*` : 'http://localhost:8000/uploads/:path*', // Proxy Uploads
             },
         ];
     },

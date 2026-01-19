@@ -96,12 +96,22 @@ export const fetchCatalog = async (query?: string): Promise<Product[]> => {
     try {
         // Catalog search defined as @router.get("/search") -> /catalog/search (NO SLASH)
         const url = query ? `/catalog/search?q=${query}` : '/catalog/search';
-        console.log(`Requesting URL: ${url}`);
+        // console.log(`[API] Requesting URL: ${api.defaults.baseURL}${url}`);
         const response = await api.get(url);
+        // console.log(`[API] Catalog Response Count: ${response.data.results?.length}`);
         // The endpoint returns { results: Product[] }
         return response.data.results || [];
     } catch (error) {
-        console.error('Error fetching catalog:', error);
+        console.error('[API] Error fetching catalog:', error);
+        if (axios.isAxiosError(error)) {
+            console.error('[API] Axios Details:', {
+                message: error.message,
+                code: error.code,
+                response: error.response?.status,
+                url: error.config?.url,
+                baseURL: error.config?.baseURL
+            });
+        }
         return [];
     }
 };
