@@ -125,7 +125,13 @@ export default function CatalogPage() {
                         {["ВСЕ", "МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"].map((filter, i) => (
                             <button
                                 key={i}
-                                onClick={() => setActiveFilter(filter)}
+                                onClick={() => {
+                                    setActiveFilter(filter);
+                                    if (filter === "ВСЕ") {
+                                        setSearchQuery("");
+                                        loadData("");
+                                    }
+                                }}
                                 className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeFilter === filter
                                     ? "bg-safety-orange text-white border-safety-orange"
                                     : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
