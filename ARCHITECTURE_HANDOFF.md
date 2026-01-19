@@ -18,6 +18,33 @@ This document summarizes the current state of the **Digital Ecosystem 2026** pro
     - AI-powered parsing for Excel/PDF.
     - Demo Data Seeding with consistent Project Backgrounds.
 
+## 2. Critical Fixes & Updates (2026-01-19)
+
+### 🔧 Stability & Content Fixes
+1.  **Backend Caching & Serialization**:
+    *   **Issue**: Redis was caching Python's string representation of objects (e.g., `id=UUID(...)`) instead of valid JSON.
+    *   **Fix**: Implemented `fastapi.encoders.jsonable_encoder` in `cache.py` to correctly serialize Pydantic models before caching.
+    
+2.  **Frontend Image Loading**:
+    *   **Issue**: Images failed to load in Docker/Tunnel environment due to optimization errors (500/404).
+    *   **Fix**: Disabled Next.js Image Optimization (`unoptimized: true`) in `next.config.mjs`. Images are now served directly as static assets.
+    *   **Data**: All products now have unique, correct image paths (`product_milling.png` created to resolve duplicate).
+
+3.  **Catalog & Search**:
+    *   **Fixed Infinite Loading**: Added `try/catch/finally` block for `loading` state in `Home` and `Catalog` pages.
+    *   **Fixed Empty Catalog**: Made `q` parameter optional in `/catalog/search` endpoint. Previously, missing `q` caused 422 errors.
+    *   **Fixed Filters**: Mapped Russian UI filters ("МЕХАНООБРАБОТКА") to English DB categories ("Turning", "Milling", etc.).
+    *   **Fixed Search Reset**: Clicking "ВСЕ" now explicitly clears the search query and reloads the full catalog.
+
+4.  **Infrastructure & Bot**:
+    *   **Cloudflare Tunnel**: Restored connectivity with new URL.
+    *   **Telegram Bot**: Updated `WEB_APP_URL` in env and **restarted bot container** to pick up the change. Mini App is fully functional.
+
+### 📝 Content Additions
+- Added 3rd Journal Article ("Predictive Analytics").
+- Assigned unique images to all 5 catalog items.
+- Fixed product "ID" crash (added safety check in `ProductCard`).
+
 ### 🚧 In Progress / Next Steps
 - **Cart Functionality**: `BottomNav` has a Cart tab, but the checkout flow is not fully implemented.
 - **Production Deployment**: SSL certificate configuration and final Docker optimization.

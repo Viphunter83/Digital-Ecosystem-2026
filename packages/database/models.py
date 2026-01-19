@@ -17,6 +17,8 @@ class LeadSource(str, enum.Enum):
     site = "site"
     app = "app"
     diagnostics = "diagnostics"
+    bot_order = "bot_order"
+    diagnostics_widget = "diagnostics_widget"
 
 class Product(Base):
     __tablename__ = "products"

@@ -191,9 +191,61 @@ async def procurement_catalog(message: Message):
 
 @router.message(F.content_type == types.ContentType.WEB_APP_DATA)
 async def web_app_data_handler(message: Message):
-    data = message.web_app_data.data
-    # Expecting JSON or simple string ID
-    await message.answer(f"🛒 *Заявка получена из каталога*\n\nДанные: `{data}`\n\nМенеджер свяжется для подтверждения.")
+    import json
+    raw_data = message.web_app_data.data
+    
+    try:
+        data = json.loads(raw_data)
+    except json.JSONDecodeError:
+        # Fallback for simple string data
+        await message.answer(f"🛒 *Заявка получена*\n\nДанные: `{raw_data}`\n\nМенеджер свяжется для подтверждения.")
+        return
+
+    if isinstance(data, dict) and data.get("type") == "ORDER":
+        # Handle Cart Order
+        items = data.get("items", [])
+        total = data.get("total", 0)
+        
+        # Build Receipt String
+        receipt_text = "🛒 *Новый Заказ*\n\n"
+        for item in items:
+            receipt_text += f"▪️ {item['name']} x{item['quantity']} — {item['price']*item['quantity']:,} ₽\n"
+        
+        receipt_text += f"\n💰 *ИТОГО: {total:,} ₽*"
+        receipt_text += "\n\n📂 Заказ передан в отдел продаж. Ожидайте звонка."
+        
+        await message.answer(receipt_text)
+        
+        # Send to Backend as Lead
+        try:
+            user_info = {
+                "name": message.from_user.full_name,
+                "username": message.from_user.username
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                payload = {
+                    "source": "bot_order",
+                    "name": user_info['name'],
+                    "message": f"Заказ из WebApp:\n{raw_data}\nUsername: @{user_info.get('username', 'N/A')}",
+                    "meta": {
+                        "telegram_user_id": message.from_user.id,
+                        "order_data": data
+                    }
+                }
+                
+                async with session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+                    if resp.status == 200:
+                        logger.info(f"Order Lead created for {message.from_user.id}")
+                    else:
+                        err = await resp.text()
+                        logger.error(f"Failed to create order lead: {err}")
+        except Exception as e:
+            logger.error(f"Error sending order to backend: {e}")
+            
+    else:
+        # Generic handler
+        await message.answer(f"✅ *Данные получены*\n\n`{raw_data}`")
 
 
 # --- Engineer Handlers ---

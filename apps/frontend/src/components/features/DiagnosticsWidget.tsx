@@ -415,13 +415,36 @@ function StepResult({ data, result, onClose, user }: { data: DiagnosticData; res
     const probability = result?.probability ? `${result.probability}%` : '---';
     const recommendation = result?.recommendation || "Требуется осмотр специалиста";
 
-    const onSubmit = (formData: any) => {
+    const onSubmit = async (formData: any) => {
         console.log("LEAD GENERATED (TELEGRAM):", { ...data, ...formData, result });
         const message = `Заявка на ремонт:\nРиск: ${riskLevel}\nПроблема: ${recommendation}\nКонтакты: ${formData.phone || user?.username}`;
 
-        // In a real app, we would send this to backend /api/ingest/leads
-        alert("Отчет инженера отправлен куратору! (Demo)");
-        onClose();
+        try {
+            const response = await fetch('/api/ingest/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    source: "diagnostics_widget",
+                    name: user?.first_name || formData.phone || "Unknown User",
+                    message: message,
+                    meta: {
+                        ...data,
+                        analysis_result: result,
+                        telegram_user: user
+                    }
+                })
+            });
+
+            if (response.ok) {
+                alert("Отчет инженера отправлен куратору! Ожидайте звонка.");
+                onClose();
+            } else {
+                throw new Error("Failed to submit lead");
+            }
+        } catch (e) {
+            console.error("Diagnostic submit error:", e);
+            alert("Ошибка отправки. Попробуйте позже.");
+        }
     };
 
     return (
