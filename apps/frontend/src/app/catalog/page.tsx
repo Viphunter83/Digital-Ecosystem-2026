@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductTable } from '@/components/ProductTable';
-import { Product, fetchCatalog } from '@/lib/api';
+import { Product, fetchCatalog, fetchFilters, FilterGroup } from '@/lib/api';
 
 export default function CatalogPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -13,6 +13,9 @@ export default function CatalogPage() {
 
     const [activeFilter, setActiveFilter] = useState("ВСЕ");
     const [searchQuery, setSearchQuery] = useState("");
+
+    // Dynamic Filters State
+    const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
 
     async function loadData(query: string = "", type: 'machines' | 'spares' = activeTab) {
         setLoading(true);
@@ -26,6 +29,15 @@ export default function CatalogPage() {
         }
     }
 
+    // Load Filters on Mount
+    useEffect(() => {
+        async function loadFilters() {
+            const data = await fetchFilters();
+            setFilterGroups(data.groups);
+        }
+        loadFilters();
+    }, []);
+
     useEffect(() => {
         loadData(searchQuery, activeTab);
     }, [activeTab]); // Reload when tab changes
@@ -34,20 +46,26 @@ export default function CatalogPage() {
         loadData(searchQuery, activeTab);
     };
 
+    // Filter Logic based on Filter Groups
     const filteredProducts = activeFilter === "ВСЕ"
         ? products
         : products.filter(p => {
-            const cat = p.category || "";
-            if (activeFilter === "МЕХАНООБРАБОТКА") {
-                return ["Turning", "Milling", "Advanced Machining"].includes(cat);
-            }
-            if (activeFilter === "ПРОИЗВОДСТВО") {
-                return ["Pressing", "Laser"].includes(cat);
-            }
-            if (activeFilter === "ОБОРУДОВАНИЕ") {
-                return true; // Catch-all or specific? For now show all or specific items
-            }
-            return false;
+            if (activeTab === 'spares') return true; // Filters currently only for machines in UI
+
+            // Find which group the activeFilter belongs to (by Group Name)
+            // But wait, activeFilter is the Group Name (e.g. "МЕХАНООБРАБОТКА")
+            // We need to check if product category aligns with any category in this Group.
+
+            const group = filterGroups.find(g => g.group === activeFilter);
+            if (!group) return false; // Should not happen
+
+            // If group is "ОБОРУДОВАНИЕ", and it has no specific categories or catch-all?
+            // Current DB Seed: "ОБОРУДОВАНИЕ" -> ["Machinery"]
+            // If product.category is "Machinery", it matches.
+
+            // Get list of slugs in this group
+            const allowedSlugs = group.categories.map(c => c.slug);
+            return allowedSlugs.includes(p.category || "");
         });
 
     return (
@@ -147,25 +165,37 @@ export default function CatalogPage() {
                         </button>
                     </div>
 
-                    {/* Filters (Only for Machines) */}
+                    {/* Filters (Dynamic from Backend) */}
                     {activeTab === 'machines' && (
                         <div className="flex flex-wrap gap-2">
-                            {["ВСЕ", "МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"].map((filter, i) => (
+                            {/* ALWAYS SHOW 'ВСЕ' */}
+                            <button
+                                onClick={() => {
+                                    setActiveFilter("ВСЕ");
+                                    setSearchQuery("");
+                                    loadData("", activeTab);
+                                }}
+                                className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeFilter === "ВСЕ"
+                                    ? "bg-safety-orange text-white border-safety-orange"
+                                    : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
+                                    }`}
+                            >
+                                ВСЕ
+                            </button>
+
+                            {/* DYNAMIC GROUPS */}
+                            {filterGroups.map((group, i) => (
                                 <button
                                     key={i}
                                     onClick={() => {
-                                        setActiveFilter(filter);
-                                        if (filter === "ВСЕ") {
-                                            setSearchQuery("");
-                                            loadData("", activeTab);
-                                        }
+                                        setActiveFilter(group.group);
                                     }}
-                                    className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeFilter === filter
+                                    className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeFilter === group.group
                                         ? "bg-safety-orange text-white border-safety-orange"
                                         : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
                                         }`}
                                 >
-                                    {filter}
+                                    {group.group}
                                 </button>
                             ))}
                         </div>

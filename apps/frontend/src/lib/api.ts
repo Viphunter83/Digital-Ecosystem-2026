@@ -165,4 +165,29 @@ export const fetchSiteContent = async (): Promise<Record<string, string>> => {
     }
 };
 
+export interface Category {
+    name: string;
+    slug: string;
+    filter_group: string;
+}
+
+export interface FilterGroup {
+    group: string;
+    categories: Category[];
+}
+
+export interface FiltersResponse {
+    groups: FilterGroup[];
+}
+
+export const fetchFilters = async (): Promise<FiltersResponse> => {
+    try {
+        const response = await api.get('/catalog/filters');
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching filters:', error);
+        return { groups: [] };
+    }
+};
+
 export default api;

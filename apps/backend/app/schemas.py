@@ -130,3 +130,15 @@ class SparePartSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class CategorySchema(BaseModel):
+    name: str
+    slug: str
+    filter_group: str
+
+class FilterGroupSchema(BaseModel):
+    group: str
+    categories: List[CategorySchema]
+
+class FiltersResponse(BaseModel):
+    groups: List[FilterGroupSchema]

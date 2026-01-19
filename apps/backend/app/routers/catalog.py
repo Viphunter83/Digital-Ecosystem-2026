@@ -13,6 +13,39 @@ from apps.backend.services.ai_service import AIService
 router = APIRouter()
 
 from fastapi.concurrency import run_in_threadpool
+from apps.backend.app.schemas import FiltersResponse, FilterGroupSchema, CategorySchema
+from packages.database.models import Category
+
+@router.get("/filters", response_model=FiltersResponse)
+async def get_filters(db: Session = Depends(get_db)):
+    """
+    Get dynamic filters for catalog.
+    """
+    # Fetch all categories ordered by sort_order
+    categories = await run_in_threadpool(lambda: db.execute(select(Category).order_by(Category.sort_order)).scalars().all())
+    
+    # Group by filter_group
+    groups_map = {}
+    for cat in categories:
+        if cat.filter_group not in groups_map:
+            groups_map[cat.filter_group] = []
+        groups_map[cat.filter_group].append(CategorySchema(
+            name=cat.name,
+            slug=cat.slug,
+            filter_group=cat.filter_group
+        ))
+    
+    # Format response
+    groups = []
+    # Define group order manually or fetch from DB if we had Group table. 
+    # For now: defined order in list.
+    ordered_groups = ["МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"]
+    
+    for g_name in ordered_groups:
+        if g_name in groups_map:
+            groups.append(FilterGroupSchema(group=g_name, categories=groups_map[g_name]))
+            
+    return FiltersResponse(groups=groups)
 
 @router.get("/search")
 @cache(expire=300) # 5 minutes cache

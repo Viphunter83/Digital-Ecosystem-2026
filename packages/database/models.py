@@ -238,3 +238,13 @@ class SiteContent(Base):
 
 # Add back reference to Client
 Client.equipment = relationship("ClientEquipment", back_populates="client")
+
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, nullable=False)
+    slug = Column(String, unique=True, nullable=False)
+    filter_group = Column(String, nullable=False)
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
