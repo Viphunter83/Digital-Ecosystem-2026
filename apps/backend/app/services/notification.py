@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 class NotificationService:
     def __init__(self):
-        self.redis_url = f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}"
+        self.redis_url = settings.REDIS_URL
         self.channel = "notifications"
 
     async def notify_new_lead(self, lead_data: dict):
