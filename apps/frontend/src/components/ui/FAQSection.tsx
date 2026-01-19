@@ -4,8 +4,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Minus } from "lucide-react"
 import Script from "next/script"
+import { useEffect, useState } from "react"
+import { fetchSiteContent } from "@/lib/api"
 
-const faqData = [
+const DEFAULT_FAQ = [
     {
         category: "Оплата и Доставка (Для Снабженцев)",
         items: [
@@ -44,6 +46,23 @@ const faqData = [
 ]
 
 export function FAQSection() {
+    const [faqData, setFaqData] = useState(DEFAULT_FAQ);
+
+    useEffect(() => {
+        fetchSiteContent().then(content => {
+            if (content.faq_json) {
+                try {
+                    const parsed = JSON.parse(content.faq_json);
+                    if (Array.isArray(parsed)) {
+                        setFaqData(parsed);
+                    }
+                } catch (e) {
+                    console.error("Failed to parse FAQ JSON", e);
+                }
+            }
+        });
+    }, []);
+
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "FAQPage",

@@ -2,8 +2,18 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { RequestCallModal } from "@/components/features/RequestCallModal";
+import { useEffect, useState } from "react";
+import { fetchSiteContent } from "@/lib/api";
 
 export function Footer() {
+    const [content, setContent] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        fetchSiteContent().then(setContent);
+    }, []);
+
+    const t = (key: string, defaultVal: string) => content[key] || defaultVal;
+
     return (
         <footer className="bg-industrial-panel border-t border-industrial-border pt-16 pb-8 text-white relative overflow-hidden">
             {/* Background elements */}
@@ -35,10 +45,10 @@ export function Footer() {
                         <h4 className="font-bold uppercase tracking-wider mb-6 text-sm text-white/90">Навигация</h4>
                         <ul className="space-y-3 text-sm text-muted-foreground">
                             {[
-                                { label: "Каталог", href: "/catalog" },
-                                { label: "Решения", href: "/solutions" },
-                                { label: "О компании", href: "/company" },
-                                { label: "Контакты", href: "/contacts" },
+                                { label: t('ui_nav_catalog', "Каталог"), href: "/catalog" },
+                                { label: t('ui_nav_solutions', "Решения"), href: "/solutions" },
+                                { label: t('ui_nav_company', "О компании"), href: "/company" },
+                                { label: t('ui_nav_contacts', "Контакты"), href: "/contacts" },
                             ].map((item) => (
                                 <li key={item.label}>
                                     <Link href={item.href} className="hover:text-safety-orange transition-colors flex items-center group">
@@ -70,19 +80,25 @@ export function Footer() {
                         <div className="space-y-4 text-sm text-muted-foreground">
                             <p>
                                 <strong className="text-white block mb-1">Центральный офис</strong>
-                                Москва, Россия
+                                {t('contact_address', 'Москва, Россия')}
                             </p>
                             <p>
                                 <strong className="text-white block mb-1">Отдел продаж</strong>
-                                <a href="tel:+74993908504" className="hover:text-safety-orange transition-colors">+7 (499) 390-85-04</a>
+                                <a href={`tel:${t('contact_phone', '+74993908504').replace(/[^\d+]/g, '')}`} className="hover:text-safety-orange transition-colors">
+                                    {t('contact_phone', '+7 (499) 390-85-04')}
+                                </a>
                             </p>
                             <p>
                                 <strong className="text-white block mb-1">Email</strong>
-                                <a href="mailto:zakaz@tdrusstankosbyt.ru" className="hover:text-safety-orange transition-colors">zakaz@tdrusstankosbyt.ru</a>
+                                <a href={`mailto:${t('contact_email', 'zakaz@tdrusstankosbyt.ru')}`} className="hover:text-safety-orange transition-colors">
+                                    {t('contact_email', 'zakaz@tdrusstankosbyt.ru')}
+                                </a>
                             </p>
                             <p>
                                 <strong className="text-white block mb-1">Telegram</strong>
-                                <a href="https://t.me/tdrusstankosbyt" target="_blank" rel="noopener noreferrer" className="hover:text-safety-orange transition-colors">@tdrusstankosbyt</a>
+                                <a href={t('social_telegram', 'https://t.me/tdrusstankosbyt')} target="_blank" rel="noopener noreferrer" className="hover:text-safety-orange transition-colors">
+                                    @tdrusstankosbyt
+                                </a>
                             </p>
                             <RequestCallModal>
                                 <Button

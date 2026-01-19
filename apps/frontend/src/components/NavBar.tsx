@@ -6,10 +6,16 @@ import { Logo } from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/stores/useCartStore";
+import { fetchSiteContent } from "@/lib/api";
 
 function CartBadge() {
     const cartItemsCount = useCartStore((state) => state.items.length);
     const [mounted, setMounted] = React.useState(false);
+
+    // We can also fetch labels here if we really want "ЗАКАЗ" to be dynamic, 
+    // but for badges usually brevity is key. 
+    // Let's passed down content if accessible or just keep as is for this small internal component 
+    // unless we lift state up. For now let's keep it simple as the parent NavBar fetches content.
 
     React.useEffect(() => {
         setMounted(true);
@@ -26,14 +32,21 @@ function CartBadge() {
 
 export function NavBar() {
     const [isScrolled, setIsScrolled] = React.useState(false);
+    const [content, setContent] = React.useState<Record<string, string>>({});
 
     React.useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
         };
         window.addEventListener("scroll", handleScroll);
+
+        // Load content
+        fetchSiteContent().then(setContent);
+
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    const t = (key: string, defaultVal: string) => content[key] || defaultVal;
 
     return (
         <header
@@ -52,10 +65,10 @@ export function NavBar() {
                 <nav className="hidden md:flex items-center space-x-1">
                     {
                         [
-                            { label: "Каталог", href: "/catalog" },
-                            { label: "Решения", href: "/solutions" },
-                            { label: "О компании", href: "/company" },
-                            { label: "Контакты", href: "/contacts" },
+                            { label: t('ui_nav_catalog', "Каталог"), href: "/catalog" },
+                            { label: t('ui_nav_solutions', "Решения"), href: "/solutions" },
+                            { label: t('ui_nav_company', "О компании"), href: "/company" },
+                            { label: t('ui_nav_contacts', "Контакты"), href: "/contacts" },
                         ].map((item) => (
                             <Link
                                 key={item.label}
@@ -74,7 +87,7 @@ export function NavBar() {
                 <div className="flex items-center space-x-4">
                     <Link href="/catalog">
                         <Button variant="ghost" className={cn("hidden sm:flex font-mono text-xs uppercase tracking-wider border border-white/10 bg-white/5 hover:bg-white/10 px-4 whitespace-nowrap", isScrolled ? "text-muted-foreground hover:text-safety-orange border-industrial-border" : "text-white/80 hover:text-white hover:border-white/30")}>
-                            <span className="mr-2 opacity-50">🔍</span> [ ПОИСК ]
+                            <span className="mr-2 opacity-50">🔍</span> [ {t('ui_btn_search', 'ПОИСК')} ]
                         </Button>
                     </Link>
                     <Link href="/cart">
@@ -85,7 +98,7 @@ export function NavBar() {
                     </Link>
                     <Link href="/contacts">
                         <Button className="bg-safety-orange hover:bg-safety-orange-vivid text-white rounded-none border-l-2 border-white/20 font-bold uppercase tracking-wider text-xs px-6 h-10 shadow-[0_0_15px_rgba(255,61,0,0.3)] hover:shadow-[0_0_25px_rgba(255,61,0,0.5)] transition-all">
-                            Запрос КП
+                            {t('ui_btn_request_cp', 'Запрос КП')}
                         </Button>
                     </Link>
                 </div>

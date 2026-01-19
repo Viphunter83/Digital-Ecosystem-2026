@@ -16,11 +16,22 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
-        "*" # Warning: unsafe for production, but kept for dev parity
+        "https://digital-ecosystem-2026.vercel.app", # Add generic production domain placeholder if known, otherwise rely on env
     ]
 
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_THIS_IN_PROD_TO_SOMETHING_STRONG")
+
+    @property
+    def is_production(self) -> bool:
+        return os.getenv("ENVIRONMENT", "development") == "production"
+
+    def __init__(self, **values):
+        super().__init__(**values)
+        if self.is_production and self.SECRET_KEY == "CHANGE_THIS_IN_PROD_TO_SOMETHING_STRONG":
+             # In production, we should probably warn or raise error. 
+             # For now, let's print a warning to logs to avoid crashing if env isn't fully set yet.
+             print("WARNING: Unsafe SECRET_KEY in production environment!")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 # 1 day
     
