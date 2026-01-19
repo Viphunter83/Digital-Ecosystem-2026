@@ -29,9 +29,13 @@ async def main():
     # Include main router
     dp.include_router(router)
     
-    # Start Poller
+    # Start Poller (DB)
     from apps.bot.poller import start_notification_poller
     asyncio.create_task(start_notification_poller(bot))
+
+    # Start Redis Listener
+    from apps.bot.redis_listener import start_redis_listener
+    asyncio.create_task(start_redis_listener(bot))
     
     logger.info("Starting Role-Based Bot...")
     await dp.start_polling(bot)

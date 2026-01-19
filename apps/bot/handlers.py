@@ -59,7 +59,6 @@ async def register_user_role(tg_id: int, role_key: str):
         
         await session.commit()
 
-# --- Command: /start ---
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     user_id = message.from_user.id
@@ -77,6 +76,23 @@ async def cmd_start(message: Message, state: FSMContext):
             reply_markup=role_selection_kb
         )
         await state.set_state(Registration.choosing_role)
+
+from aiogram.filters import Command
+
+@router.message(Command("login"))
+async def cmd_login(message: Message):
+    args = message.text.split()
+    if len(args) != 2:
+        await message.answer("Использование: /login <password>")
+        return
+    
+    password = args[1]
+    # In a real app, hash checking or env var. MVP: hardcoded.
+    if password == "admin2026": 
+        await register_user_role(message.from_user.id, "manager")
+        await message.answer("✅ Вы авторизованы как Менеджер. Вы будете получать уведомления о заявках.")
+    else:
+        await message.answer("❌ Неверный пароль.")
 
 # --- Role Selection Callback ---
 @router.callback_query(F.data.startswith("role_"))

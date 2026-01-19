@@ -1,0 +1,73 @@
+import asyncio
+import json
+import logging
+import os
+import redis.asyncio as redis
+from aiogram import Bot
+from sqlalchemy import select
+from apps.bot.database import AsyncSessionLocal
+from packages.database.models import TelegramUser, UserRole
+
+logger = logging.getLogger(__name__)
+
+REDIS_HOST = os.getenv("REDIS_HOST", "redis")
+REDIS_PORT = os.getenv("REDIS_PORT", "6379")
+REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"
+
+async def get_managers_ids():
+    async with AsyncSessionLocal() as session:
+        # Fetch admins and managers
+        stmt = select(TelegramUser.tg_id).where(
+            TelegramUser.role.in_([UserRole.admin, UserRole.manager])
+        )
+        result = await session.execute(stmt)
+        return result.scalars().all()
+
+async def start_redis_listener(bot: Bot):
+    logger.info("📡 Redis Listener Started...")
+    try:
+        client = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+        pubsub = client.pubsub()
+        await pubsub.subscribe("notifications")
+        logger.info("✅ Subscribed to 'notifications' channel")
+
+        async for message in pubsub.listen():
+            if message["type"] == "message":
+                try:
+                    data = json.loads(message["data"])
+                    event_type = data.get("type")
+                    payload = data.get("data", {})
+
+                    if event_type == "new_lead":
+                        text = (
+                            f"🔔 *Новая заявка!*\n\n"
+                            f"👤 *Имя:* {payload.get('name', 'Не указано')}\n"
+                            f"📞 *Тел:* {payload.get('phone', 'Не указан')}\n"
+                            f"📧 *Email:* {payload.get('email', '-')}\n"
+                            f"💬 *Сообщение:* {payload.get('message', '-')}\n"
+                            f"🔗 *Источник:* {payload.get('source', 'site')}"
+                        )
+                        
+                        manager_ids = await get_managers_ids()
+                        if not manager_ids:
+                            logger.warning("No managers found to notify.")
+                        
+                        for tg_id in manager_ids:
+                            try:
+                                await bot.send_message(chat_id=tg_id, text=text)
+                                logger.info(f"Notification sent to {tg_id}")
+                            except Exception as send_err:
+                                logger.error(f"Failed to send to {tg_id}: {send_err}")
+                                
+                except json.JSONDecodeError:
+                    logger.error("Failed to decode Redis message")
+                except Exception as e:
+                    logger.error(f"Error processing message: {e}")
+                    
+    except Exception as e:
+        logger.error(f"Redis Listener Error: {e}")
+        # Retry logic could be added here
+        await asyncio.sleep(5)
+        # Restarting listener is handled by main loop or supervisor in a robust system
+        # For now, we log and exit the task (or recursively call?)
+        # Let's simple create a loop inside if connection fails

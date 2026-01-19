@@ -28,8 +28,10 @@ logger = logging.getLogger(__name__)
 TELEGRAM_ADMIN_CHAT_ID = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "45053735")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+from apps.backend.app.services.notification import notification_service
+
 @router.post("/leads")
-def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
+async def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
     """
     Ingest a new lead from any source (Site/Bot).
     """
@@ -48,22 +50,17 @@ def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
         db.refresh(new_lead)
         
         # --- Notification Logic ---
-        if TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID:
-            try:
-                msg_text = (
-                    f"🔔 <b>Новая заявка с сайта!</b>\n"
-                    f"👤 Имя: {lead_in.name or 'Не указано'}\n"
-                    f"📞 Телефон: {lead_in.phone or 'Не указан'}\n"
-                    f"✉️ Сообщение: {lead_in.message or 'Пусто'}"
-                )
-                url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-                requests.post(url, json={
-                    "chat_id": TELEGRAM_ADMIN_CHAT_ID,
-                    "text": msg_text,
-                    "parse_mode": "HTML"
-                }, timeout=5)
-            except Exception as notify_err:
-                logger.error(f"Failed to send Telegram notification: {notify_err}")
+        try:
+            await notification_service.notify_new_lead({
+                "id": str(new_lead.id),
+                "name": new_lead.name,
+                "phone": new_lead.phone,
+                "email": new_lead.email,
+                "message": new_lead.message,
+                "source": new_lead.source.value
+            })
+        except Exception as notify_err:
+            logger.error(f"Failed to send notification: {notify_err}")
         # --------------------------
 
         # TODO: Trigger background task to sync with AmoCRM
