@@ -18,7 +18,7 @@ async def get_managers_ids():
     async with AsyncSessionLocal() as session:
         # Fetch admins and managers
         stmt = select(TelegramUser.tg_id).where(
-            TelegramUser.role.in_([UserRole.admin, UserRole.manager])
+            TelegramUser.role.in_([UserRole.director, UserRole.engineer])
         )
         result = await session.execute(stmt)
         return result.scalars().all()
@@ -39,22 +39,44 @@ async def start_redis_listener(bot: Bot):
                     payload = data.get("data", {})
 
                     if event_type == "new_lead":
-                        text = (
-                            f"🔔 *Новая заявка!*\n\n"
-                            f"👤 *Имя:* {payload.get('name', 'Не указано')}\n"
-                            f"📞 *Тел:* {payload.get('phone', 'Не указан')}\n"
-                            f"📧 *Email:* {payload.get('email', '-')}\n"
-                            f"💬 *Сообщение:* {payload.get('message', '-')}\n"
-                            f"🔗 *Источник:* {payload.get('source', 'site')}"
-                        )
+                        source = payload.get('source', 'site')
+                        
+                        if source == "cart_order":
+                            items = payload.get('meta', {}).get('items', [])
+                            total = payload.get('meta', {}).get('total', 0)
+                            items_text = "\n".join([f"- {i['name']} (x{i['quantity']})" for i in items])
+                            
+                            text = (
+                                f"🛒 *Новый Заказ!*\n\n"
+                                f"👤 *Клиент:* {payload.get('name', 'Не указано')}\n"
+                                f"📞 *Тел:* {payload.get('phone', 'Не указан')}\n"
+                                f"🧾 *Товары:*\n{items_text}\n\n"
+                                f"💰 *Итого:* {total:,.0f} ₽"
+                            )
+                        else:
+                            text = (
+                                f"🔔 *Новая заявка!*\n\n"
+                                f"👤 *Имя:* {payload.get('name', 'Не указано')}\n"
+                                f"📞 *Тел:* {payload.get('phone', 'Не указан')}\n"
+                                f"📧 *Email:* {payload.get('email', '-')}\n"
+                                f"💬 *Сообщение:* {payload.get('message', '-')}\n"
+                                f"🔗 *Источник:* {source}"
+                            )
                         
                         manager_ids = await get_managers_ids()
+                        # Fallback for now if no managers found (or role mismatch)
+                        if not manager_ids:
+                           # Try env var
+                           admin_id = os.getenv("TELEGRAM_ADMIN_CHAT_ID")
+                           if admin_id:
+                               manager_ids = [int(admin_id)]
+
                         if not manager_ids:
                             logger.warning("No managers found to notify.")
                         
                         for tg_id in manager_ids:
                             try:
-                                await bot.send_message(chat_id=tg_id, text=text)
+                                await bot.send_message(chat_id=tg_id, text=text, parse_mode="Markdown")
                                 logger.info(f"Notification sent to {tg_id}")
                             except Exception as send_err:
                                 logger.error(f"Failed to send to {tg_id}: {send_err}")

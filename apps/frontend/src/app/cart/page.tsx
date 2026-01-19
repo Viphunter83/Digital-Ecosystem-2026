@@ -24,24 +24,43 @@ export default function CartPage() {
         }
     }, [webApp]);
 
-    const handleCheckout = () => {
+    const handleCheckout = async () => {
         setIsCheckingOut(true);
         const orderData = {
-            type: "ORDER",
-            items: items.map(i => ({ id: i.id, name: i.name, quantity: i.quantity, price: i.price })),
-            total: totalAmount(),
-            user_id: user?.id,
-            timestamp: new Date().toISOString()
+            source: "cart_order",
+            name: user?.first_name || "Guest User",
+            phone: user?.username ? `@${user.username}` : "Not provided",
+            message: `Заказ на сумму ${totalAmount()} rub`,
+            meta: {
+                items: items,
+                total: totalAmount(),
+                telegram_user: user
+            }
         };
 
-        if (webApp) {
-            webApp.HapticFeedback.notificationOccurred('success');
-            (webApp as any).sendData(JSON.stringify(orderData));
-        } else {
-            console.log("Web Checkout Data:", orderData);
-            alert("Заказ сформирован! (В реальном Telegram это отправило бы данные боту).");
-            setIsCheckingOut(false);
+        try {
+            if (webApp) {
+                webApp.HapticFeedback.notificationOccurred('success');
+            }
+
+            const response = await fetch('/api/ingest/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to submit order");
+            }
+
+            alert("Заказ успешно отправлен! Менеджер свяжется с вами.");
             clearCart();
+            // Optional: Redirect to home or order success page
+        } catch (e) {
+            console.error("Checkout error:", e);
+            alert("Ошибка при оформлении заказа. Попробуйте позже.");
+        } finally {
+            setIsCheckingOut(false);
         }
     };
 

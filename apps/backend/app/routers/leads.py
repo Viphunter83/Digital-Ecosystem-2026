@@ -64,7 +64,8 @@ async def create_lead(lead_in: LeadCreate, db: Session = Depends(get_db)):
                 "phone": new_lead.phone,
                 "email": new_lead.email,
                 "message": new_lead.message,
-                "source": new_lead.source.value
+                "source": new_lead.source.value,
+                "meta": new_lead.metadata_
             })
         except Exception as notify_err:
             logger.error(f"Failed to send notification: {notify_err}")

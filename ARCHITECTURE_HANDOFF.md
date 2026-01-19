@@ -40,6 +40,10 @@ This document summarizes the current state of the **Digital Ecosystem 2026** pro
     *   **Cloudflare Tunnel**: Restored connectivity with new URL.
     *   **Telegram Bot**: Updated `WEB_APP_URL` in env and **restarted bot container** to pick up the change. Mini App is fully functional.
 
+5.  **Production Hardening (Phase 6)**:
+    *   **Backend Security**: Restricted `BACKEND_CORS_ORIGINS` to safe domains and added `SECRET_KEY` validation check.
+    *   **Frontend Dynamic Content**: Refactored `Footer`, `NavBar`, and `FAQSection` to fetch content from `site_content` table (seeded via migrations) instead of hardcoded strings. This prepares the app for CMS management.
+
 ### 📝 Content Additions
 - Added 3rd Journal Article ("Predictive Analytics").
 - Assigned unique images to all 5 catalog items.
