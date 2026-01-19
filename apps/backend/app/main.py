@@ -56,6 +56,9 @@ app.include_router(integrations.router, prefix="/integrations", tags=["integrati
 app.include_router(leads.router, prefix="/ingest", tags=["leads"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 
+from apps.backend.app.routers import content
+app.include_router(content.router, prefix="/content", tags=["content"])
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Digital Ecosystem 2026 API"}

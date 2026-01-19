@@ -38,10 +38,21 @@ const CONTENT_BY_ROLE: Record<UserRole, { title: string; subtitle: string; cta: 
     },
 };
 
-function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => void }) {
+function HeroSectionContent({ onOpenDiagnostics, siteContent }: { onOpenDiagnostics: () => void, siteContent?: Record<string, string> }) {
     const { role, setRole } = useUserContext();
     const searchParams = useSearchParams();
-    const content = CONTENT_BY_ROLE[role];
+
+    // Merge hardcoded content with dynamic content
+    const baseContent = CONTENT_BY_ROLE[role];
+    const content = {
+        ...baseContent,
+        title: siteContent?.[`${role}_title`] || baseContent.title,
+        subtitle: siteContent?.[`${role}_subtitle`] || baseContent.subtitle,
+        cta: siteContent?.[`${role}_cta`] || baseContent.cta,
+        // Image usually stays static or needs full URL handling, but let's allow override if needed
+        image: siteContent?.[`${role}_image`] || baseContent.image
+    };
+
     const [mounted, setMounted] = useState(false);
 
     // Logic: Chameleon Detection (Strategies 1, 2, 3)
@@ -164,7 +175,7 @@ function HeroSectionContent({ onOpenDiagnostics }: { onOpenDiagnostics: () => vo
 }
 
 // Wrap in Suspense for useSearchParams
-export function HeroSection(props: { onOpenDiagnostics: () => void }) {
+export function HeroSection(props: { onOpenDiagnostics: () => void, siteContent?: Record<string, string> }) {
     return (
         <Suspense fallback={<div className="h-[600px] w-full bg-industrial-bg animate-pulse" />}>
             <HeroSectionContent {...props} />

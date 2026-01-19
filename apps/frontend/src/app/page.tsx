@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { ShimmerButton } from "@/components/ShimmerButton";
 import dynamic from 'next/dynamic';
-import { fetchProjects, fetchArticles, fetchCatalog, Project, Article, Product } from '@/lib/api';
+import { fetchProjects, fetchArticles, fetchCatalog, fetchSiteContent, Project, Article, Product } from '@/lib/api';
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { motion } from 'framer-motion';
@@ -23,20 +23,23 @@ export default function Home() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [siteContent, setSiteContent] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
 
   useEffect(() => {
     async function init() {
       try {
-        const [p, a, prod] = await Promise.all([
+        const [p, a, prod, content] = await Promise.all([
           fetchProjects(),
           fetchArticles(),
-          fetchCatalog()
+          fetchCatalog(),
+          fetchSiteContent()
         ]);
         setProjects(p);
         setArticles(a);
         setProducts(prod);
+        setSiteContent(content);
       } catch (e) {
         console.error("Failed to load home data", e);
       } finally {
@@ -50,7 +53,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-industrial-surface text-foreground selection:bg-safety-orange selection:text-white">
 
       {/* HERO SECTION - REPLACED WITH DYNAMIC COMPONENT */}
-      <HeroSection onOpenDiagnostics={() => setDiagnosticsOpen(true)} />
+      <HeroSection onOpenDiagnostics={() => setDiagnosticsOpen(true)} siteContent={siteContent} />
 
       {/* CATALOG PREVIEW SECTION */}
       <section className="py-32 bg-industrial-surface relative z-10 border-t border-white/5">

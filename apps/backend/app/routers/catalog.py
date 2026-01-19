@@ -5,12 +5,10 @@ from typing import Optional, List
 
 from apps.backend.app.core.database import get_db
 from apps.backend.app.core.cache import cache
-from packages.database.models import Product, ProductImage
-from apps.backend.app.schemas import ProductSchema
+from packages.database.models import Product, ProductImage, SparePart, SparePartImage
+from apps.backend.app.schemas import ProductSchema, SparePartSchema
 
 from apps.backend.services.ai_service import AIService
-from packages.database.models import Product, ProductImage
-from apps.backend.app.core.cache import cache
 
 router = APIRouter()
 
@@ -18,16 +16,25 @@ router = APIRouter()
 @cache(expire=300) # 5 minutes cache
 async def search_products(
     q: Optional[str] = None,
+    type: str = "machines", # "machines" or "spares"
     db: Session = Depends(get_db)
 ):
     """
-    Search products by name or description.
-    Hybrid search:
-    - If query is short/specific -> keyword search.
-    - If query is descriptive -> semantic search using embeddings.
+    Search products or spare parts.
     """
+    # SPARE PARTS MODE
+    if type == "spares":
+        query = select(SparePart).options(joinedload(SparePart.images))
+        if q:
+            query = query.where(SparePart.name.ilike(f"%{q}%"))
+        results = db.execute(query).unique().scalars().all()
+        return {"results": [SparePartSchema.model_validate(p) for p in results]}
+
+    # MACHINES MODE (Default)
     if not q:
         query = select(Product).options(joinedload(Product.images))
+         # Ensure we only return published products
+        query = query.where(Product.is_published == True)
         results = db.execute(query).unique().scalars().all()
         return {"results": [ProductSchema.model_validate(p) for p in results]}
 
@@ -40,19 +47,15 @@ async def search_products(
             query_embedding = await ai_service.get_embedding(q)
             
             # Semantic search using cosine distance (<=> operator)
-            # We want to filter out irrelevant results (distance > 0.6)
-            # PGVector cosine distance: 0 = exact match, 1 = orthogonal, 2 = opposite
-            
             distance_expr = Product.embedding.cosine_distance(query_embedding).label("distance")
             
             stmt = select(Product, distance_expr).options(
                 joinedload(Product.images)
-            ).order_by(distance_expr).limit(10)
+            ).where(Product.is_published == True).order_by(distance_expr).limit(10)
             
-            # Execute and filter in python (for simplicity with the tuple return)
+            # Execute and filter in python
             results = db.execute(stmt).unique().all()
             
-            # Filter by threshold (0.6 is a reasonable start)
             filtered_products = []
             for product, dist in results:
                 if dist < 0.6:
@@ -67,6 +70,7 @@ async def search_products(
             
     # Minimal/Keyword search
     query = select(Product).options(joinedload(Product.images))
+    query = query.where(Product.is_published == True)
     query = query.where(Product.name.ilike(f"%{q}%"))
     
     results = db.execute(query).unique().scalars().all()
@@ -79,10 +83,18 @@ def get_product(product_id: str, db: Session = Depends(get_db)):
     Get a specific product by ID (UUID).
     """
     try:
+        # 1. Try Machines
         stmt = select(Product).options(joinedload(Product.images)).where(Product.id == product_id)
         product = db.execute(stmt).unique().scalar_one_or_none()
-        if not product:
-            return {"error": "Product not found"}
-        return ProductSchema.model_validate(product)
+        if product:
+            return ProductSchema.model_validate(product)
+            
+        # 2. Try Spares
+        stmt = select(SparePart).options(joinedload(SparePart.images)).where(SparePart.id == product_id)
+        spare = db.execute(stmt).unique().scalar_one_or_none()
+        if spare:
+            return SparePartSchema.model_validate(spare)
+
+        return {"error": "Product not found"}
     except Exception as e:
         return {"error": str(e)}

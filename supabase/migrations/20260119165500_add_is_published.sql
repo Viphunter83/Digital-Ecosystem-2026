@@ -1,0 +1,3 @@
+
+ALTER TABLE products ADD COLUMN is_published BOOLEAN DEFAULT TRUE;
+ALTER TABLE spare_parts ADD COLUMN is_published BOOLEAN DEFAULT TRUE;

@@ -103,3 +103,30 @@ class ArticleSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+class SparePartImageSchema(BaseModel):
+    url: str
+    is_primary: bool = False
+
+    class Config:
+        from_attributes = True
+
+class SparePartSchema(BaseModel):
+    id: UUID
+    name: str
+    specs: Optional[Dict[str, Any]] = None
+    price: Optional[float] = None
+    
+    images: List[SparePartImageSchema] = Field(default=[], exclude=True)
+    
+    @computed_field
+    def image_url(self) -> Optional[str]:
+        if self.images:
+            for img in self.images:
+                if img.is_primary:
+                    return img.url
+            return self.images[0].url
+        return None
+
+    class Config:
+        from_attributes = True

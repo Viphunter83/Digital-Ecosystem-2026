@@ -92,10 +92,14 @@ export const fetchProjectById = async (id: string): Promise<Project | undefined>
     }
 };
 
-export const fetchCatalog = async (query?: string): Promise<Product[]> => {
+export const fetchCatalog = async (query?: string, type: 'machines' | 'spares' = 'machines'): Promise<Product[]> => {
     try {
         // Catalog search defined as @router.get("/search") -> /catalog/search (NO SLASH)
-        const url = query ? `/catalog/search?q=${query}` : '/catalog/search';
+        const params = new URLSearchParams();
+        if (query) params.append('q', query);
+        params.append('type', type);
+
+        const url = `/catalog/search?${params.toString()}`;
         // console.log(`[API] Requesting URL: ${api.defaults.baseURL}${url}`);
         const response = await api.get(url);
         // console.log(`[API] Catalog Response Count: ${response.data.results?.length}`);
@@ -148,6 +152,16 @@ export const fetchArticleById = async (id: string): Promise<Article | undefined>
     } catch (error) {
         console.error('Error fetching article:', error);
         return undefined;
+    }
+};
+
+export const fetchSiteContent = async (): Promise<Record<string, string>> => {
+    try {
+        const response = await api.get('/content');
+        return response.data || {};
+    } catch (error) {
+        console.error('Error fetching site content:', error);
+        return {};
     }
 };
 

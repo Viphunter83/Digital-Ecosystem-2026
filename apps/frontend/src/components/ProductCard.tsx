@@ -69,6 +69,7 @@ function formatSpecValue(value: string): string {
 export function ProductCard({ product }: ProductCardProps) {
     const addToCart = useCartStore((state) => state.addItem);
     const [added, setAdded] = React.useState(false);
+    const [imageError, setImageError] = React.useState(false);
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -101,10 +102,11 @@ export function ProductCard({ product }: ProductCardProps) {
 
                 {product.image_url ? (
                     <Image
-                        src={product.image_url}
+                        src={imageError ? "/uploads/placeholder_russtanko.jpg" : product.image_url}
                         alt={product.name}
                         fill
                         className="object-cover object-center transition-transform duration-700 group-hover:scale-105 group-hover:saturate-110"
+                        onError={() => setImageError(true)}
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">
@@ -127,7 +129,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     </CardTitle>
                 </Link>
                 <CardDescription className="text-xs text-gray-400 line-clamp-2 min-h-[32px] font-mono mt-1 leading-relaxed">
-                    {product.description || "ПРОМЫШЛЕННЫЙ КЛАСС // ВЫСОКАЯ ПРОИЗВОДИТЕЛЬНОСТЬ"}
+                    {product.description || (product.category ? "ПРОМЫШЛЕННЫЙ КЛАСС // ВЫСОКАЯ ПРОИЗВОДИТЕЛЬНОСТЬ" : "ОРИГИНАЛЬНАЯ ЗАПАСНАЯ ЧАСТЬ // В НАЛИЧИИ")}
                 </CardDescription>
             </CardHeader>
 
@@ -135,9 +137,9 @@ export function ProductCard({ product }: ProductCardProps) {
                 <Link href={`/catalog/${product.id}`}>
                     <div className="grid gap-[1px] bg-industrial-border border border-industrial-border my-2">
                         {specsArray.slice(0, 3).map((spec, index) => (
-                            <div key={index} className="flex justify-between items-center bg-industrial-panel px-3 py-2">
-                                <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold font-mono">{spec.parameter}</span>
-                                <span className="text-[10px] font-mono text-white/90">{spec.value}</span>
+                            <div key={index} className="flex justify-between items-center bg-industrial-panel px-3 py-2 gap-2">
+                                <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold font-mono truncate max-w-[45%]">{spec.parameter}</span>
+                                <span className="text-[10px] font-mono text-white/90 truncate text-right max-w-[55%]">{spec.value}</span>
                             </div>
                         ))}
                     </div>

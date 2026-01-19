@@ -45,31 +45,33 @@ export function ProductTable({ products }: ProductTableProps) {
                                 </div>
                             </td>
                             <td className="p-4 font-mono text-sm text-white/70">
-                                {product.id.toString().padStart(4, "0")}
+                                {product.id.toString().substring(0, 8).toUpperCase()}
                             </td>
                             <td className="p-4">
                                 <div className="font-bold text-white group-hover:text-safety-orange transition-colors duration-300 font-manrope">
                                     {product.name}
                                 </div>
                                 <div className="text-[10px] text-muted-foreground font-mono line-clamp-1">
-                                    {product.description || "ПРОМЫШЛЕННОЕ ОБОРУДОВАНИЕ"}
+                                    {product.description || "-"}
                                 </div>
                             </td>
                             <td className="p-4">
                                 <Badge variant="outline" className="border-industrial-border text-xs font-mono rounded-none">
-                                    {product.category || "GENERAL"}
+                                    {product.category || "ЗАПЧАСТЬ"}
                                 </Badge>
                             </td>
                             <td className="p-4">
-                                {/* Mock Stock Status */}
+                                {/* Mock Stock Status - keep for now as logic is complex */}
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-signal-green animate-pulse" />
                                     <span className="text-xs font-mono text-signal-green">В НАЛИЧИИ</span>
                                 </div>
                             </td>
                             <td className="p-4 text-right font-mono text-white text-sm">
-                                {/* Mock Price */}
-                                <span>{(Math.random() * 50000 + 10000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, " ")} ₽</span>
+                                {product.price
+                                    ? <span>{product.price.toLocaleString("ru-RU")} ₽</span>
+                                    : <span className="text-muted-foreground text-xs">ПО ЗАПРОСУ</span>
+                                }
                             </td>
                             <td className="p-3 text-right">
                                 <ShimmerButton className="h-8 text-[9px] px-3 bg-transparent border border-safety-orange/50 text-safety-orange hover:bg-safety-orange hover:text-white">

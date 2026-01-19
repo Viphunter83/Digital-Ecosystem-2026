@@ -9,14 +9,15 @@ export default function CatalogPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'machines' | 'spares'>('machines');
 
     const [activeFilter, setActiveFilter] = useState("ВСЕ");
     const [searchQuery, setSearchQuery] = useState("");
 
-    async function loadData(query: string = "") {
+    async function loadData(query: string = "", type: 'machines' | 'spares' = activeTab) {
         setLoading(true);
         try {
-            const data = await fetchCatalog(query);
+            const data = await fetchCatalog(query, type);
             setProducts(data);
         } catch (error) {
             console.error("Failed to fetch catalog:", error);
@@ -26,11 +27,11 @@ export default function CatalogPage() {
     }
 
     useEffect(() => {
-        loadData();
-    }, []);
+        loadData(searchQuery, activeTab);
+    }, [activeTab]); // Reload when tab changes
 
     const handleSearch = () => {
-        loadData(searchQuery);
+        loadData(searchQuery, activeTab);
     };
 
     const filteredProducts = activeFilter === "ВСЕ"
@@ -95,6 +96,32 @@ export default function CatalogPage() {
 
             {/* Filters & Search */}
             <div className="container mx-auto px-6 mb-12">
+                {/* TABS */}
+                <div className="flex gap-8 mb-6 border-b border-industrial-border">
+                    <button
+                        onClick={() => {
+                            if (activeTab !== 'machines') {
+                                setActiveTab('machines');
+                                setActiveFilter("ВСЕ");
+                            }
+                        }}
+                        className={`text-lg font-black uppercase tracking-tighter pb-4 transition-colors ${activeTab === 'machines' ? 'border-b-2 border-safety-orange text-white' : 'text-muted-foreground hover:text-white'}`}
+                    >
+                        Оборудование
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (activeTab !== 'spares') {
+                                setActiveTab('spares');
+                                setActiveFilter("ВСЕ");
+                            }
+                        }}
+                        className={`text-lg font-black uppercase tracking-tighter pb-4 transition-colors ${activeTab === 'spares' ? 'border-b-2 border-safety-orange text-white' : 'text-muted-foreground hover:text-white'}`}
+                    >
+                        Запчасти и Комплектующие
+                    </button>
+                </div>
+
                 <div className="flex flex-col md:flex-row gap-6 p-6 border-y border-industrial-border bg-industrial-panel/30 backdrop-blur-sm items-center">
 
                     {/* Search Input */}
@@ -120,27 +147,29 @@ export default function CatalogPage() {
                         </button>
                     </div>
 
-                    {/* Filters */}
-                    <div className="flex flex-wrap gap-2">
-                        {["ВСЕ", "МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"].map((filter, i) => (
-                            <button
-                                key={i}
-                                onClick={() => {
-                                    setActiveFilter(filter);
-                                    if (filter === "ВСЕ") {
-                                        setSearchQuery("");
-                                        loadData("");
-                                    }
-                                }}
-                                className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeFilter === filter
-                                    ? "bg-safety-orange text-white border-safety-orange"
-                                    : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
-                                    }`}
-                            >
-                                {filter}
-                            </button>
-                        ))}
-                    </div>
+                    {/* Filters (Only for Machines) */}
+                    {activeTab === 'machines' && (
+                        <div className="flex flex-wrap gap-2">
+                            {["ВСЕ", "МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"].map((filter, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => {
+                                        setActiveFilter(filter);
+                                        if (filter === "ВСЕ") {
+                                            setSearchQuery("");
+                                            loadData("", activeTab);
+                                        }
+                                    }}
+                                    className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeFilter === filter
+                                        ? "bg-safety-orange text-white border-safety-orange"
+                                        : "text-muted-foreground border-industrial-border hover:border-white hover:text-white"
+                                        }`}
+                                >
+                                    {filter}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -23,3 +23,16 @@ __pycache__/
 dist/
 build/
 .env
+
+# Data & Scrapers
+apps/backend/scripts/scraper_*.py
+*.json
+*.csv
+*.xls
+*.xlsx
+apps/backend/data/
+
+# Scraped Assets (Allow placeholders)
+apps/frontend/public/images/products/*
+!apps/frontend/public/images/products/.gitkeep
+!apps/frontend/public/images/products/placeholder_russtanko.jpg

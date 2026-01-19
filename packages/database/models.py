@@ -35,6 +35,7 @@ class Product(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     embedding = Column(Vector(1536))
+    is_published = Column(Boolean, default=True)
 
     images = relationship("ProductImage", back_populates="product")
 
@@ -56,7 +57,21 @@ class SparePart(Base):
     name = Column(String, nullable=False)
     specs = Column(JSONB)
     price = Column(DECIMAL)
+    is_published = Column(Boolean, default=True)
     # embedding = Column(Vector(1536))
+
+    images = relationship("SparePartImage", back_populates="spare_part")
+
+class SparePartImage(Base):
+    __tablename__ = "spare_part_images"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    spare_part_id = Column(UUID(as_uuid=True), ForeignKey("spare_parts.id"))
+    url = Column(String, nullable=False)
+    is_primary = Column(Boolean, default=False)
+    order = Column(Integer, default=0)
+
+    spare_part = relationship("SparePart", back_populates="images")
 
 class Client(Base):
     __tablename__ = "clients"
@@ -208,6 +223,18 @@ class Lead(Base):
     amocrm_id = Column(String, nullable=True) # Deal ID in CRM
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class SiteContent(Base):
+    __tablename__ = "site_content"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    key = Column(String, unique=True, nullable=False)
+    value = Column(Text)
+    description = Column(String) # For admin reference
+    type = Column(String, default="text") # text, html, image, json
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
 # Add back reference to Client
 Client.equipment = relationship("ClientEquipment", back_populates="client")
