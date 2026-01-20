@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+echo '--- DB NETWORKS ---'
+docker inspect russtanko-russtankoprod-colyja-db-1 --format '{{json .NetworkSettings.Networks}}'
+echo '--- PING DB FROM DIRECTUS ---'
+docker exec russtanko-russtankoprod-colyja-directus-1 ping -c 2 db
+echo '--- BOT CONTAINERS ---'
+docker ps -a | grep bot
+"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
