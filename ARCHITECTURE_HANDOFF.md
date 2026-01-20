@@ -18,7 +18,14 @@ This document summarizes the current state of the **Digital Ecosystem 2026** pro
     - AI-powered parsing for Excel/PDF.
     - Demo Data Seeding with consistent Project Backgrounds.
 
-## 2. Critical Fixes & Updates (2026-01-19)
+## 2. Critical Fixes & Updates (2026-01-20)
+
+### 🔧 Infrastructure & Stability
+1.  **Service Discovery Fixed (Directus/Redis)**:
+    *   **Issue**: Directus crashed (`ECONNREFUSED`) because it used a hardcoded IP for Redis (`172.18.0.5`) which changed after a container restart.
+    *   **Fix**: Updated `docker-compose.prod.yml` to use Docker service names (`redis`, `db`) instead of hardcoded IPs. This ensures automatic DNS resolution regardless of internal IP changes.
+
+### 🔧 Previous Fixes (2026-01-19)
 
 ### 🔧 Stability & Content Fixes
 1.  **Backend Caching & Serialization**:

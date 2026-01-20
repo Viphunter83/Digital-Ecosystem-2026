@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+echo '=== REDIS NETWORK INSPECT ==='
+docker inspect russtanko-russtankoprod-colyja-redis-1 --format '{{json .NetworkSettings.Networks}}'
+"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}

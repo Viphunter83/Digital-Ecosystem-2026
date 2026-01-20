@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+echo '=== DOCKER PROCESSES ==='
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}'
+echo '=== BOT LOGS (LAST 50 LINES) ==='
+docker logs --tail 50 russtanko-russtankoprod-colyja-bot-1
+"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
