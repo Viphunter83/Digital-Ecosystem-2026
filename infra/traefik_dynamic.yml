@@ -1,0 +1,72 @@
+http:
+  routers:
+    # Frontend
+    frontend:
+      rule: "Host(`td-rss.ru`)"
+      service: frontend
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    frontend-http:
+      rule: "Host(`td-rss.ru`)"
+      service: frontend
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+
+    # Backend/API
+    backend:
+      rule: "Host(`api.td-rss.ru`)"
+      service: backend
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    backend-http:
+      rule: "Host(`api.td-rss.ru`)"
+      service: backend
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+
+    # Directus/Admin
+    directus:
+      rule: "Host(`admin.td-rss.ru`)"
+      service: directus
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+    directus-http:
+      rule: "Host(`admin.td-rss.ru`)"
+      service: directus
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+
+  services:
+    frontend:
+      loadBalancer:
+        servers:
+          - url: "http://frontend:3000"
+    backend:
+      loadBalancer:
+        servers:
+          - url: "http://backend:8000"
+    directus:
+      loadBalancer:
+        servers:
+          - url: "http://directus:8055"
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
