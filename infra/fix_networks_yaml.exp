@@ -1,0 +1,172 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "cat > /etc/dokploy/compose/russtanko-russtankoprod-colyja/code/docker-compose.prod.yml <<EOF
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.backend
+    ports:
+      - \"8000:8000\"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@db:5432/\${POSTGRES_DB}
+      - PYTHONPATH=/app
+    command: sh -c \"python apps/backend/scripts/apply_migrations.py && python apps/backend/scripts/seed_demo.py && uvicorn apps.backend.app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'\"
+    depends_on:
+      - db
+    restart: always
+    labels:
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.rule=Host(\`api.194.156.118.128.nip.io\`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.entrypoints=web
+      - traefik.http.services.russtanko-russtankoprod-colyja-28011-web.loadbalancer.server.port=8000
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.service=russtanko-russtankoprod-colyja-28011-web
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-websecure.rule=Host(\`api.194.156.118.128.nip.io\`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-websecure.entrypoints=websecure
+      - traefik.http.services.russtanko-russtankoprod-colyja-28011-websecure.loadbalancer.server.port=8000
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-websecure.service=russtanko-russtankoprod-colyja-28011-websecure
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-websecure.tls.certresolver=letsencrypt
+      - traefik.enable=true
+    networks:
+      - dokploy-network
+
+  bot:
+    build:
+      context: .
+      dockerfile: apps/bot/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - TELEGRAM_BOT_TOKEN=\${TELEGRAM_BOT_TOKEN}
+      - BACKEND_URL=http://backend:8000
+      - PYTHONPATH=/app
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - dokploy-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: /api
+    ports:
+      - \"3000:3000\"
+    environment:
+      - NEXT_PUBLIC_API_URL=/api
+      - BACKEND_URL=http://backend:8000
+      - PORT=3000
+    restart: always
+    labels:
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.rule=Host(\`app.194.156.118.128.nip.io\`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.entrypoints=web
+      - traefik.http.services.russtanko-russtankoprod-colyja-28009-web.loadbalancer.server.port=3000
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.service=russtanko-russtankoprod-colyja-28009-web
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.rule=Host(\`app.194.156.118.128.nip.io\`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.entrypoints=websecure
+      - traefik.http.services.russtanko-russtankoprod-colyja-28009-websecure.loadbalancer.server.port=3000
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.service=russtanko-russtankoprod-colyja-28009-websecure
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.tls.certresolver=letsencrypt
+      - traefik.enable=true
+    networks:
+      - dokploy-network
+
+  db:
+    image: ankane/pgvector
+    ports:
+      - \"5432:5432\"
+    environment:
+      - POSTGRES_USER=\${POSTGRES_USER}
+      - POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}
+      - POSTGRES_DB=\${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - dokploy-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - \"6379:6379\"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: \[ \"CMD\", \"redis-cli\", \"ping\" \]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - dokploy-network
+
+  directus:
+    image: directus/directus:latest
+    ports:
+      - \"8055:8055\"
+    volumes:
+      - directus_uploads:/directus/uploads
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      KEY: \"\${DIRECTUS_KEY}\"
+      SECRET: \"\${DIRECTUS_SECRET}\"
+      ADMIN_EMAIL: \"\${ADMIN_EMAIL}\"
+      ADMIN_PASSWORD: \"\${ADMIN_PASSWORD}\"
+      DB_CLIENT: \"pg\"
+      DB_HOST: \"db\"
+      DB_PORT: \"5432\"
+      DB_DATABASE: \"\${POSTGRES_DB}\"
+      DB_USER: \"\${POSTGRES_USER}\"
+      DB_PASSWORD: \"\${POSTGRES_PASSWORD}\"
+      CORS_ENABLED: \"true\"
+      CORS_ORIGIN: \"true\"
+    restart: always
+    labels:
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.rule=Host(\`admin.194.156.118.128.nip.io\`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.entrypoints=web
+      - traefik.http.services.russtanko-russtankoprod-colyja-28010-web.loadbalancer.server.port=8055
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.service=russtanko-russtankoprod-colyja-28010-web
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.middlewares=redirect-to-https@file
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-websecure.rule=Host(\`admin.194.156.118.128.nip.io\`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-websecure.entrypoints=websecure
+      - traefik.http.services.russtanko-russtankoprod-colyja-28010-websecure.loadbalancer.server.port=8055
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-websecure.service=russtanko-russtankoprod-colyja-28010-websecure
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-websecure.tls.certresolver=letsencrypt
+      - traefik.enable=true
+    networks:
+      - dokploy-network
+
+volumes:
+  db_data:
+  redis_data:
+  directus_uploads:
+
+networks:
+  dokploy-network:
+    external: true
+EOF"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
