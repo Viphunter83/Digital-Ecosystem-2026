@@ -5,6 +5,7 @@ const nextConfig = {
         buildActivity: false,
         appIsrStatus: false,
     },
+    output: 'standalone',
     images: {
         unoptimized: true,
         remotePatterns: [
