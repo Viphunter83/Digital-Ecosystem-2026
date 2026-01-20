@@ -25,6 +25,7 @@ export interface Product {
     specs?: Record<string, any>;
     image_url?: string;
     price?: number;
+    manufacturer?: string;
 }
 
 export interface Article {
