@@ -10,7 +10,7 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@172.18.0.2:5432/${POSTGRES_DB}
       - PYTHONPATH=/app
     command: sh -c "python apps/backend/scripts/apply_migrations.py && python apps/backend/scripts/seed_demo.py && uvicorn apps.backend.app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
     depends_on:
@@ -18,12 +18,12 @@ services:
     restart: always
     labels:
       - traefik.docker.network=dokploy-network
-      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.rule=Host(`api.194.156.118.128.nip.io`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.rule=Host(`api.td-rss.ru`)
       - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.entrypoints=web
       - traefik.http.services.russtanko-russtankoprod-colyja-28011-web.loadbalancer.server.port=8000
       - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.service=russtanko-russtankoprod-colyja-28011-web
       - traefik.http.routers.russtanko-russtankoprod-colyja-28011-web.middlewares=redirect-to-https@file
-      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-websecure.rule=Host(`api.194.156.118.128.nip.io`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28011-websecure.rule=Host(`api.td-rss.ru`)
       - traefik.http.routers.russtanko-russtankoprod-colyja-28011-websecure.entrypoints=websecure
       - traefik.http.services.russtanko-russtankoprod-colyja-28011-websecure.loadbalancer.server.port=8000
       - traefik.http.routers.russtanko-russtankoprod-colyja-28011-websecure.service=russtanko-russtankoprod-colyja-28011-websecure
@@ -63,12 +63,12 @@ services:
     restart: always
     labels:
       - traefik.docker.network=dokploy-network
-      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.rule=Host(`app.194.156.118.128.nip.io`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.rule=Host(`td-rss.ru`)
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.entrypoints=web
       - traefik.http.services.russtanko-russtankoprod-colyja-28009-web.loadbalancer.server.port=3000
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.service=russtanko-russtankoprod-colyja-28009-web
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.middlewares=redirect-to-https@file
-      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.rule=Host(`app.194.156.118.128.nip.io`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.rule=Host(`td-rss.ru`)
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.entrypoints=websecure
       - traefik.http.services.russtanko-russtankoprod-colyja-28009-websecure.loadbalancer.server.port=3000
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.service=russtanko-russtankoprod-colyja-28009-websecure
@@ -123,7 +123,7 @@ services:
       ADMIN_EMAIL: "${ADMIN_EMAIL}"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
       DB_CLIENT: "pg"
-      DB_HOST: "db"
+      DB_HOST: "172.18.0.2"
       DB_PORT: "5432"
       DB_DATABASE: "${POSTGRES_DB}"
       DB_USER: "${POSTGRES_USER}"
@@ -131,17 +131,17 @@ services:
       CORS_ENABLED: "true"
       CACHE_ENABLED: "false"
       WEBSOCKETS_ENABLED: "false"
-      REDIS_HOST: "redis"
+      REDIS_HOST: "172.18.0.5"
       REDIS_PORT: "6379"
     restart: always
     labels:
       - traefik.docker.network=dokploy-network
-      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.rule=Host(`admin.194.156.118.128.nip.io`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.rule=Host(`admin.td-rss.ru`)
       - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.entrypoints=web
       - traefik.http.services.russtanko-russtankoprod-colyja-28010-web.loadbalancer.server.port=8055
       - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.service=russtanko-russtankoprod-colyja-28010-web
       - traefik.http.routers.russtanko-russtankoprod-colyja-28010-web.middlewares=redirect-to-https@file
-      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-websecure.rule=Host(`admin.194.156.118.128.nip.io`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28010-websecure.rule=Host(`admin.td-rss.ru`)
       - traefik.http.routers.russtanko-russtankoprod-colyja-28010-websecure.entrypoints=websecure
       - traefik.http.services.russtanko-russtankoprod-colyja-28010-websecure.loadbalancer.server.port=8055
       - traefik.http.routers.russtanko-russtankoprod-colyja-28010-websecure.service=russtanko-russtankoprod-colyja-28010-websecure

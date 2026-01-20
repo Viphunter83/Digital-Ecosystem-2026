@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+echo '--- DISCONNECTING ---'
+docker network disconnect dokploy-network russtanko-russtankoprod-colyja-db-1 || true
+docker network disconnect dokploy-network russtanko-russtankoprod-colyja-redis-1 || true
+
+echo '--- CONNECTING WITH ALIASES ---'
+docker network connect --alias db dokploy-network russtanko-russtankoprod-colyja-db-1
+docker network connect --alias redis dokploy-network russtanko-russtankoprod-colyja-redis-1
+
+echo '--- RESTARTING CONSUMERS ---'
+docker restart russtanko-russtankoprod-colyja-directus-1
+docker restart russtanko-russtankoprod-colyja-backend-1
+"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
