@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+set timeout 120
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+cd /etc/dokploy/compose/russtanko-russtankoprod-colyja/code
+echo '--- TEARING DOWN EXT NETWORKS ---'
+docker network disconnect dokploy-network russtanko-russtankoprod-colyja-directus-1 || true
+docker network disconnect dokploy-network russtanko-russtankoprod-colyja-db-1 || true
+docker network disconnect dokploy-network russtanko-russtankoprod-colyja-redis-1 || true
+
+echo '--- BRINGING DOWN STACK & ORPHANS ---'
+docker compose -f docker-compose.prod.yml -p russtanko-russtankoprod-colyja down --remove-orphans
+
+echo '--- ENSURING NETWORK EXISTS ---'
+docker network create dokploy-network || true
+
+echo '--- BRINGING UP STACK ---'
+docker compose -f docker-compose.prod.yml -p russtanko-russtankoprod-colyja up -d --force-recreate
+"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}

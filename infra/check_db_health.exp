@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+echo '--- DB STATUS ---'
+docker ps --filter name=russtanko-russtankoprod-colyja-db-1
+echo '--- DB LOGS (LAST 50 lines) ---'
+docker logs russtanko-russtankoprod-colyja-db-1 | tail -n 50
+"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}

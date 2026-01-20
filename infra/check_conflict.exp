@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+echo '--- SERVER PYTHON PROCESSES ---'
+ps aux | grep python
+echo '--- DOCKER PROCESSES ---'
+docker ps --format '{{.Names}}' | grep bot
+echo '--- DIRECTUS LOGS ---'
+docker logs russtanko-russtankoprod-colyja-directus-1 | tail -n 20
+"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
