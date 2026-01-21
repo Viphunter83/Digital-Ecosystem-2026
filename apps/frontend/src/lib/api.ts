@@ -168,6 +168,54 @@ export const fetchSiteContent = async (): Promise<Record<string, string>> => {
     }
 };
 
+// Solutions interface
+export interface Solution {
+    id: string;
+    slug: string;
+    title: string;
+    description?: string;
+    icon?: string;
+    gradient?: string;
+    link_url?: string;
+    link_text?: string;
+}
+
+export const fetchSolutions = async (): Promise<Solution[]> => {
+    try {
+        const response = await api.get('/content/solutions');
+        return response.data || [];
+    } catch (error) {
+        console.error('Error fetching solutions:', error);
+        return [];
+    }
+};
+
+// Offices interface
+export interface Office {
+    id: string;
+    name: string;
+    city?: string;
+    region?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    latitude?: number;
+    longitude?: number;
+    is_headquarters: boolean;
+    description?: string;
+    working_hours?: string;
+}
+
+export const fetchOffices = async (): Promise<Office[]> => {
+    try {
+        const response = await api.get('/content/offices');
+        return response.data || [];
+    } catch (error) {
+        console.error('Error fetching offices:', error);
+        return [];
+    }
+};
+
 export interface Category {
     name: string;
     slug: string;

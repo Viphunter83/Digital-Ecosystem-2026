@@ -1,6 +1,7 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { submitLead } from '@/lib/leadService';
+import { fetchOffices, Office } from '@/lib/api';
 
 import dynamic from 'next/dynamic';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
@@ -11,24 +12,27 @@ const MapComponent = dynamic(
     { ssr: false }
 );
 
-// Mock project for map center - General Moscow Location
-const OFFICE_LOCATION = [
-    {
-        id: "office-main",
-        title: "ЦЕНТРАЛЬНЫЙ ОФИС",
-        client: { name: "ТД РУССтанкоСбыт", industry: "Engineering", region: "Moscow" },
-        region: "МОСКВА, РОССИЯ",
-        latitude: 55.751244,
-        longitude: 37.618423,
-        status: "ACTIVE",
-        kpi: 100,
-        description: "Центральный офис и инженерный центр."
-    }
-];
+// Convert Office to map project format
+const officeToMapProject = (office: Office) => ({
+    id: office.id,
+    title: office.name.toUpperCase(),
+    client: { name: "ТД РУССтанкоСбыт", industry: "Engineering", region: office.region },
+    region: office.region || "МОСКВА, РОССИЯ",
+    latitude: office.latitude || 55.751244,
+    longitude: office.longitude || 37.618423,
+    status: "ACTIVE",
+    kpi: 100,
+    description: office.description || ""
+});
 
 export default function ContactsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [offices, setOffices] = useState<Office[]>([]);
+
+    useEffect(() => {
+        fetchOffices().then(setOffices);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -174,7 +178,7 @@ export default function ContactsPage() {
                     {/* Reuse MapComponent but point it to the office */}
                     <div className="absolute inset-0 grayscale group-hover:grayscale-0 transition-all duration-700">
                         {/* @ts-ignore - Mocking project type for reuse */}
-                        <MapComponent projects={OFFICE_LOCATION} />
+                        <MapComponent projects={offices.length > 0 ? offices.map(officeToMapProject) : [officeToMapProject({ id: "default", name: "Офис", latitude: 55.751244, longitude: 37.618423, is_headquarters: true })]} />
                     </div>
                 </div>
 
