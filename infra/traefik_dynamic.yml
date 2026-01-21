@@ -9,6 +9,18 @@ http:
       tls:
         certResolver: letsencrypt
 
+    # API Proxy (Route /api on main domain to backend to match NEXT_PUBLIC_API_URL=/api)
+    frontend-api:
+      rule: "Host(`td-rss.ru`) && PathPrefix(`/api`)"
+      service: backend
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+      middlewares:
+        - strip-api-prefix
+
     frontend-http:
       rule: "Host(`td-rss.ru`)"
       service: frontend
@@ -70,3 +82,8 @@ http:
       redirectScheme:
         scheme: https
         permanent: true
+    
+    strip-api-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api"
