@@ -1,10 +1,12 @@
 #!/usr/bin/expect -f
-set timeout 30
+set timeout 60
 set ip "194.156.118.128"
 set user "root"
 set password "MaksimNiretin2602201213!"
 
-spawn ssh -o StrictHostKeyChecking=no $user@$ip "docker logs russtanko-russtankoprod-colyja-backend-1 --tail 50"
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+docker logs --tail 50 russtanko-russtankoprod-colyja-traefik-1
+"
 
 expect {
   "password:" {

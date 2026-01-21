@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+set timeout 300
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+# Upload script
+spawn scp -o StrictHostKeyChecking=no restore_scraped_data.py $user@$ip:/tmp/restore_scraped_data.py
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
+
+# Upload data
+spawn scp -o StrictHostKeyChecking=no scraped_data_v1.json $user@$ip:/tmp/scraped_data_v1.json
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
+
+# Execute
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "docker cp /tmp/restore_scraped_data.py russtanko-russtankoprod-colyja-backend-1:/app/apps/backend/scripts/ && docker cp /tmp/scraped_data_v1.json russtanko-russtankoprod-colyja-backend-1:/app/ && docker exec russtanko-russtankoprod-colyja-backend-1 python /app/apps/backend/scripts/restore_scraped_data.py"
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}

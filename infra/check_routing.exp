@@ -4,7 +4,7 @@ set ip "194.156.118.128"
 set user "root"
 set password "MaksimNiretin2602201213!"
 
-spawn ssh -o StrictHostKeyChecking=no $user@$ip "docker logs russtanko-russtankoprod-colyja-backend-1 --tail 50"
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "curl -I -v -H 'Host: admin.td-rss.ru' http://127.0.0.1 && curl -I -v -H 'Host: api.td-rss.ru' http://127.0.0.1"
 
 expect {
   "password:" {

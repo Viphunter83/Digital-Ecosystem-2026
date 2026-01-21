@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+set timeout 30
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn scp -o StrictHostKeyChecking=no catalog.py $user@$ip:/tmp/catalog.py
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "docker cp /tmp/catalog.py russtanko-russtankoprod-colyja-backend-1:/app/apps/backend/app/routers/catalog.py && docker restart russtanko-russtankoprod-colyja-backend-1"
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}

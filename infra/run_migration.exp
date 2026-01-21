@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+echo '--- EXECUTING MIGRATION SCRIPT ---'
+docker exec russtanko-russtankoprod-colyja-backend-1 python apps/backend/scripts/add_embedding_column.py
+"
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}
