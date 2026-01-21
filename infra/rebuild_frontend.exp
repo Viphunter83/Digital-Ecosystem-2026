@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+spawn ssh -o StrictHostKeyChecking=no root@194.156.118.128
+expect "password:"
+send "MaksimNiretin2602201213!\r"
+expect "#"
+
+send "cd /etc/dokploy/compose/russtanko-russtankoprod-colyja/code\r"
+expect "#"
+
+# Rebuild frontend
+send "docker compose -f docker-compose.prod.yml -p russtanko-russtankoprod-colyja build frontend\r"
+expect "#"
+
+# Restart frontend
+send "docker compose -f docker-compose.prod.yml -p russtanko-russtankoprod-colyja up -d frontend\r"
+expect "#"
+
+send "exit\r"
+expect eof

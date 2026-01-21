@@ -38,7 +38,7 @@ export default function Home() {
         ]);
         setProjects(p);
         setArticles(a);
-        setProducts(prod);
+        setProducts(prod.results);
         setSiteContent(content);
       } catch (e) {
         console.error("Failed to load home data", e);

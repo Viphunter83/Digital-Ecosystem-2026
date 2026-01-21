@@ -1,0 +1,18 @@
+#!/usr/bin/expect -f
+
+set timeout -1
+spawn ssh -o StrictHostKeyChecking=no root@194.156.118.128
+expect "password:"
+send "MaksimNiretin2602201213!\r"
+expect "#"
+
+# 1. Copy script from host code dir to container
+send "docker cp /etc/dokploy/compose/russtanko-russtankoprod-colyja/code/apps/backend/scripts/classify_spares.py russtanko-russtankoprod-colyja-backend-1:/app/apps/backend/scripts/classify_spares.py\r"
+expect "#"
+
+# 2. Run the script inside container
+send "docker exec russtanko-russtankoprod-colyja-backend-1 python3 apps/backend/scripts/classify_spares.py\r"
+expect "#"
+
+send "exit\r"
+expect eof

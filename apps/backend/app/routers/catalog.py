@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import Session, joinedload
 from typing import Optional, List
 
@@ -52,32 +52,64 @@ async def get_filters(db: Session = Depends(get_db)):
 async def search_products(
     q: Optional[str] = None,
     type: str = "machines", # "machines" or "spares"
+    category: Optional[str] = None,  # Filter by category
+    limit: int = 20,
+    offset: int = 0,
     db: Session = Depends(get_db)
 ):
     """
     Search products or spare parts.
+    Returns { results: [], total: int }
     """
+    total_count = 0
+
     # SPARE PARTS MODE
     if type == "spares":
-        query = select(SparePart).options(joinedload(SparePart.images))
+        # Base query
+        query = select(SparePart).where(SparePart.is_published == True)
         if q:
             query = query.where(SparePart.name.ilike(f"%{q}%"))
         
-        # Async DB Execution
-        results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
-        return {"results": [SparePartSchema.model_validate(p) for p in results]}
+        # Count query
+        count_stmt = select(func.count()).select_from(query.subquery())
+        total_count = await run_in_threadpool(lambda: db.execute(count_stmt).scalar()) or 0
 
-    # MACHINES MODE (Default)
-    if not q:
-        query = select(Product).options(joinedload(Product.images))
-         # Ensure we only return published products
-        query = query.where(Product.is_published == True)
+        # Pagination
+        query = query.options(joinedload(SparePart.images)).limit(limit).offset(offset)
         
         # Async DB Execution
         results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
-        return {"results": [ProductSchema.model_validate(p) for p in results]}
+        return {
+            "results": [SparePartSchema.model_validate(p) for p in results],
+            "total": total_count
+        }
+
+    # MACHINES MODE (Default)
+    if not q:
+        query = select(Product).where(Product.is_published == True)
+        
+        # Apply category filter
+        if category:
+            query = query.where(Product.category == category)
+        
+        # Count
+        count_stmt = select(func.count()).select_from(query.subquery())
+        total_count = await run_in_threadpool(lambda: db.execute(count_stmt).scalar()) or 0
+
+        # Data
+        query = query.options(joinedload(Product.images)).limit(limit).offset(offset)
+        
+        # Async DB Execution
+        results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
+        return {
+            "results": [ProductSchema.model_validate(p) for p in results],
+            "total": total_count
+        }
 
     # Check if this looks like a semantic query (e.g. > 1 word)
+    # AI Search handles its own limiting (top N relevance). 
+    # Pagination for AI search is tricky without re-running embedding. 
+    # For now, we return Top Limit matches for AI.
     is_semantic = len(q.split()) > 1
     
     if is_semantic:
@@ -90,32 +122,56 @@ async def search_products(
             
             stmt = select(Product, distance_expr).options(
                 joinedload(Product.images)
-            ).where(Product.is_published == True).order_by(distance_expr).limit(10)
+            ).where(Product.is_published == True).order_by(distance_expr).limit(limit).offset(offset) # Apply Limit/Offset to AI too?
+            # AI search usually needs strict ordering. 
+            # If we offset deep, relevance drops.
             
             # Execute and filter in python (Async DB)
             results = await run_in_threadpool(lambda: db.execute(stmt).unique().all())
+            
+            # Total count for AI is hard to guess without fetching all. 
+            # We can assume limit+1 or something. 
+            # Or simplified: AI results are finite.
+            # Let's count matching rows locally? No.
+            # For UX, we say total = len(results) if no pagination supported for semantic yet.
+            # But let's try to support it. 
             
             filtered_products = []
             for product, dist in results:
                 if dist < 0.6:
                     filtered_products.append(product)
             
-            return {"results": [ProductSchema.model_validate(p) for p in filtered_products]}
+            return {
+                "results": [ProductSchema.model_validate(p) for p in filtered_products],
+                "total": len(filtered_products) # Approximated for semantic
+            }
             
         except Exception as e:
-            # Fallback to keyword search if AI fails
             print(f"Semantic search failed: {e}")
             pass
             
     # Minimal/Keyword search
-    query = select(Product).options(joinedload(Product.images))
-    query = query.where(Product.is_published == True)
+    query = select(Product).where(Product.is_published == True)
     query = query.where(Product.name.ilike(f"%{q}%"))
+    
+    # Apply category filter
+    if category:
+        query = query.where(Product.category == category)
+    
+    # Count
+    count_stmt = select(func.count()).select_from(query.subquery())
+    total_count = await run_in_threadpool(lambda: db.execute(count_stmt).scalar()) or 0
+
+    # Data
+    query = query.options(joinedload(Product.images)).limit(limit).offset(offset)
     
     # Async DB Execution
     results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
     data = [ProductSchema.model_validate(p) for p in results]
-    return {"results": data}
+    return {
+        "results": data,
+        "total": total_count
+    }
 
 @router.get("/{product_id}")
 def get_product(product_id: str, db: Session = Depends(get_db)):

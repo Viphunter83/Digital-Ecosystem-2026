@@ -12,19 +12,80 @@ interface ProductDetailProps {
     product: Product;
 }
 
+// Maps shared with ProductCard (could be moved to a shared constant file)
+const SPEC_MAP: Record<string, string> = {
+    'TRAVEL_X': 'ХОД ПО ОСИ X',
+    'TABLE_SIZE': 'РАЗМЕР СТОЛА',
+    'SPINDLE_SPEED': 'ОБОРОТЫ',
+    'FORCE': 'УСИЛИЕ',
+    'SPEED': 'СКОРОСТЬ',
+    'STROKE': 'ХОД ПОЛЗУНА',
+    'POWER': 'МОЩНОСТЬ',
+    'ACCURACY': 'ТОЧНОСТЬ',
+    'MAX_LENGTH': 'МАКС. ДЛИНА',
+    'MAX_DIAMETER': 'МАКС. ДИАМЕТР',
+    'DIAMETER': 'ДИАМЕТР',
+    'WEIGHT': 'ВЕС',
+    'AXIS': 'ОСИ',
+    'SPINDLE': 'ШПИНДЕЛЬ',
+    'WORKSPACE': 'РАБ. ЗОНА',
+    'MAIN': 'ОСНОВНОЕ',
+    'MODEL': 'МОДЕЛЬ',
+    'DESCRIPTION': 'ОПИСАНИЕ',
+};
+
+const UNIT_MAP: Record<string, string> = {
+    'mm': 'мм',
+    'mm/s': 'мм/с',
+    'rpm': 'об/мин',
+    'ton': 'т',
+    'kW': 'кВт',
+    'kg': 'кг',
+};
+
+function formatSpecValue(value: string): string {
+    let formatted = value;
+    Object.entries(UNIT_MAP).forEach(([en, ru]) => {
+        formatted = formatted.replace(new RegExp(en, 'g'), ru);
+    });
+    return formatted;
+}
+
 export function ProductDetail({ product }: ProductDetailProps) {
     const addToCart = useCartStore((state) => state.addItem);
     const [added, setAdded] = useState(false);
 
     const handleAddToCart = () => {
-        addToCart({ ...product, price: product.price || 0, slug: product.id });
+        // Clean name for cart
+        let cleanName = product.name.replace(/^ТД РУССтанкоСбыт\s*-\s*/i, "");
+        cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+        addToCart({ ...product, name: cleanName, price: product.price || 0, slug: product.id });
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
     };
 
+    // Clean name for display
+    let cleanName = product.name.replace(/^ТД РУССтанкоСбыт\s*-\s*/i, "");
+    cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+    // Prepare specs
+    const specsArray = product.specs
+        ? Object.entries(product.specs)
+            .filter(([key, value]) => {
+                const k = key.toUpperCase();
+                return k !== 'DESCRIPTION' && value && String(value).trim() !== '';
+            })
+            .map(([key, value]) => ({
+                originalKey: key,
+                parameter: SPEC_MAP[key] || SPEC_MAP[key.toUpperCase()] || key,
+                value: formatSpecValue(String(value))
+            }))
+        : [];
+
     return (
         <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
-            {/* Breadcrumb */}
+            {/* ... Breadcrumb ... */}
             <div className="container mx-auto px-6 mb-8">
                 <Link href="/catalog" className="inline-flex items-center text-muted-foreground hover:text-safety-orange transition-colors font-mono text-sm uppercase">
                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -33,7 +94,6 @@ export function ProductDetail({ product }: ProductDetailProps) {
             </div>
 
             <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12">
-
                 {/* Visual Section */}
                 <div className="space-y-6">
                     <div className="relative aspect-video lg:aspect-square bg-industrial-panel border border-industrial-border rounded-lg overflow-hidden group">
@@ -43,7 +103,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
                         {product.image_url ? (
                             <Image
                                 src={product.image_url}
-                                alt={product.name}
+                                alt={cleanName}
                                 fill
                                 className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
                             />
@@ -63,7 +123,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
                 <div className="space-y-8">
                     <div>
                         <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4 leading-none">
-                            {product.name}
+                            {cleanName}
                         </h1>
                         <p className="text-xl text-gray-400 font-light leading-relaxed">
                             {product.description || "Оригинальная запасная часть для металлообрабатывающего оборудования. Гарантия качества и совместимости."}
@@ -71,17 +131,17 @@ export function ProductDetail({ product }: ProductDetailProps) {
                     </div>
 
                     {/* Specs Table */}
-                    {product.specs && (
+                    {specsArray.length > 0 && (
                         <div className="bg-industrial-panel border border-industrial-border p-6 rounded-sm">
                             <h3 className="text-sm font-bold uppercase text-white mb-4 flex items-center gap-2">
                                 <Settings className="w-4 h-4 text-safety-orange" />
                                 Технические Характеристики
                             </h3>
                             <div className="space-y-3">
-                                {Object.entries(product.specs).map(([key, value]) => (
-                                    <div key={key} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-0 last:pb-0">
-                                        <span className="text-muted-foreground font-mono text-xs uppercase">{key}</span>
-                                        <span className="text-white font-mono text-sm font-bold">{String(value)}</span>
+                                {specsArray.map((spec) => (
+                                    <div key={spec.originalKey} className="flex justify-between items-center border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                                        <span className="text-muted-foreground font-mono text-xs uppercase">{spec.parameter}</span>
+                                        <span className="text-white font-mono text-sm font-bold">{spec.value}</span>
                                     </div>
                                 ))}
                             </div>

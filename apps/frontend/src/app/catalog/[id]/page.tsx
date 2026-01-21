@@ -3,6 +3,18 @@ import { fetchProductById } from '@/lib/api';
 import { ProductDetail } from '@/components/ProductDetail';
 import Link from 'next/link';
 
+const CATEGORY_RU: Record<string, string> = {
+    'Turning': 'токарный станок',
+    'Milling': 'фрезерный станок',
+    'Drilling': 'сверлильный станок',
+    'Grinding': 'шлифовальный станок',
+    'Pressing': 'пресс',
+    'Laser': 'лазерный станок',
+    'CNC Machines': 'станок с ЧПУ',
+    'Advanced Machining': 'обрабатывающий центр',
+    'Other': 'промышленное оборудование',
+};
+
 type Props = {
     params: { id: string }
 };
@@ -13,23 +25,63 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!product) {
         return {
-            title: 'Товар не найден | Russtanko',
+            title: 'Товар не найден | ТД РусСтанкоСбыт',
             description: 'Запрашиваемый товар не найден в каталоге.',
         };
     }
 
-    const type = product.category ? 'Станок' : 'Запчасть';
-    const title = `${product.name} | ${type} ${product.manufacturer || ''} | Купить в Russtanko`;
-    const cleanDesc = (product.description || "").replace(/\s+/g, ' ').substring(0, 160);
-    const description = cleanDesc || `Купить ${product.name} (${type}). Оригинальные запчасти и оборудование. Доставка по РФ.`;
+    const categoryRu = CATEGORY_RU[product.category || ''] || 'оборудование';
+    const manufacturer = product.manufacturer || 'отечественного производства';
+
+    const title = `${product.name} - купить ${categoryRu} | ТД РусСтанкоСбыт`;
+    const cleanDesc = (product.description || "").replace(/\s+/g, ' ').substring(0, 150);
+    const description = cleanDesc || `Купить ${product.name}. ${categoryRu.charAt(0).toUpperCase() + categoryRu.slice(1)} ${manufacturer}. Гарантия качества. Доставка по России.`;
+
+    const keywords = [
+        product.name,
+        categoryRu,
+        'купить станок',
+        'промышленное оборудование',
+        'станки б/у',
+        'ТД РусСтанкоСбыт',
+        product.manufacturer || '',
+    ].filter(Boolean).join(', ');
+
+    const productUrl = `https://td-rss.ru/catalog/${product.id}`;
+    const imageUrl = product.image_url?.startsWith('http')
+        ? product.image_url
+        : `https://td-rss.ru${product.image_url || '/images/products/product_cnc.png'}`;
 
     return {
         title,
         description,
+        keywords,
+        alternates: {
+            canonical: productUrl,
+        },
+        robots: {
+            index: true,
+            follow: true,
+        },
         openGraph: {
+            type: 'website',
+            locale: 'ru_RU',
+            url: productUrl,
+            siteName: 'ТД РусСтанкоСбыт',
             title,
             description,
-            images: product.image_url ? [product.image_url] : [],
+            images: [{
+                url: imageUrl,
+                width: 800,
+                height: 600,
+                alt: product.name,
+            }],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: [imageUrl],
         },
     };
 }
@@ -49,25 +101,35 @@ export default async function ProductPage({ params }: Props) {
         );
     }
 
-    // JSON-LD Structured Data
+    // JSON-LD Structured Data for SEO
+    const imageUrl = product.image_url?.startsWith('http')
+        ? product.image_url
+        : `https://td-rss.ru${product.image_url || '/images/products/product_cnc.png'}`;
+
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: product.name,
-        image: product.image_url,
-        description: product.description,
+        image: imageUrl,
+        description: product.description || `Промышленное оборудование ${product.name}`,
         sku: product.id,
         brand: {
             '@type': 'Brand',
-            name: product.manufacturer || 'Russtanko'
+            name: product.manufacturer || 'ТД РусСтанкоСбыт'
         },
         offers: {
             '@type': 'Offer',
-            url: `https://russtanko-eco.ru/catalog/${product.id}`,
+            url: `https://td-rss.ru/catalog/${product.id}`,
             priceCurrency: 'RUB',
-            price: product.price || '0',
+            price: product.price || undefined,
+            priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             availability: 'https://schema.org/InStock',
-            itemCondition: 'https://schema.org/NewCondition'
+            itemCondition: 'https://schema.org/NewCondition',
+            seller: {
+                '@type': 'Organization',
+                name: 'ТД РусСтанкоСбыт',
+                url: 'https://td-rss.ru'
+            }
         }
     };
 

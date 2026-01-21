@@ -93,31 +93,33 @@ export const fetchProjectById = async (id: string): Promise<Project | undefined>
     }
 };
 
-export const fetchCatalog = async (query?: string, type: 'machines' | 'spares' = 'machines'): Promise<Product[]> => {
+export const fetchCatalog = async (
+    query?: string,
+    type: 'machines' | 'spares' = 'machines',
+    limit: number = 20,
+    offset: number = 0,
+    category?: string
+): Promise<{ results: Product[], total: number }> => {
     try {
-        // Catalog search defined as @router.get("/search") -> /catalog/search (NO SLASH)
+        // Catalog search defined as @router.get("/search") -> /catalog/search
         const params = new URLSearchParams();
         if (query) params.append('q', query);
         params.append('type', type);
+        params.append('limit', limit.toString());
+        params.append('offset', offset.toString());
+        if (category) params.append('category', category);
 
         const url = `/catalog/search?${params.toString()}`;
-        // console.log(`[API] Requesting URL: ${api.defaults.baseURL}${url}`);
         const response = await api.get(url);
-        // console.log(`[API] Catalog Response Count: ${response.data.results?.length}`);
-        // The endpoint returns { results: Product[] }
-        return response.data.results || [];
+
+        // Response format: { results: Product[], total: number }
+        return {
+            results: response.data.results || [],
+            total: response.data.total || 0
+        };
     } catch (error) {
         console.error('[API] Error fetching catalog:', error);
-        if (axios.isAxiosError(error)) {
-            console.error('[API] Axios Details:', {
-                message: error.message,
-                code: error.code,
-                response: error.response?.status,
-                url: error.config?.url,
-                baseURL: error.config?.baseURL
-            });
-        }
-        return [];
+        return { results: [], total: 0 };
     }
 };
 
