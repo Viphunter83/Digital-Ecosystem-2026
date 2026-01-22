@@ -222,6 +222,18 @@ def debug_migration_files():
     except Exception as e:
         return {"error": str(e)}
 
+@router.get("/debug/migration-content")
+def debug_migration_content():
+    """
+    DEBUG: Read content of the first failing migration.
+    """
+    path = "/app/supabase/migrations/20260122030737_update_contacts_info.sql"
+    try:
+        with open(path, "r") as f:
+            return {"content": f.read()}
+    except Exception as e:
+        return {"error": str(e)}
+
 @router.get("/{product_id}")
 def get_product(product_id: str, db: Session = Depends(get_db)):
     """
