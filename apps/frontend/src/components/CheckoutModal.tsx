@@ -84,7 +84,12 @@ export function CheckoutModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validate()) return;
+        if (!validate()) {
+            if (telegramUser && (window as any).Telegram?.WebApp) {
+                (window as any).Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            }
+            return;
+        }
 
         setIsSubmitting(true);
 
@@ -127,14 +132,26 @@ export function CheckoutModal({
                 name: formData.name,
             }));
 
+            // Haptic success
+            if (telegramUser && (window as any).Telegram?.WebApp) {
+                (window as any).Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            }
+
             onSuccess();
             onClose();
             router.push('/cart/success');
 
+            toast.success("Заявка успешно отправлена", {
+                description: "Мы свяжемся с вами в ближайшее время."
+            });
+
         } catch (e) {
             console.error("Checkout error:", e);
+            if (telegramUser && (window as any).Telegram?.WebApp) {
+                (window as any).Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+            }
             toast.error("Ошибка при оформлении заказа", {
-                description: "Попробуйте позже или свяжитесь с нами напрямую."
+                description: "Попробуйте позже или свяжитесь с нами через Telegram."
             });
         } finally {
             setIsSubmitting(false);

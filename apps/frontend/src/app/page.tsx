@@ -139,7 +139,13 @@ export default function Home() {
               <Link href={`/journal/${article.id}`} key={article.id} className="group cursor-pointer flex flex-col h-full border border-transparent hover:border-white/10 p-4 -mx-4 transition-all hover:bg-white/5 rounded-none">
                 <div className="relative aspect-[16/9] overflow-hidden mb-6 bg-industrial-panel border border-white/5 group-hover:border-safety-orange/50 transition-colors">
                   {article.image_url ? (
-                    <Image src={article.image_url} alt={article.title} fill className="object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0" />
+                    <Image
+                      src={article.image_url}
+                      alt={article.title}
+                      fill
+                      className="object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-[#1a1a1a]">
                       <span className="text-white/10 font-mono text-xs uppercase tracking-widest border border-white/10 px-2 py-1">Нет изображения</span>

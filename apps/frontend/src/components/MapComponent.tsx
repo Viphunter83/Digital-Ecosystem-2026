@@ -11,6 +11,9 @@ interface MapComponentProps {
 export default function MapComponent({ projects }: MapComponentProps) {
     const [isInteractive, setIsInteractive] = useState(false);
 
+    const apiKey = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
+    const isKeyValid = apiKey && apiKey !== 'placeholder_replace_with_real_key';
+
     const defaultState = {
         center: [55.751574, 37.573856],
         zoom: 3,
@@ -18,11 +21,25 @@ export default function MapComponent({ projects }: MapComponentProps) {
         behaviors: isInteractive ? ["default", "scrollZoom"] : ["default", "-drag", "-scrollZoom", "-multiTouch"]
     };
 
+    if (!isKeyValid) {
+        return (
+            <div className="h-full w-full flex flex-col items-center justify-center bg-deep-graphite text-white/40 p-10 text-center border border-white/10 min-h-[400px]">
+                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" /><circle cx="12" cy="10" r="3" /></svg>
+                </div>
+                <h3 className="font-bold uppercase tracking-widest text-sm mb-2">Интерактивная карта временно недоступна</h3>
+                <p className="text-xs max-w-xs leading-relaxed">
+                    Для отображения карты требуется настройка API ключа в кабинете разработчика Yandex.
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div
             className="h-full w-full overflow-hidden bg-deep-graphite relative z-0 group"
         >
-            <YMaps>
+            <YMaps query={{ apikey: apiKey }}>
                 <div className="w-full h-full relative">
                     <Map
                         defaultState={defaultState}

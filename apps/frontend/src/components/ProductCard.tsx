@@ -176,6 +176,7 @@ export function ProductCard({ product }: ProductCardProps) {
                         fill
                         className="object-cover object-center transition-transform duration-700 group-hover:scale-105 group-hover:saturate-110"
                         onError={() => setImageError(true)}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">

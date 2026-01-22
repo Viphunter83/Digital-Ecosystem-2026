@@ -160,7 +160,7 @@ export const fetchArticleById = async (id: string): Promise<Article | undefined>
 
 export const fetchSiteContent = async (): Promise<Record<string, string>> => {
     try {
-        const response = await api.get('/content');
+        const response = await api.get('/content/');
         return response.data || {};
     } catch (error) {
         console.error('Error fetching site content:', error);

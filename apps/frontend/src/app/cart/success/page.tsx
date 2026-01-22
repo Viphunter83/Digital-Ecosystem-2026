@@ -132,24 +132,33 @@ export default function OrderSuccessPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="mt-12 text-center text-sm text-gray-500"
+                className="mt-12 text-center"
             >
-                <p className="mb-2">Есть вопросы?</p>
-                <a
-                    href="tel:+74993908504"
-                    className="text-safety-orange hover:underline"
-                >
-                    +7 (499) 390-85-04
-                </a>
-                <span className="mx-2">•</span>
-                <a
-                    href="https://t.me/russtankosbyt"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-safety-orange hover:underline"
-                >
-                    Telegram
-                </a>
+                <p className="text-gray-500 text-sm mb-4">Есть вопросы? Свяжитесь с нами напрямую:</p>
+                <div className="flex flex-wrap justify-center gap-4">
+                    <a
+                        href="tel:+74993908504"
+                        className="flex items-center gap-2 text-sm text-gray-400 hover:text-safety-orange transition-colors"
+                    >
+                        +7 (499) 390-85-04
+                    </a>
+                    <a
+                        href="https://t.me/russtankosbyt"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#229ED9]/10 border border-[#229ED9]/30 rounded text-[#229ED9] hover:bg-[#229ED9]/20 transition-colors text-xs font-bold uppercase tracking-wider"
+                    >
+                        Telegram
+                    </a>
+                    <a
+                        href="https://wa.me/79031234567"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 bg-[#25D366]/10 border border-[#25D366]/30 rounded text-[#25D366] hover:bg-[#25D366]/20 transition-colors text-xs font-bold uppercase tracking-wider"
+                    >
+                        WhatsApp
+                    </a>
+                </div>
             </motion.div>
         </div>
     );

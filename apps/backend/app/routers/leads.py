@@ -23,8 +23,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Hardcode admin chat ID for now (found in DB: 45053735)
-# In production, this should be in Env or DB config.
 TELEGRAM_ADMIN_CHAT_ID = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "45053735")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 

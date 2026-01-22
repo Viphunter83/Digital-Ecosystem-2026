@@ -258,10 +258,14 @@ TELEGRAM_BOT_TOKEN=xxx
 WEB_APP_URL=https://td-rss.ru
 
 # Directus (на сервере)
-DIRECTUS_KEY=uuid
-DIRECTUS_SECRET=uuid
-ADMIN_EMAIL=olegvakin@gmail.com
-ADMIN_PASSWORD=Vo52835283
+DIRECTUS_KEY=REDACTED_DIRECTUS_KEY
+DIRECTUS_SECRET=REDACTED_DIRECTUS_SECRET
+ADMIN_EMAIL=admin@russtanko.ru
+ADMIN_PASSWORD=REDACTED_ADMIN_PWD
+
+# Новые переменные (добавить в Dokploy)
+TELEGRAM_ADMIN_CHAT_ID=45053735
+NEXT_PUBLIC_YANDEX_MAPS_API_KEY=
 ```
 
 ---
@@ -276,70 +280,43 @@ ADMIN_PASSWORD=Vo52835283
 - [x] Каталог с фильтрацией и пагинацией
 - [x] Динамический контент (Hero, Company, Solutions, Contacts)
 - [x] Directus CMS полностью настроен
+- [x] Исправлена 500 ошибка в /api/diagnostics/analyze (добавлена надежная обработка ошибок и фоллбек)
+- [x] Исправлен 404 для /content/ (добавлен завершающий слэш в API кликнте)
+- [x] Добавлен отсутствующий ассет grid-pattern.svg (fix 404)
+- [x] Условная загрузка API ключа Яндекс Карт (предотвращает ошибки в консоли при отсутствии ключа)
 - [x] Руководство для заказчика на русском языке
 
 ### В процессе / Следующие шаги:
-- [ ] Корзина и оформление заказа (checkout flow)
-- [ ] Интеграция диагностики с backend/bot
-- [ ] Оптимизация производительности изображений
+- [ ] Финализация корзины и оформления заказа (checkout flow)
+- [ ] Оптимизация производительности изображений (Next.js Image)
+- [ ] Решение проблемы с валидностью ключа Яндекс Карт на домене td-rss.ru
 - [ ] Настройка мониторинга и алертов
 
 ---
 
-## ⚠️ ИЗВЕСТНЫЕ ПРОБЛЕМЫ
+## ⚠️ ИЗВЕСТНЫЕ ПРОБЛЕМЫ И ЗАМЕТКИ ДЛЯ РАЗРАБОТКИ
 
-1. **Cloudflare Tunnel** — WEB_APP_URL в .env может устаревать
-2. **Изображения** — отключена оптимизация Next.js Image (unoptimized: true)
-3. **CORS** — настроен для td-rss.ru и api.td-rss.ru
+1. **Yandex Maps API Key** — На домене `td-rss.ru` ключ из переменных окружения `NEXT_PUBLIC_YANDEX_MAPS_API_KEY` выдает ошибку "Invalid API key". Требуется проверка привязки ключа к домену в кабинете разработчика Яндекса.
+2. **Кэширование** — После обновлений фронтенда на проде (через Dokploy rebuild) может потребоваться жесткий сброс кэша (`Cmd+Shift+R`), так как старые 404 могут кэшироваться браузером.
+3. **Diagnostics Logging** — В бэкенд добавлено подробное логирование трейсбэков для диагностики AI. Смотреть логи: `docker logs russtanko-russtankoprod-colyja-backend-1`.
+4. **Standalone Frontend** — Фронтенд собирается в режиме `standalone`. При изменении файлов в `src` требуется полная пересборка контейнера (`docker compose up -d --build frontend`).
 
 ---
 
-## 🛠️ ПОЛЕЗНЫЕ КОМАНДЫ
+## 🛠️ ПОЛЕЗНЫЕ КОМАНДЫ ДЛЯ СИНХРОНИЗАЦИИ
 
-### Локальная разработка:
+Если нужно быстро применить правки бэкенда без полной пересборки:
 ```bash
-cd "/Users/apple/Digital Ecosystem 2026"
+# 1. Синхронизация файла на сервер
+scp apps/backend/app/routers/diagnostics.py root@194.156.118.128:/tmp/diagnostics.py
 
-# Запуск всего стека
-docker-compose up -d
-
-# Только frontend (dev mode)
-cd apps/frontend && npm run dev
-
-# Только backend
-cd apps/backend && uvicorn app.main:app --reload
+# 2. Копирование в контейнер и рестарт
+ssh root@194.156.118.128 "docker cp /tmp/diagnostics.py russtanko-russtankoprod-colyja-backend-1:/app/apps/backend/app/routers/diagnostics.py && docker restart russtanko-russtankoprod-colyja-backend-1"
 ```
 
-### Деплой на production:
+Для фронтенда (требуется билд):
 ```bash
-# 1. Коммит и пуш
-git add . && git commit -m "feat: описание" && git push
-
-# 2. SSH на сервер
-ssh root@89.169.130.119
-
-# 3. Pull и пересборка
-cd /var/lib/dokploy/applications/russtanko-russtankoprod-colyja
-git pull origin main
-
-# 4. Пересборка конкретного сервиса
-docker-compose -f docker-compose.prod.yml up -d --build backend
-docker-compose -f docker-compose.prod.yml up -d --build frontend
-
-# 5. Проверка логов
-docker-compose -f docker-compose.prod.yml logs -f backend
-```
-
-### Работа с БД:
-```bash
-# Локально
-psql -U postgres -d digital_ecosystem
-
-# На сервере
-docker exec -it $(docker ps -qf "name=db") psql -U postgres -d digital_ecosystem
-
-# Выполнить SQL
-\i supabase/migrations/YYYYMMDD_name.sql
+ssh root@194.156.118.128 "cd /etc/dokploy/compose/russtanko-russtankoprod-colyja/code && docker compose -f docker-compose.prod.yml -p russtanko-russtankoprod-colyja up -d --build frontend"
 ```
 
 ---

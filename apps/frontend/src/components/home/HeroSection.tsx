@@ -154,6 +154,7 @@ function HeroSectionContent({ onOpenDiagnostics, siteContent }: { onOpenDiagnost
                                         fill
                                         className="object-contain drop-shadow-[0_0_30px_rgba(255,61,0,0.3)]"
                                         priority
+                                        sizes="(max-width: 768px) 100vw, 50vw"
                                     />
                                 </motion.div>
                             </AnimatePresence>
