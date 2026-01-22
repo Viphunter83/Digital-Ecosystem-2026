@@ -105,9 +105,16 @@ export default function ServicePage() {
                                 {service?.content?.cases.map((project, idx) => (
                                     <Card key={idx} className="bg-industrial-panel border-white/10 overflow-hidden group">
                                         <div className="grid grid-cols-1 md:grid-cols-3">
-                                            <div className="p-6 bg-gradient-to-br from-[#1a1a1a] to-black flex flex-col justify-center border-r border-white/5">
-                                                <span className="text-xs font-mono text-safety-orange uppercase tracking-widest mb-2">Объект</span>
-                                                <h3 className="text-xl font-bold text-white uppercase">{project.model}</h3>
+                                            <div className="relative h-48 md:h-full overflow-hidden">
+                                                <img
+                                                    src={project.image_url || `https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=400&h=300`}
+                                                    alt={project.model}
+                                                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4">
+                                                    <span className="text-[10px] font-mono text-safety-orange uppercase tracking-widest mb-1">Объект</span>
+                                                    <h3 className="text-lg font-bold text-white uppercase">{project.model}</h3>
+                                                </div>
                                             </div>
                                             <div className="md:col-span-2 p-6 space-y-4">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -150,14 +157,16 @@ export default function ServicePage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="p-6 space-y-6">
-                                <div className="flex justify-center bg-white p-3 rounded-xl mx-auto w-fit shadow-[0_0_30px_rgba(255,61,0,0.2)]">
-                                    <QRCode
-                                        value="https://td-rss.ru/service/CNC-2026-X"
-                                        size={140}
-                                        style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                                        viewBox={`0 0 256 256`}
-                                    />
-                                </div>
+                                <Link href="/service/CNC-2026-X" className="block transform hover:scale-[1.02] transition-transform">
+                                    <div className="flex justify-center bg-white p-3 rounded-xl mx-auto w-fit shadow-[0_0_30px_rgba(255,61,0,0.2)]">
+                                        <QRCode
+                                            value="https://td-rss.ru/service/CNC-2026-X"
+                                            size={140}
+                                            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                                            viewBox={`0 0 256 256`}
+                                        />
+                                    </div>
+                                </Link>
                                 <div className="text-center space-y-2">
                                     <h3 className="font-bold text-lg uppercase tracking-wider">CNC-2026-X</h3>
                                     <p className="text-xs text-gray-400">#992811 • Инвентарный номер</p>
@@ -180,9 +189,11 @@ export default function ServicePage() {
                                     })}
                                 </div>
 
-                                <Button className="w-full bg-safety-orange hover:bg-white hover:text-black text-white font-black h-12 uppercase tracking-widest transition-all">
-                                    Вызвать инженера
-                                </Button>
+                                <Link href="https://t.me/td_rss_bot?start=help" target="_blank" className="block w-full">
+                                    <Button className="w-full bg-safety-orange hover:bg-white hover:text-black text-white font-black h-12 uppercase tracking-widest transition-all">
+                                        Вызвать инженера
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
 

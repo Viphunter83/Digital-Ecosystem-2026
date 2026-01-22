@@ -3,7 +3,7 @@ import uuid
 import json
 from sqlalchemy import select
 from apps.backend.app.core.database import SessionLocal, engine
-from packages.database.models import Product, Project, Article, Client, Base, ClientEquipment, ServiceTicket
+from packages.database.models import Product, Project, Article, Client, Base, ClientEquipment, ServiceTicket, MachineInstance
 import datetime
 
 logging.basicConfig(level=logging.INFO)
@@ -204,17 +204,25 @@ def seed_data():
             db.add_all(equipment)
             db.flush()
             
-            # 6. Service Tickets
-            ticket = ServiceTicket(
-                ticket_number="REQ-2025-DEMO",
-                equipment_id=equipment[0].id,
-                # author_id would be needed if we had a user, waiting for bot registration
-                status="in_progress",
-                priority="high",
-                description="Шум в шпинделе при высоких оборотах.",
-                engineer_comment="Требуется замена смазки и подшипников."
             )
             db.add(ticket)
+
+            # 7. Machine Instance for Digital Passport
+            logger.info("Seeding MachineInstance for Digital Passport...")
+            instance = MachineInstance(
+                product_id=lathe.id,
+                client_id=client_mtz.id,
+                serial_number="CNC-2026-X",
+                inventory_number="#992811",
+                status="repair",
+                service_history=[
+                    {"date": "15.01.2026", "title": "Заявка принята", "description": "Запрос на капремонт через ТМА", "status": "done", "icon": "CheckCircle2"},
+                    {"date": "16.01.2026", "title": "Дефектовка", "description": "Выявлен износ направляющих", "status": "done", "icon": "Wrench"},
+                    {"date": "В процессе", "title": "Ремонт", "description": "Шлифовка станины", "status": "active", "icon": "Clock"},
+                    {"date": "-", "title": "Готово", "description": "Сдача ОТК", "status": "pending", "icon": "CheckCircle2"}
+                ]
+            )
+            db.add(instance)
 
         db.commit()
         logger.info("Successfully seeded demo data!")
