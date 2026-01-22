@@ -25,7 +25,7 @@ async def analyze_machine(request: DiagnosticsRequest):
     Analyze machine status based on symptoms and age.
     Uses AI for intelligent recommendations with fallback to rule-based logic.
     """
-    from services.ai_service import AIService
+    from apps.backend.app.services.ai_service import AIService
     
     ai_service = AIService()
     
