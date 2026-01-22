@@ -234,6 +234,24 @@ def debug_migration_content():
     except Exception as e:
         return {"error": str(e)}
 
+@router.get("/debug/run-migrations")
+def debug_run_migrations():
+    """
+    DEBUG: Manually trigger the migration script and return output.
+    """
+    from apps.backend.scripts.apply_migrations import apply_migrations
+    try:
+        import io
+        import sys
+        from contextlib import redirect_stdout, redirect_stderr
+        
+        f = io.StringIO()
+        with redirect_stdout(f), redirect_stderr(f):
+             apply_migrations()
+        return {"output": f.getvalue()}
+    except Exception as e:
+        return {"error": str(e)}
+
 @router.get("/{product_id}")
 def get_product(product_id: str, db: Session = Depends(get_db)):
     """
