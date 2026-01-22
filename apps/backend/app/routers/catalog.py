@@ -188,6 +188,15 @@ def get_instance_by_serial(serial_number: str, db: Session = Depends(get_db)):
         
     return MachineInstanceSchema.model_validate(instance)
 
+@router.get("/debug/instances")
+def debug_instances(db: Session = Depends(get_db)):
+    """
+    DEBUG: List all serial numbers in the system.
+    """
+    stmt = select(MachineInstance.serial_number)
+    results = db.execute(stmt).scalars().all()
+    return {"instances": results}
+
 @router.get("/{product_id}")
 def get_product(product_id: str, db: Session = Depends(get_db)):
     """
