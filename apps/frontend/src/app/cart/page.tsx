@@ -7,12 +7,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
+import { CheckoutModal } from "@/components/CheckoutModal";
 
 export default function CartPage() {
     const { items, removeItem, updateQuantity, totalAmount, clearCart } = useCartStore();
     const { webApp, user } = useTelegram();
-    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
     useEffect(() => {
         if (webApp) {
@@ -25,48 +25,18 @@ export default function CartPage() {
         }
     }, [webApp]);
 
-    const handleCheckout = async () => {
-        setIsCheckingOut(true);
-        const orderData = {
-            source: "cart_order",
-            name: user?.first_name || "Guest User",
-            phone: user?.username ? `@${user.username}` : "Not provided",
-            message: `Заказ на сумму ${totalAmount()} rub`,
-            meta: {
-                items: items,
-                total: totalAmount(),
-                telegram_user: user
-            }
-        };
-
-        try {
-            if (webApp) {
-                webApp.HapticFeedback.notificationOccurred('success');
-            }
-
-            const response = await fetch('/api/ingest/leads', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to submit order");
-            }
-
-            toast.success("Заказ успешно отправлен!", {
-                description: "Менеджер свяжется с вами в ближайшее время."
-            });
-            clearCart();
-            // Optional: Redirect to home or order success page
-        } catch (e) {
-            console.error("Checkout error:", e);
-            toast.error("Ошибка при оформлении заказа", {
-                description: "Попробуйте позже или свяжитесь с нами напрямую."
-            });
-        } finally {
-            setIsCheckingOut(false);
+    const handleCheckoutClick = () => {
+        if (webApp) {
+            webApp.HapticFeedback.notificationOccurred('warning');
         }
+        setIsCheckoutOpen(true);
+    };
+
+    const handleCheckoutSuccess = () => {
+        if (webApp) {
+            webApp.HapticFeedback.notificationOccurred('success');
+        }
+        clearCart();
     };
 
     if (items.length === 0) {
@@ -170,15 +140,24 @@ export default function CartPage() {
                         <p className="text-2xl font-bold text-white font-mono">{totalAmount().toLocaleString()} ₽</p>
                     </div>
                     <button
-                        onClick={handleCheckout}
-                        disabled={isCheckingOut}
-                        className="w-full md:w-auto bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 px-8 uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,61,0,0.3)] disabled:opacity-50"
+                        onClick={handleCheckoutClick}
+                        className="w-full md:w-auto bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 px-8 uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,61,0,0.3)]"
                     >
-                        {isCheckingOut ? 'Обработка...' : 'Оформить заявку'}
+                        Оформить заявку
                         <ArrowRight className="w-4 h-4" />
                     </button>
                 </div>
             </div>
+
+            {/* Checkout Modal */}
+            <CheckoutModal
+                isOpen={isCheckoutOpen}
+                onClose={() => setIsCheckoutOpen(false)}
+                items={items}
+                totalAmount={totalAmount()}
+                telegramUser={user || undefined}
+                onSuccess={handleCheckoutSuccess}
+            />
         </div>
     );
 }
