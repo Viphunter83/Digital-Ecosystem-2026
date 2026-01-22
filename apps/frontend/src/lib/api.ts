@@ -260,4 +260,48 @@ export const fetchProductionSites = async (): Promise<ProductionSite[]> => {
     }
 };
 
+// Services interface
+export interface Service {
+    id: string;
+    slug: string;
+    title: string;
+    description?: string;
+    content?: {
+        checklist_title: string;
+        checklist: string[];
+        cases: Array<{
+            model: string;
+            problem: string;
+            solution: string;
+            result: string;
+        }>;
+        usp: Array<{
+            title: string;
+            description: string;
+        }>;
+    };
+    sort_order: number;
+}
+
+export const fetchServices = async (): Promise<Service[]> => {
+    try {
+        const response = await api.get('/services');
+        return response.data || [];
+    } catch (error) {
+        console.error('Error fetching services:', error);
+        return [];
+    }
+};
+
+export const fetchServiceBySlug = async (slug: string): Promise<Service | undefined> => {
+    try {
+        const response = await api.get(`/services/${slug}`);
+        if (response.data.error) return undefined;
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching service \${slug}:`, error);
+        return undefined;
+    }
+};
+
 export default api;
