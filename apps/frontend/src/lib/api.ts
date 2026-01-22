@@ -332,4 +332,15 @@ export const fetchMachineInstance = async (serialNumber: string): Promise<Machin
     }
 };
 
+export const fetchFeaturedInstance = async (): Promise<MachineInstance | undefined> => {
+    try {
+        const response = await api.get('/catalog/instances-featured');
+        if (response.data.error) return undefined;
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching featured instance:', error);
+        return undefined;
+    }
+};
+
 export default api;

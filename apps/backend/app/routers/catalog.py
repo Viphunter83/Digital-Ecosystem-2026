@@ -188,6 +188,31 @@ def get_instance_by_serial(serial_number: str, db: Session = Depends(get_db)):
         
     return MachineInstanceSchema.model_validate(instance)
 
+@router.get("/instances-featured")
+def get_featured_instance(db: Session = Depends(get_db)):
+    """
+    Get the most recently active machine instance for featured display on /service page.
+    """
+    # First try to find one in repair (most relevant for service page)
+    stmt = select(MachineInstance).options(
+        joinedload(MachineInstance.product).joinedload(Product.images)
+    ).where(MachineInstance.status == 'repair').limit(1)
+    
+    instance = db.execute(stmt).unique().scalar_one_or_none()
+    
+    # Fallback to any instance
+    if not instance:
+        stmt = select(MachineInstance).options(
+            joinedload(MachineInstance.product).joinedload(Product.images)
+        ).limit(1)
+        instance = db.execute(stmt).unique().scalar_one_or_none()
+    
+    if not instance:
+        return {"error": "No instances available"}
+        
+    return MachineInstanceSchema.model_validate(instance)
+
+
 @router.get("/debug/migrations")
 def debug_migrations(db: Session = Depends(get_db)):
     """

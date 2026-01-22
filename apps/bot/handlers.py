@@ -63,7 +63,30 @@ async def register_user_role(tg_id: int, role_key: str):
 async def cmd_start(message: Message, state: FSMContext):
     user_id = message.from_user.id
     
-    # Check if user exists in DB
+    # Parse deep link parameter (e.g., /start help or /start service_CNC-2026-X)
+    args = message.text.split(maxsplit=1)
+    if len(args) > 1:
+        param = args[1].strip()
+        
+        # Handle help command
+        if param == "help":
+            await message.answer(
+                "🛠 *Помощь по боту «РусСтанкоСбыт»*\n\n"
+                "Доступные команды:\n"
+                "• /start — Главное меню\n"
+                "• /login <пароль> — Авторизация менеджера\n\n"
+                "📞 Связаться с поддержкой: +7 (499) 390-85-04\n"
+                "📧 Email: zakaz@tdrusstankosbyt.ru"
+            )
+            return
+            
+        # Handle service deep link (from QR code)
+        if param.startswith("service_"):
+            serial_number = param.replace("service_", "")
+            await show_machine_status(message, serial_number, state)
+            return
+    
+    # Default flow: Check if user exists in DB
     existing_role = await get_user_role(user_id)
     
     if existing_role:
@@ -76,6 +99,83 @@ async def cmd_start(message: Message, state: FSMContext):
             reply_markup=role_selection_kb
         )
         await state.set_state(Registration.choosing_role)
+
+
+async def show_machine_status(message: Message, serial_number: str, state: FSMContext):
+    """Show machine status when user scans QR code and opens bot."""
+    # Fetch machine data from backend
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{BACKEND_URL}/catalog/instances/{serial_number}") as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    if "error" in data:
+                        await message.answer(
+                            f"⚠️ Станок *{serial_number}* не найден в системе.\n\n"
+                            "Возможно, он ещё не зарегистрирован. Обратитесь к менеджеру.",
+                            reply_markup=engineer_kb
+                        )
+                        return
+                    
+                    # Build status message
+                    status_icons = {
+                        "operational": "🟢",
+                        "maintenance": "🟡",
+                        "repair": "🔴",
+                        "offline": "⚫"
+                    }
+                    status_text = {
+                        "operational": "В работе",
+                        "maintenance": "ТО",
+                        "repair": "Ремонт",
+                        "offline": "Отключен"
+                    }
+                    
+                    status = data.get("status", "unknown")
+                    icon = status_icons.get(status, "❓")
+                    text = status_text.get(status, status)
+                    
+                    product_name = "Оборудование"
+                    if data.get("product"):
+                        product_name = data["product"].get("name", "Оборудование")
+                    
+                    # Build service history
+                    history_text = ""
+                    for step in data.get("service_history", [])[:5]:
+                        step_icon = "✅" if step.get("status") == "done" else "🔄" if step.get("status") == "active" else "⏳"
+                        history_text += f"{step_icon} {step.get('title', 'N/A')} — {step.get('date', 'N/A')}\n"
+                    
+                    if not history_text:
+                        history_text = "История пуста"
+                    
+                    await message.answer(
+                        f"🏭 *{product_name}*\n"
+                        f"━━━━━━━━━━━━━━━━━━\n"
+                        f"🔖 Серийный номер: `{serial_number}`\n"
+                        f"📋 Инв. номер: `{data.get('inventory_number', 'N/A')}`\n"
+                        f"📊 Статус: {icon} *{text}*\n\n"
+                        f"📜 *История обслуживания:*\n{history_text}\n"
+                        f"━━━━━━━━━━━━━━━━━━\n"
+                        f"💡 Нажмите кнопку ниже для создания заявки.",
+                        reply_markup=engineer_kb
+                    )
+                    
+                    # Save context for potential service request
+                    await state.update_data(current_machine=serial_number)
+                else:
+                    await message.answer(
+                        f"⚠️ Ошибка загрузки данных для *{serial_number}*.\n"
+                        "Попробуйте позже или свяжитесь с поддержкой.",
+                        reply_markup=engineer_kb
+                    )
+    except Exception as e:
+        logger.error(f"Error fetching machine status: {e}")
+        await message.answer(
+            f"❌ Не удалось загрузить данные станка.\n"
+            "Проверьте подключение к интернету.",
+            reply_markup=engineer_kb
+        )
+
 
 from aiogram.filters import Command
 

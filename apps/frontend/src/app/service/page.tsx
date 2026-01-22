@@ -5,30 +5,53 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, Wrench, ShieldCheck, Zap, Cog, History, ArrowRight, Check } from "lucide-react";
 import QRCode from "react-qr-code";
-import { fetchServiceBySlug, Service } from "@/lib/api";
+import { fetchServiceBySlug, fetchFeaturedInstance, Service, MachineInstance } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
+// Icon mapping for dynamic icons from service history
+const ICON_MAP: Record<string, any> = {
+    CheckCircle2,
+    Clock,
+    Wrench,
+};
+
 export default function ServicePage() {
     const [service, setService] = useState<Service | null>(null);
+    const [featuredMachine, setFeaturedMachine] = useState<MachineInstance | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const loadService = async () => {
-            const data = await fetchServiceBySlug('remont-i-modernizatsiya');
-            if (data) setService(data);
+        const loadData = async () => {
+            const [serviceData, machineData] = await Promise.all([
+                fetchServiceBySlug('remont-i-modernizatsiya'),
+                fetchFeaturedInstance()
+            ]);
+            if (serviceData) setService(serviceData);
+            if (machineData) setFeaturedMachine(machineData);
             setLoading(false);
         };
-        loadService();
+        loadData();
     }, []);
 
-    // Mock steps for the Digital Passport (simulating live equipment status)
-    const steps = [
-        { title: "Заявка принята", date: "15.01.2026", active: true, done: true, icon: CheckCircle2 },
-        { title: "Дефектовка", date: "16.01.2026", active: true, done: true, icon: Wrench },
-        { title: "Ремонт", date: "В процессе", active: true, done: false, icon: Clock },
-        { title: "Готово", date: "-", active: false, done: false, icon: CheckCircle2 },
-    ];
+    // Use dynamic steps from featured machine, or fallback
+    const steps = featuredMachine?.service_history?.map(step => ({
+        title: step.title,
+        date: step.date,
+        active: step.status === 'active' || step.status === 'done',
+        done: step.status === 'done',
+        icon: ICON_MAP[step.icon] || CheckCircle2
+    })) || [
+            { title: "Заявка принята", date: "—", active: false, done: false, icon: CheckCircle2 },
+            { title: "Дефектовка", date: "—", active: false, done: false, icon: Wrench },
+            { title: "Ремонт", date: "—", active: false, done: false, icon: Clock },
+            { title: "Готово", date: "—", active: false, done: false, icon: CheckCircle2 },
+        ];
+
+    // Dynamic machine data
+    const machineSerial = featuredMachine?.serial_number || "CNC-2026-X";
+    const machineInventory = featuredMachine?.inventory_number || "#000000";
+    const machineUrl = `https://td-rss.ru/service/${machineSerial}`;
 
     if (loading) {
         return (
@@ -164,10 +187,10 @@ export default function ServicePage() {
                                 </div>
                             </CardHeader>
                             <CardContent className="p-6 space-y-6">
-                                <Link href="/service/CNC-2026-X" className="block transform hover:scale-[1.02] transition-transform">
+                                <Link href={`/service/${machineSerial}`} className="block transform hover:scale-[1.02] transition-transform">
                                     <div className="flex justify-center bg-white p-3 rounded-xl mx-auto w-fit shadow-[0_0_30px_rgba(255,61,0,0.2)]">
                                         <QRCode
-                                            value="https://td-rss.ru/service/CNC-2026-X"
+                                            value={machineUrl}
                                             size={140}
                                             style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                                             viewBox={`0 0 256 256`}
@@ -175,8 +198,8 @@ export default function ServicePage() {
                                     </div>
                                 </Link>
                                 <div className="text-center space-y-2">
-                                    <h3 className="font-bold text-lg uppercase tracking-wider">CNC-2026-X</h3>
-                                    <p className="text-xs text-gray-400">#992811 • Инвентарный номер</p>
+                                    <h3 className="font-bold text-lg uppercase tracking-wider">{machineSerial}</h3>
+                                    <p className="text-xs text-gray-400">{machineInventory} • Инвентарный номер</p>
                                 </div>
 
                                 <div className="space-y-4 pt-4 border-t border-white/5">
@@ -196,7 +219,7 @@ export default function ServicePage() {
                                     })}
                                 </div>
 
-                                <Link href="https://t.me/td_rss_bot?start=help" target="_blank" className="block w-full">
+                                <Link href={`https://t.me/td_rss_bot?start=service_${machineSerial}`} target="_blank" className="block w-full">
                                     <Button className="w-full bg-safety-orange hover:bg-white hover:text-black text-white font-black h-12 uppercase tracking-widest transition-all">
                                         Вызвать инженера
                                     </Button>
