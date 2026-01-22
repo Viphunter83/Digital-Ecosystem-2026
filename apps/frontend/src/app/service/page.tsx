@@ -7,6 +7,7 @@ import { CheckCircle2, Clock, Wrench, ShieldCheck, Zap, Cog, History, ArrowRight
 import QRCode from "react-qr-code";
 import { fetchServiceBySlug, Service } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export default function ServicePage() {
     const [service, setService] = useState<Service | null>(null);
