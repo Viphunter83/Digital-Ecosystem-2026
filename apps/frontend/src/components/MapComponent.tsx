@@ -11,7 +11,7 @@ interface MapComponentProps {
 export default function MapComponent({ projects }: MapComponentProps) {
     const [isInteractive, setIsInteractive] = useState(false);
 
-    const apiKey = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || 'da2795c4-0e28-4f3a-b58a-83432b0942b2';
     const isKeyValid = apiKey && apiKey !== 'placeholder_replace_with_real_key';
 
     const defaultState = {
