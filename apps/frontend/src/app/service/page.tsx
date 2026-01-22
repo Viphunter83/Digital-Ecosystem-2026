@@ -109,9 +109,9 @@ export default function ServicePage() {
                                                 <img
                                                     src={
                                                         project.image_url ||
-                                                        (project.model.includes('16К20') ? '/images/cases/case_16k20.png' :
-                                                            project.model.includes('6Р12') ? '/images/cases/case_6r12.png' :
-                                                                project.model.includes('1М63') ? '/images/cases/case_1m63.png' :
+                                                        (project.model.toLowerCase().includes('16к20') ? '/images/cases/case_16k20.png' :
+                                                            project.model.toLowerCase().includes('6р12') ? '/images/cases/case_6r12.png' :
+                                                                project.model.toLowerCase().includes('1м63') ? '/images/cases/case_1m63.png' :
                                                                     `https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=400&h=300`)
                                                     }
                                                     alt={project.model}
