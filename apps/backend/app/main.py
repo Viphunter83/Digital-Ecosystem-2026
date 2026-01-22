@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 
 from apps.backend.app.core.config import settings
 from apps.backend.app.core.database import engine, get_db
-from apps.backend.app.routers import catalog, journal, projects, services, diagnostics, integrations, leads, auth
+from apps.backend.app.routers import catalog, journal, projects, diagnostics, integrations, leads, auth
+# from apps.backend.app.routers import services
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
