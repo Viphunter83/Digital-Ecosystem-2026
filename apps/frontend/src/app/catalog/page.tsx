@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, X } from "lucide-react";
+import { motion } from "framer-motion";
 import { ProductCard } from '@/components/ProductCard';
 import { ProductTable } from '@/components/ProductTable';
 import { Product, fetchCatalog, fetchFilters, FilterGroup } from '@/lib/api';
