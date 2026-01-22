@@ -269,8 +269,8 @@ export default function CatalogPage() {
                                                 {group.categories.map((cat, cIdx) => (
                                                     <button
                                                         key={cIdx}
-                                                        onClick={() => handleCategoryClick(cat.name)}
-                                                        className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider rounded-none ${activeCategory === cat.name ? "bg-safety-orange text-white border-safety-orange" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                                        onClick={() => handleCategoryClick(cat.slug)}
+                                                        className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider rounded-none ${activeCategory === cat.slug ? "bg-safety-orange text-white border-safety-orange" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
                                                     >
                                                         {cat.name}
                                                     </button>
@@ -287,19 +287,19 @@ export default function CatalogPage() {
                                             Все типы
                                         </button>
                                         {/* Fallback hardcoded categories if dynamic load fails or still loading */}
-                                        {['Turning', 'Milling', 'Drilling', 'Grinding', 'Pressing', 'Laser', 'CNC Machines', 'Other'].map(cat => (
+                                        {['Turning', 'Milling', 'Advanced Machining', 'Pressing', 'Laser', 'Bending', 'Machinery'].map(slug => (
                                             <button
-                                                key={cat}
-                                                onClick={() => handleCategoryClick(cat)}
-                                                className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider ${activeCategory === cat ? "bg-safety-orange text-white border-safety-orange" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                                key={slug}
+                                                onClick={() => handleCategoryClick(slug)}
+                                                className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider ${activeCategory === slug ? "bg-safety-orange text-white border-safety-orange" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
                                             >
-                                                {cat === 'Turning' ? 'ТОКАРНЫЙ' :
-                                                    cat === 'Milling' ? 'ФРЕЗЕРНЫЙ' :
-                                                        cat === 'Drilling' ? 'СВЕРЛИЛЬНЫЙ' :
-                                                            cat === 'Grinding' ? 'ШЛИФОВАЛЬНЫЙ' :
-                                                                cat === 'Pressing' ? 'ПРЕСС' :
-                                                                    cat === 'Laser' ? 'ЛАЗЕРНЫЙ' :
-                                                                        cat === 'CNC Machines' ? 'ЧПУ' : 'ПРОЧЕЕ'}
+                                                {slug === 'Turning' ? 'ТОКАРНЫЕ СТАНКИ' :
+                                                    slug === 'Milling' ? 'ФРЕЗЕРНЫЕ СТАНКИ' :
+                                                        slug === 'Advanced Machining' ? 'ПРОДВИНУТАЯ ОБРАБОТКА' :
+                                                            slug === 'Pressing' ? 'ПРЕССОВОЕ ОБОРУДОВАНИЕ' :
+                                                                slug === 'Laser' ? 'ЛАЗЕРНЫЕ СТАНКИ' :
+                                                                    slug === 'Bending' ? 'ЛИСТОГИБОЧНОЕ ОБОРУДОВАНИЕ' :
+                                                                        slug === 'Machinery' ? 'ПРОЧЕЕ ОБОРУДОВАНИЕ' : slug}
                                             </button>
                                         ))}
                                     </div>
