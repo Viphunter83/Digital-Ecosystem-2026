@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductCard } from '@/components/ProductCard';
 import { ProductTable } from '@/components/ProductTable';
 import { Product, fetchCatalog, fetchFilters, FilterGroup } from '@/lib/api';
@@ -189,67 +190,120 @@ export default function CatalogPage() {
                 </div>
             </div>
 
-            {/* Filters & Search - Keeping UI but logic needs server update for filters */}
+            {/* Filters & Search - Premium Redesign */}
             <div className="container mx-auto px-6 mb-12">
-                {/* TABS */}
-                <div className="flex gap-8 mb-6 border-b border-industrial-border">
-                    <button
-                        onClick={() => { if (activeTab !== 'machines') setActiveTab('machines'); }}
-                        className={`text-lg font-black uppercase tracking-tighter pb-4 transition-colors ${activeTab === 'machines' ? 'border-b-2 border-safety-orange text-white' : 'text-muted-foreground hover:text-white'}`}
-                    >
-                        Оборудование
-                    </button>
-                    <button
-                        onClick={() => { if (activeTab !== 'spares') setActiveTab('spares'); }}
-                        className={`text-lg font-black uppercase tracking-tighter pb-4 transition-colors ${activeTab === 'spares' ? 'border-b-2 border-safety-orange text-white' : 'text-muted-foreground hover:text-white'}`}
-                    >
-                        Запчасти
-                    </button>
-                </div>
+                <div className="bg-industrial-panel/50 backdrop-blur-md border border-white/5 rounded-0 overflow-hidden shadow-2xl">
 
-                <div className="flex flex-col md:flex-row gap-6 p-6 border-y border-industrial-border bg-industrial-panel/30 backdrop-blur-sm items-center">
-                    {/* Search Input */}
-                    <div className="flex-1 w-full relative group">
-                        <input
-                            type="text"
-                            placeholder="ПОИСК..."
-                            className="w-full bg-industrial-surface border border-industrial-border text-white text-sm font-mono pl-4 pr-24 py-3 focus:outline-none focus:border-safety-orange focus:ring-1 focus:ring-safety-orange transition-all uppercase tracking-wider"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                        />
-                        <button
-                            onClick={handleSearch}
-                            className="absolute right-2 top-2 bottom-2 px-4 bg-safety-orange/10 hover:bg-safety-orange/20 text-safety-orange text-xs font-bold uppercase tracking-wider transition-colors border border-safety-orange/20"
-                        >
-                            Найти
-                        </button>
+                    {/* TOP BAR: TABS & SEARCH */}
+                    <div className="flex flex-col lg:flex-row border-b border-white/5">
+
+                        {/* TYPE TABS */}
+                        <div className="flex bg-black/20 lg:border-r border-white/5">
+                            <button
+                                onClick={() => { if (activeTab !== 'machines') setActiveTab('machines'); }}
+                                className={`px-8 py-5 text-sm font-black uppercase tracking-[0.2em] transition-all relative ${activeTab === 'machines' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                            >
+                                Оборудование
+                                {activeTab === 'machines' && <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-1 bg-safety-orange shadow-[0_-4px_12px_rgba(255,61,0,0.5)]" />}
+                            </button>
+                            <button
+                                onClick={() => { if (activeTab !== 'spares') setActiveTab('spares'); }}
+                                className={`px-8 py-5 text-sm font-black uppercase tracking-[0.2em] transition-all relative ${activeTab === 'spares' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+                            >
+                                Запчасти
+                                {activeTab === 'spares' && <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-1 bg-safety-orange shadow-[0_-4px_12px_rgba(255,61,0,0.5)]" />}
+                            </button>
+                        </div>
+
+                        {/* SEARCH INPUT */}
+                        <div className="flex-1 flex items-center px-6 py-3 lg:py-0 relative">
+                            <Search className="text-white/20 absolute left-8 pointer-events-none" size={18} />
+                            <input
+                                type="text"
+                                placeholder="ПОИСК ПО НАИМЕНОВАНИЮ, МОДЕЛИ ИЛИ ХАРАКТЕРИСТИКАМ..."
+                                className="w-full bg-transparent border-none text-white text-xs font-mono pl-10 pr-12 py-5 focus:outline-none placeholder:text-white/10 uppercase tracking-widest"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => { setSearchQuery(""); handleSearch(); }}
+                                    className="absolute right-32 text-white/20 hover:text-safety-orange transition-colors"
+                                >
+                                    <X size={16} />
+                                </button>
+                            )}
+                            <button
+                                onClick={handleSearch}
+                                className="ml-4 px-6 py-2 bg-safety-orange text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-safety-orange/50"
+                            >
+                                Найти
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Category Filters */}
+                    {/* BOTTOM BAR: DYNAMIC CATEGORIES */}
                     {activeTab === 'machines' && (
-                        <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={() => handleCategoryClick(null)}
-                                className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeCategory === null ? "bg-safety-orange text-white border-safety-orange" : "text-muted-foreground border-industrial-border hover:border-white"}`}
-                            >
-                                ВСЕ
-                            </button>
-                            {['Turning', 'Milling', 'Drilling', 'Grinding', 'Pressing', 'Laser', 'CNC Machines', 'Other'].map(cat => (
-                                <button
-                                    key={cat}
-                                    onClick={() => handleCategoryClick(cat)}
-                                    className={`text-xs font-mono px-4 py-3 border transition-all uppercase tracking-wider ${activeCategory === cat ? "bg-safety-orange text-white border-safety-orange" : "text-muted-foreground border-industrial-border hover:border-white"}`}
-                                >
-                                    {cat === 'Turning' ? 'ТОКАРНЫЙ' :
-                                        cat === 'Milling' ? 'ФРЕЗЕРНЫЙ' :
-                                            cat === 'Drilling' ? 'СВЕРЛИЛЬНЫЙ' :
-                                                cat === 'Grinding' ? 'ШЛИФОВАЛЬНЫЙ' :
-                                                    cat === 'Pressing' ? 'ПРЕСС' :
-                                                        cat === 'Laser' ? 'ЛАЗЕРНЫЙ' :
-                                                            cat === 'CNC Machines' ? 'ЧПУ' : 'ПРОЧЕЕ'}
-                                </button>
-                            ))}
+                        <div className="p-6 bg-black/10">
+                            <div className="flex items-center gap-3 mb-4">
+                                <SlidersHorizontal size={14} className="text-safety-orange" />
+                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Категории оборудования</span>
+                            </div>
+
+                            <div className="space-y-6">
+                                {filterGroups.length > 0 ? (
+                                    filterGroups.map((group, gIdx) => (
+                                        <div key={gIdx} className="space-y-3">
+                                            <h4 className="text-[9px] font-mono text-white/20 uppercase tracking-widest pl-1">{group.group}</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {gIdx === 0 && (
+                                                    <button
+                                                        onClick={() => handleCategoryClick(null)}
+                                                        className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider rounded-none ${activeCategory === null ? "bg-white text-black border-white" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                                    >
+                                                        Все типы
+                                                    </button>
+                                                )}
+                                                {group.categories.map((cat, cIdx) => (
+                                                    <button
+                                                        key={cIdx}
+                                                        onClick={() => handleCategoryClick(cat.name)}
+                                                        className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider rounded-none ${activeCategory === cat.name ? "bg-safety-orange text-white border-safety-orange" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                                    >
+                                                        {cat.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            onClick={() => handleCategoryClick(null)}
+                                            className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider ${activeCategory === null ? "bg-white text-black border-white" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                        >
+                                            Все типы
+                                        </button>
+                                        {/* Fallback hardcoded categories if dynamic load fails or still loading */}
+                                        {['Turning', 'Milling', 'Drilling', 'Grinding', 'Pressing', 'Laser', 'CNC Machines', 'Other'].map(cat => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => handleCategoryClick(cat)}
+                                                className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider ${activeCategory === cat ? "bg-safety-orange text-white border-safety-orange" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                            >
+                                                {cat === 'Turning' ? 'ТОКАРНЫЙ' :
+                                                    cat === 'Milling' ? 'ФРЕЗЕРНЫЙ' :
+                                                        cat === 'Drilling' ? 'СВЕРЛИЛЬНЫЙ' :
+                                                            cat === 'Grinding' ? 'ШЛИФОВАЛЬНЫЙ' :
+                                                                cat === 'Pressing' ? 'ПРЕСС' :
+                                                                    cat === 'Laser' ? 'ЛАЗЕРНЫЙ' :
+                                                                        cat === 'CNC Machines' ? 'ЧПУ' : 'ПРОЧЕЕ'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
