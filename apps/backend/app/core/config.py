@@ -16,7 +16,12 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
-        "https://digital-ecosystem-2026.vercel.app", # Add generic production domain placeholder if known, otherwise rely on env
+        "https://digital-ecosystem-2026.vercel.app",
+        # Production domains
+        "https://td-rss.ru",
+        "http://td-rss.ru",
+        "https://api.td-rss.ru",
+        "https://admin.td-rss.ru",
     ]
 
     # Security
