@@ -252,6 +252,28 @@ def debug_run_migrations():
     except Exception as e:
         return {"error": str(e)}
 
+@router.get("/debug/sql-check")
+def debug_sql_check(db: Session = Depends(get_db)):
+    """
+    DEBUG: Direct SQL check for table existence and record count.
+    """
+    from sqlalchemy import text
+    try:
+        # Check table existence
+        table_exists = db.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'machine_instances')")).scalar()
+        
+        # Check record count if table exists
+        count = 0
+        if table_exists:
+            count = db.execute(text("SELECT COUNT(*) FROM machine_instances")).scalar()
+            
+        return {
+            "table_exists": table_exists,
+            "record_count": count
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
 @router.get("/{product_id}")
 def get_product(product_id: str, db: Session = Depends(get_db)):
     """
