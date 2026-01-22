@@ -5,8 +5,7 @@ from sqlalchemy.orm import Session
 
 from apps.backend.app.core.config import settings
 from apps.backend.app.core.database import engine, get_db
-from apps.backend.app.routers import catalog, journal, projects, diagnostics, integrations, leads, auth
-# from apps.backend.app.routers import services
+from apps.backend.app.routers import catalog, journal, projects, services, diagnostics, integrations, leads, auth
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -48,7 +47,7 @@ app.add_middleware(
 )
 
 # Include Routers
-# app.include_router(services.router, prefix="/services", tags=["services"])
+app.include_router(services.router, prefix="/services", tags=["services"])
 app.include_router(catalog.router, prefix="/catalog", tags=["catalog"])
 app.include_router(journal.router, prefix="/journal", tags=["journal"])
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
