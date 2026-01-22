@@ -173,6 +173,21 @@ async def search_products(
         "total": total_count
     }
 
+@router.get("/instances/{serial_number}")
+def get_instance_by_serial(serial_number: str, db: Session = Depends(get_db)):
+    """
+    Get a unique machine instance by serial number (for Digital Passport).
+    """
+    stmt = select(MachineInstance).options(
+        joinedload(MachineInstance.product).joinedload(Product.images)
+    ).where(MachineInstance.serial_number == serial_number)
+    
+    instance = db.execute(stmt).unique().scalar_one_or_none()
+    if not instance:
+        return {"error": "Instance not found"}
+        
+    return MachineInstanceSchema.model_validate(instance)
+
 @router.get("/{product_id}")
 def get_product(product_id: str, db: Session = Depends(get_db)):
     """
@@ -194,18 +209,3 @@ def get_product(product_id: str, db: Session = Depends(get_db)):
         return {"error": "Product not found"}
     except Exception as e:
         return {"error": str(e)}
-
-@router.get("/instances/{serial_number}")
-def get_instance_by_serial(serial_number: str, db: Session = Depends(get_db)):
-    """
-    Get a unique machine instance by serial number (for Digital Passport).
-    """
-    stmt = select(MachineInstance).options(
-        joinedload(MachineInstance.product).joinedload(Product.images)
-    ).where(MachineInstance.serial_number == serial_number)
-    
-    instance = db.execute(stmt).unique().scalar_one_or_none()
-    if not instance:
-        return {"error": "Instance not found"}
-        
-    return MachineInstanceSchema.model_validate(instance)
