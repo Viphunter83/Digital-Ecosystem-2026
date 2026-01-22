@@ -1,17 +1,11 @@
 from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy import select
+from sqlalchemy import text
 import subprocess
 import logging
 from typing import List, Any
 
 from apps.backend.app.core.database import get_db
-from packages.database.models import Base
-from sqlalchemy import Column, UUID, String, Text, JSONB, Boolean, DateTime, func
-
-# Temporary schema for services if not in models.py yet (though I added it via migration)
-# We can use text() for simplicity or define the class here if missing from packages/database/models.py
-from sqlalchemy import text
 
 router = APIRouter()
 
