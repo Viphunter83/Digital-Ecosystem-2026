@@ -55,6 +55,7 @@ class ProductImageSchema(BaseModel):
 class ProductSchema(BaseModel):
     id: UUID
     name: str
+    slug: str
     description: Optional[str] = None
     category: str
     specs: Optional[Dict[str, Any]] = None
