@@ -103,3 +103,32 @@ def get_offices(db: Session = Depends(get_db)):
         ) for r in results
     ]
 
+class ProductionSiteSchema(BaseModel):
+    id: str
+    site_number: int
+    city: str
+    description: str | None
+    sort_order: int | None
+
+    class Config:
+        from_attributes = True
+
+@router.get("/production-sites", response_model=List[ProductionSiteSchema])
+def get_production_sites(db: Session = Depends(get_db)):
+    """
+    Get all production sites for the /company page.
+    """
+    from sqlalchemy import text
+    stmt = text("""
+        SELECT id::text, site_number, city, description, sort_order
+        FROM production_sites
+        WHERE is_active = true
+        ORDER BY sort_order
+    """)
+    results = db.execute(stmt).fetchall()
+    return [
+        ProductionSiteSchema(
+            id=r[0], site_number=r[1], city=r[2], 
+            description=r[3], sort_order=r[4]
+        ) for r in results
+    ]
