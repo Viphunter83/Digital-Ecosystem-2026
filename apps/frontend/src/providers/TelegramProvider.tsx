@@ -10,6 +10,7 @@ interface TelegramContextType {
     user: TelegramWebApp['initDataUnsafe']['user'] | null;
     isReady: boolean;
     isAuthenticated: boolean;
+    isTma: boolean; // True only when running inside real Telegram Mini App
 }
 
 const TelegramContext = createContext<TelegramContextType>({
@@ -17,6 +18,7 @@ const TelegramContext = createContext<TelegramContextType>({
     user: null,
     isReady: false,
     isAuthenticated: false,
+    isTma: false,
 });
 
 export const useTelegram = () => useContext(TelegramContext);
@@ -24,6 +26,7 @@ export const useTelegram = () => useContext(TelegramContext);
 export function TelegramProvider({ children }: { children: ReactNode }) {
     const [webApp, setWebApp] = useState<TelegramWebApp | null>(null);
     const [isReady, setIsReady] = useState(false);
+    const [isTma, setIsTma] = useState(false);
 
     // Auth Hook
     const { isAuthenticated } = useTelegramAuth();
@@ -34,12 +37,18 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
             setWebApp(tg);
             setIsReady(true);
 
-            // Auto-expand
-            tg.expand();
+            // Check if we're in a REAL Telegram Mini App (has initData or user)
+            const hasInitData = !!(tg.initData && tg.initData.length > 0);
+            const hasUser = !!(tg.initDataUnsafe?.user?.id);
+            const isRealTma = hasInitData || hasUser;
+            setIsTma(isRealTma);
 
-            // Ready notification
-            // @ts-ignore
-            if (tg.ready) tg.ready();
+            // Auto-expand only in real TMA
+            if (isRealTma) {
+                tg.expand();
+                // @ts-ignore
+                if (tg.ready) tg.ready();
+            }
         }
     }, []);
 
@@ -47,7 +56,8 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         webApp,
         user: webApp?.initDataUnsafe?.user || null,
         isReady,
-        isAuthenticated
+        isAuthenticated,
+        isTma
     };
 
     return (
@@ -56,3 +66,4 @@ export function TelegramProvider({ children }: { children: ReactNode }) {
         </TelegramContext.Provider>
     );
 }
+

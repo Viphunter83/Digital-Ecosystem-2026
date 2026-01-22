@@ -34,7 +34,7 @@ const COMMON_ISSUES = [
 import { useTelegram } from "@/providers/TelegramProvider";
 
 export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-    const { webApp, user } = useTelegram();
+    const { webApp, user, isTma } = useTelegram();
     const [step, setStep] = useState<DiagnosticStep>('start');
     const [data, setData] = useState<DiagnosticData>({
         type: null,
@@ -169,7 +169,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
 
                     <AnimatePresence mode="wait">
                         {step === 'start' && (
-                            <StepStart onNext={handleNext} key="start" isTma={!!webApp} />
+                            <StepStart onNext={handleNext} key="start" isTma={isTma} />
                         )}
                         {step === 'type' && (
                             <StepType
@@ -177,7 +177,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                                 onSelect={(type) => updateData({ type })}
                                 onNext={handleNext}
                                 key="type"
-                                isTma={!!webApp}
+                                isTma={isTma}
                             />
                         )}
                         {step === 'age' && (
@@ -186,7 +186,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                                 onChange={(age) => updateData({ age })}
                                 onNext={handleNext}
                                 key="age"
-                                isTma={!!webApp}
+                                isTma={isTma}
                             />
                         )}
                         {step === 'issues' && (
@@ -195,7 +195,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                                 onSelect={(issues) => updateData({ issues })}
                                 onNext={handleNext}
                                 key="issues"
-                                isTma={!!webApp}
+                                isTma={isTma}
                             />
                         )}
                         {step === 'analyzing' && (
