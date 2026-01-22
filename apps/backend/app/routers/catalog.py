@@ -209,6 +209,19 @@ def debug_instances(db: Session = Depends(get_db)):
     results = db.execute(stmt).scalars().all()
     return {"instances": results}
 
+@router.get("/debug/migration-files")
+def debug_migration_files():
+    """
+    DEBUG: List migration files present on disk.
+    """
+    path = "/app/supabase/migrations"
+    try:
+        import os
+        files = sorted(os.listdir(path))
+        return {"files": files}
+    except Exception as e:
+        return {"error": str(e)}
+
 @router.get("/{product_id}")
 def get_product(product_id: str, db: Session = Depends(get_db)):
     """
