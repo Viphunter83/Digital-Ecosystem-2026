@@ -55,3 +55,112 @@ class AIService:
             return f"{base_prompt} Write a description focusing on value for money, maintenance costs, availability, and standard compliance. Highlight cost-efficiency."
         else:
             return f"{base_prompt} Write a balanced description highlighting key features and benefits."
+
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=2, max=5))
+    async def generate_diagnosis_recommendation(
+        self, 
+        machine_type: str, 
+        age: int, 
+        symptoms: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Generates AI-powered diagnosis recommendation based on machine data.
+        Returns risk level, probability, and detailed recommendation.
+        """
+        symptoms_text = ", ".join(symptoms) if symptoms else "не указаны"
+        
+        machine_types_ru = {
+            "lathe": "токарный станок",
+            "milling": "фрезерный станок", 
+            "cnc_center": "обрабатывающий центр с ЧПУ"
+        }
+        machine_name = machine_types_ru.get(machine_type, machine_type)
+        
+        system_prompt = """Ты — эксперт по диагностике промышленного металлообрабатывающего оборудования с 20-летним опытом.
+        
+Твоя задача — проанализировать состояние станка и дать профессиональную рекомендацию.
+
+Отвечай СТРОГО в формате JSON:
+{
+    "risk_level": "Low" | "Moderate" | "High" | "Critical",
+    "probability": число от 0 до 100 (вероятность серьёзной поломки в ближайшие 6 месяцев),
+    "urgent": true | false,
+    "recommendation": "Краткая рекомендация (1-2 предложения)",
+    "detailed_analysis": "Подробный анализ (2-4 предложения)",
+    "next_steps": ["шаг 1", "шаг 2", "шаг 3"]
+}
+
+Учитывай:
+- Возраст станка критичен: >20 лет = высокий риск
+- Вибрация шпинделя = серьёзный симптом
+- Ошибки ЧПУ = проблемы с электроавтоматикой
+- Перегрев = проблемы с гидравликой или охлаждением"""
+
+        user_prompt = f"""Проанализируй станок:
+- Тип: {machine_name}
+- Возраст: {age} лет
+- Симптомы: {symptoms_text}
+
+Дай профессиональную оценку состояния."""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.chat_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.3,
+                response_format={"type": "json_object"}
+            )
+            
+            import json
+            result = json.loads(response.choices[0].message.content)
+            return result
+            
+        except Exception as e:
+            # Fallback to rule-based logic
+            return self._fallback_diagnosis(machine_type, age, symptoms)
+    
+    def _fallback_diagnosis(self, machine_type: str, age: int, symptoms: List[str]) -> Dict[str, Any]:
+        """Fallback rule-based diagnosis when AI fails."""
+        risk_level = "Moderate"
+        probability = 45
+        urgent = False
+        recommendations = []
+        
+        if age > 20:
+            risk_level = "Critical"
+            probability = 95
+            recommendations.append("Требуется капитальный ремонт или замена")
+            urgent = True
+        elif age > 10:
+            risk_level = "High"
+            probability = max(probability, 65)
+            recommendations.append("Рекомендуется комплексная диагностика")
+        
+        for symptom in symptoms:
+            if "вибрация" in symptom.lower():
+                recommendations.append("Проверка шпиндельного узла и подшипников")
+                probability = max(probability, 75)
+                urgent = True
+            if "чпу" in symptom.lower() or "ошибка" in symptom.lower():
+                recommendations.append("Диагностика электроавтоматики и приводов")
+                probability = max(probability, 70)
+            if "перегрев" in symptom.lower():
+                recommendations.append("Проверка гидростанции и системы охлаждения")
+                probability = max(probability, 60)
+        
+        if not recommendations:
+            recommendations.append("Плановое техническое обслуживание")
+        
+        return {
+            "risk_level": risk_level,
+            "probability": probability,
+            "urgent": urgent,
+            "recommendation": "; ".join(recommendations[:2]),
+            "detailed_analysis": f"Станок возрастом {age} лет требует внимания. " + 
+                                 ("Выявленные симптомы указывают на износ." if symptoms else "Рекомендуется профилактика."),
+            "next_steps": recommendations[:3]
+        }
+

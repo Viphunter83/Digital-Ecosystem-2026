@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle, AlertTriangle, ShieldCheck, Activity, BrainCircuit, Cpu } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 type DiagnosticStep = 'start' | 'type' | 'age' | 'issues' | 'analyzing' | 'result';
 type MachineType = 'lathe' | 'milling' | 'cnc_center';
@@ -125,7 +126,9 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
 
             } catch (e) {
                 console.error(e);
-                alert("Ошибка анализа. Попробуйте еще раз.");
+                toast.error("Ошибка анализа", {
+                    description: "Попробуйте еще раз через несколько секунд."
+                });
                 setStep('issues');
             }
         }
@@ -414,6 +417,8 @@ function StepResult({ data, result, onClose, user }: { data: DiagnosticData; res
     const riskLevel = result?.risk_level || 'НЕИЗВЕСТНО';
     const probability = result?.probability ? `${result.probability}%` : '---';
     const recommendation = result?.recommendation || "Требуется осмотр специалиста";
+    const detailedAnalysis = result?.detailed_analysis;
+    const nextSteps = result?.next_steps || [];
 
     const onSubmit = async (formData: any) => {
         console.log("LEAD GENERATED (TELEGRAM):", { ...data, ...formData, result });
@@ -436,32 +441,58 @@ function StepResult({ data, result, onClose, user }: { data: DiagnosticData; res
             });
 
             if (response.ok) {
-                alert("Отчет инженера отправлен куратору! Ожидайте звонка.");
+                toast.success("Отчёт отправлен!", {
+                    description: "Ожидайте звонка от инженера."
+                });
                 onClose();
             } else {
                 throw new Error("Failed to submit lead");
             }
         } catch (e) {
             console.error("Diagnostic submit error:", e);
-            alert("Ошибка отправки. Попробуйте позже.");
+            toast.error("Ошибка отправки", {
+                description: "Попробуйте позже или свяжитесь с нами напрямую."
+            });
         }
     };
 
+    const riskColors: Record<string, string> = {
+        'Low': 'text-green-500',
+        'Moderate': 'text-yellow-500',
+        'High': 'text-orange-500',
+        'Critical': 'text-red-500'
+    };
+
     return (
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="h-full flex flex-col justify-center items-center text-center">
-            <div className="mb-6">
-                <AlertTriangle className={`w-12 h-12 mx-auto mb-2 animate-pulse ${riskLevel === 'Critical' ? 'text-red-600' : 'text-yellow-500'}`} />
-                <h2 className="text-xl font-black uppercase text-white mb-2">
-                    Риск Износа: <span className={riskLevel === 'Critical' ? 'text-red-500' : 'text-yellow-500'}>{riskLevel}</span>
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="h-full flex flex-col justify-center items-center text-center overflow-y-auto py-4">
+            <div className="mb-4">
+                <AlertTriangle className={`w-10 h-10 mx-auto mb-2 ${riskLevel === 'Critical' || riskLevel === 'High' ? 'animate-pulse' : ''} ${riskColors[riskLevel] || 'text-yellow-500'}`} />
+                <h2 className="text-lg font-black uppercase text-white mb-1">
+                    Риск: <span className={riskColors[riskLevel] || 'text-yellow-500'}>{riskLevel}</span>
                 </h2>
-                <div className="bg-white/5 border border-white/10 p-4 rounded mb-4 max-w-sm mx-auto">
-                    <p className="text-sm text-gray-300 mb-2">
-                        Вероятность отказа: <span className="text-safety-orange font-bold">{probability}</span>
+                <p className="text-safety-orange font-bold text-2xl font-mono">{probability}</p>
+                <p className="text-[10px] text-muted-foreground uppercase">вероятность отказа</p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 p-3 rounded mb-4 max-w-sm mx-auto text-left">
+                <p className="text-xs text-white font-medium mb-2">{recommendation}</p>
+                {detailedAnalysis && (
+                    <p className="text-[11px] text-muted-foreground border-t border-white/10 pt-2 mt-2">
+                        {detailedAnalysis}
                     </p>
-                    <p className="text-xs text-muted-foreground border-t border-white/10 pt-2 mt-2">
-                        {recommendation}
-                    </p>
-                </div>
+                )}
+                {nextSteps.length > 0 && (
+                    <div className="border-t border-white/10 pt-2 mt-2">
+                        <p className="text-[10px] text-safety-orange uppercase mb-1 font-mono">Рекомендуемые действия:</p>
+                        <ul className="text-[11px] text-gray-400 space-y-1">
+                            {nextSteps.slice(0, 3).map((step: string, i: number) => (
+                                <li key={i} className="flex items-start gap-1">
+                                    <span className="text-safety-orange">→</span> {step}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
 
             {user ? (
@@ -500,6 +531,6 @@ function StepResult({ data, result, onClose, user }: { data: DiagnosticData; res
                     </button>
                 </form>
             )}
-        </motion.div>
+        </motion.div >
     );
 }
