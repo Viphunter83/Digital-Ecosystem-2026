@@ -47,7 +47,7 @@ app.add_middleware(
 )
 
 # Include Routers
-app.include_router(services.router, prefix="/services", tags=["services"])
+# app.include_router(services.router, prefix="/services", tags=["services"])
 app.include_router(catalog.router, prefix="/catalog", tags=["catalog"])
 app.include_router(journal.router, prefix="/journal", tags=["journal"])
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
