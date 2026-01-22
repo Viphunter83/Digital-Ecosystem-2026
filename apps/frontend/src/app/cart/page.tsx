@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function CartPage() {
     const { items, removeItem, updateQuantity, totalAmount, clearCart } = useCartStore();
@@ -53,12 +54,16 @@ export default function CartPage() {
                 throw new Error("Failed to submit order");
             }
 
-            alert("Заказ успешно отправлен! Менеджер свяжется с вами.");
+            toast.success("Заказ успешно отправлен!", {
+                description: "Менеджер свяжется с вами в ближайшее время."
+            });
             clearCart();
             // Optional: Redirect to home or order success page
         } catch (e) {
             console.error("Checkout error:", e);
-            alert("Ошибка при оформлении заказа. Попробуйте позже.");
+            toast.error("Ошибка при оформлении заказа", {
+                description: "Попробуйте позже или свяжитесь с нами напрямую."
+            });
         } finally {
             setIsCheckingOut(false);
         }

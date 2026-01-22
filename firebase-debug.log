@@ -1,0 +1,8 @@
+[debug] [2026-01-22T10:08:51.227Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-22T10:08:51.228Z] > authorizing via signed-in user (olegvakin@gmail.com)
+[debug] [2026-01-22T10:08:51.234Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-22T10:08:51.234Z] > authorizing via signed-in user (olegvakin@gmail.com)
+[debug] [2026-01-22T10:08:52.057Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-22T10:08:52.057Z] > authorizing via signed-in user (olegvakin@gmail.com)
+[debug] [2026-01-22T10:08:52.057Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-22T10:08:52.057Z] > authorizing via signed-in user (olegvakin@gmail.com)

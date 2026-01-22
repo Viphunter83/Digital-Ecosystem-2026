@@ -13,6 +13,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Product } from "@/lib/api";
+import { toast } from "sonner";
 
 interface ProductCardProps {
     product: Product;
@@ -114,6 +115,9 @@ export function ProductCard({ product }: ProductCardProps) {
         const cleanName = product.name.replace(/^ТД РУССтанкоСбыт\s*-\s*/i, "");
 
         addToCart({ ...product, name: cleanName, price: product.price || 0, slug: product.id });
+        toast.success("Добавлено в заказ", {
+            description: cleanName.substring(0, 50) + (cleanName.length > 50 ? "..." : "")
+        });
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
     };
