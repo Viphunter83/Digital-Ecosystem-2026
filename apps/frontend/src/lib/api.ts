@@ -241,4 +241,23 @@ export const fetchFilters = async (): Promise<FiltersResponse> => {
     }
 };
 
+// Production Sites interface
+export interface ProductionSite {
+    id: string;
+    site_number: number;
+    city: string;
+    description?: string;
+    sort_order?: number;
+}
+
+export const fetchProductionSites = async (): Promise<ProductionSite[]> => {
+    try {
+        const response = await api.get('/content/production-sites');
+        return response.data || [];
+    } catch (error) {
+        console.error('Error fetching production sites:', error);
+        return [];
+    }
+};
+
 export default api;

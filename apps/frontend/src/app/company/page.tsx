@@ -1,16 +1,77 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { fetchSiteContent, fetchProductionSites, ProductionSite } from "@/lib/api";
+
 export default function CompanyPage() {
+    const [content, setContent] = useState<Record<string, string>>({});
+    const [sites, setSites] = useState<ProductionSite[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadData = async () => {
+            const [contentData, sitesData] = await Promise.all([
+                fetchSiteContent(),
+                fetchProductionSites()
+            ]);
+            setContent(contentData);
+            setSites(sitesData);
+            setLoading(false);
+        };
+        loadData();
+    }, []);
+
+    // Parse comma-separated values
+    const values = content.company_values?.split(',') || [
+        "Честность и прозрачность",
+        "Технологическая независимость",
+        "Ответственность за результат",
+        "Долгосрочное партнерство"
+    ];
+
+    // Fallback content
+    const title = content.company_title || "Инженерный Центр";
+    const subtitle = content.company_subtitle || "Комплексное техническое перевооружение промышленных предприятий России";
+    const aboutTitle = content.company_about_title || "О Нас";
+    const aboutText = content.company_about_text || "Торговый Дом «РУССтанкоСбыт» — это современный инженерный центр, специализирующийся на подборе и поставке металлообрабатывающего оборудования.";
+    const aboutText2 = content.company_about_text2 || "Мы не просто продаем станки — мы внедряем технологии, которые повышают эффективность вашего производства.";
+
+    // Stats with fallbacks
+    const stats = [
+        { value: content.company_stat_years || "12", label: "Лет успеха на рынке" },
+        { value: content.company_stat_sites || "4", label: "Производственных площадки" },
+        { value: content.company_stat_area || "15 000", label: "Кв.м. площадей" },
+        { value: content.company_stat_employees || "200+", label: "Квалифицированных сотрудников" },
+    ];
+
+    // Fallback sites if API didn't return any
+    const displaySites = sites.length > 0 ? sites : [
+        { id: "1", site_number: 1, city: "РЯЗАНЬ", description: "Производство полного цикла токарных станков с ЧПУ и трубонарезных станков." },
+        { id: "2", site_number: 2, city: "ВОРОНЕЖ", description: "Тяжелая механическая обработка деталей массой до 150 тонн." },
+        { id: "3", site_number: 3, city: "ИЖЕВСК", description: "Производство конических зубчатых колес с круговым зубом." },
+        { id: "4", site_number: 4, city: "БЕЛАРУСЬ", description: "Партнерская производственная площадка. Литье станин." },
+    ];
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-industrial-surface flex items-center justify-center">
+                <div className="animate-pulse text-white">Загрузка...</div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
             {/* Header */}
             <div className="container mx-auto px-6 mb-16">
                 <div className="border-b border-industrial-border pb-6">
                     <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-4 text-white">
-                        Инженерный <span className="text-safety-orange">Центр</span>
+                        {title.split(' ').map((word, i) =>
+                            i === 1 ? <span key={i} className="text-safety-orange">{word}</span> : word + ' '
+                        )}
                     </h1>
                     <p className="text-muted-foreground font-mono text-sm max-w-2xl uppercase">
-                        Комплексное техническое перевооружение промышленных предприятий России
+                        {subtitle}
                     </p>
                 </div>
             </div>
@@ -22,34 +83,26 @@ export default function CompanyPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-start">
                     <div className="space-y-6">
                         <div className="prose prose-invert max-w-none">
-                            <h3 className="text-2xl font-bold uppercase text-white mb-4 border-l-4 border-safety-orange pl-4">О Нас</h3>
+                            <h3 className="text-2xl font-bold uppercase text-white mb-4 border-l-4 border-safety-orange pl-4">
+                                {aboutTitle}
+                            </h3>
                             <p className="text-gray-300 leading-relaxed text-lg">
-                                Торговый Дом «РУССтанкоСбыт» — это современный инженерный центр, специализирующийся на подборе и поставке металлообрабатывающего оборудования, а также реализации проектов "под ключ".
+                                {aboutText}
                             </p>
                             <p className="text-gray-400 leading-relaxed">
-                                Мы не просто продаем станки — мы внедряем технологии, которые повышают эффективность вашего производства. Наш опыт позволяет решать задачи любой сложности: от поставки единичного оборудования до комплексного оснащения цехов.
+                                {aboutText2}
                             </p>
                         </div>
                     </div>
 
                     {/* Key Stats Grid */}
                     <div className="grid grid-cols-2 gap-8 bg-industrial-panel p-8 border border-industrial-border">
-                        <div>
-                            <div className="text-4xl font-black text-safety-orange mb-1">12</div>
-                            <div className="text-xs font-mono text-muted-foreground uppercase">Лет успеха на рынке</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-black text-safety-orange mb-1">4</div>
-                            <div className="text-xs font-mono text-muted-foreground uppercase">Производственных площадки</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-black text-safety-orange mb-1">15 000</div>
-                            <div className="text-xs font-mono text-muted-foreground uppercase">Кв.м. площадей</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-black text-safety-orange mb-1">200+</div>
-                            <div className="text-xs font-mono text-muted-foreground uppercase">Квалифицированных сотрудников</div>
-                        </div>
+                        {stats.map((stat, i) => (
+                            <div key={i}>
+                                <div className="text-4xl font-black text-safety-orange mb-1">{stat.value}</div>
+                                <div className="text-xs font-mono text-muted-foreground uppercase">{stat.label}</div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
@@ -60,38 +113,13 @@ export default function CompanyPage() {
                         География Производства
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {/* Site 1 */}
-                        <div className="bg-industrial-panel border border-industrial-border p-6 hover:border-safety-orange transition-colors group">
-                            <div className="text-safety-orange text-sm font-mono mb-2">ПЛОЩАДКА №1</div>
-                            <h4 className="text-xl font-bold text-white mb-4">РЯЗАНЬ</h4>
-                            <p className="text-sm text-gray-400">
-                                Производство полного цикла токарных станков с ЧПУ и трубонарезных станков. Участок производства зубчатых колес и шлицевых валов.
-                            </p>
-                        </div>
-                        {/* Site 2 */}
-                        <div className="bg-industrial-panel border border-industrial-border p-6 hover:border-safety-orange transition-colors group">
-                            <div className="text-safety-orange text-sm font-mono mb-2">ПЛОЩАДКА №2</div>
-                            <h4 className="text-xl font-bold text-white mb-4">ВОРОНЕЖ</h4>
-                            <p className="text-sm text-gray-400">
-                                Тяжелая механическая обработка деталей массой до 150 тонн. Сборочный цех с мостовым краном 160 тонн.
-                            </p>
-                        </div>
-                        {/* Site 3 */}
-                        <div className="bg-industrial-panel border border-industrial-border p-6 hover:border-safety-orange transition-colors group">
-                            <div className="text-safety-orange text-sm font-mono mb-2">ПЛОЩАДКА №3</div>
-                            <h4 className="text-xl font-bold text-white mb-4">ИЖЕВСК</h4>
-                            <p className="text-sm text-gray-400">
-                                Производство конических зубчатых колес с круговым зубом. Высокоточная механическая обработка корпусных деталей.
-                            </p>
-                        </div>
-                        {/* Site 4 */}
-                        <div className="bg-industrial-panel border border-industrial-border p-6 hover:border-safety-orange transition-colors group">
-                            <div className="text-safety-orange text-sm font-mono mb-2">ПЛОЩАДКА №4</div>
-                            <h4 className="text-xl font-bold text-white mb-4">БЕЛАРУСЬ</h4>
-                            <p className="text-sm text-gray-400">
-                                Партнерская производственная площадка. Литье станин, черновая и чистовая обработка узлов.
-                            </p>
-                        </div>
+                        {displaySites.map((site) => (
+                            <div key={site.id} className="bg-industrial-panel border border-industrial-border p-6 hover:border-safety-orange transition-colors group">
+                                <div className="text-safety-orange text-sm font-mono mb-2">ПЛОЩАДКА №{site.site_number}</div>
+                                <h4 className="text-xl font-bold text-white mb-4">{site.city}</h4>
+                                <p className="text-sm text-gray-400">{site.description}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
@@ -99,9 +127,9 @@ export default function CompanyPage() {
                 <div className="border-t border-industrial-border pt-16">
                     <h3 className="text-xl font-bold uppercase text-white mb-8 text-center">Наши Ценности</h3>
                     <div className="flex flex-wrap justify-center gap-4">
-                        {["Честность и прозрачность", "Технологическая независимость", "Ответственность за результат", "Долгосрочное партнерство"].map((val, i) => (
+                        {values.map((val, i) => (
                             <div key={i} className="px-6 py-3 bg-white/5 border border-white/10 rounded-full font-mono text-sm uppercase hover:bg-safety-orange hover:text-white transition-colors cursor-default">
-                                {val}
+                                {val.trim()}
                             </div>
                         ))}
                     </div>
