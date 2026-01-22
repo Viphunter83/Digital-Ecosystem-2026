@@ -107,7 +107,13 @@ export default function ServicePage() {
                                         <div className="grid grid-cols-1 md:grid-cols-3">
                                             <div className="relative h-48 md:h-full overflow-hidden">
                                                 <img
-                                                    src={project.image_url || `https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=400&h=300`}
+                                                    src={
+                                                        project.image_url ||
+                                                        (project.model.includes('16К20') ? '/images/cases/case_16k20.png' :
+                                                            project.model.includes('6Р12') ? '/images/cases/case_6r12.png' :
+                                                                project.model.includes('1М63') ? '/images/cases/case_1m63.png' :
+                                                                    `https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=400&h=300`)
+                                                    }
                                                     alt={project.model}
                                                     className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
                                                 />
