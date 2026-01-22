@@ -188,6 +188,18 @@ def get_instance_by_serial(serial_number: str, db: Session = Depends(get_db)):
         
     return MachineInstanceSchema.model_validate(instance)
 
+@router.get("/debug/migrations")
+def debug_migrations(db: Session = Depends(get_db)):
+    """
+    DEBUG: List applied migrations.
+    """
+    from sqlalchemy import text
+    try:
+        results = db.execute(text("SELECT name FROM _migrations_history")).scalars().all()
+        return {"applied": results}
+    except Exception as e:
+        return {"error": str(e)}
+
 @router.get("/debug/instances")
 def debug_instances(db: Session = Depends(get_db)):
     """
