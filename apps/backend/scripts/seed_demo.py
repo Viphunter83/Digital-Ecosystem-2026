@@ -25,9 +25,9 @@ def seed_data():
         equipment_exists = db.execute(select(ClientEquipment)).first()
         
         # Check if Data exists (Base)
-        if db.execute(select(Product)).first() and equipment_exists:
-            logger.info("Database already contains data. Skipping seed.")
-            return
+        # if db.execute(select(Product)).first() and equipment_exists:
+        #     logger.info("Database already contains data. Skipping seed.")
+        #     return
 
         logger.info("Seeding data...")
         
@@ -209,20 +209,27 @@ def seed_data():
 
             # 7. Machine Instance for Digital Passport
             logger.info("Seeding MachineInstance for Digital Passport...")
-            instance = MachineInstance(
-                product_id=lathe.id,
-                client_id=client_mtz.id,
-                serial_number="CNC-2026-X",
-                inventory_number="#992811",
-                status="repair",
-                service_history=[
-                    {"date": "15.01.2026", "title": "Заявка принята", "description": "Запрос на капремонт через ТМА", "status": "done", "icon": "CheckCircle2"},
-                    {"date": "16.01.2026", "title": "Дефектовка", "description": "Выявлен износ направляющих", "status": "done", "icon": "Wrench"},
-                    {"date": "В процессе", "title": "Ремонт", "description": "Шлифовка станины", "status": "active", "icon": "Clock"},
-                    {"date": "-", "title": "Готово", "description": "Сдача ОТК", "status": "pending", "icon": "CheckCircle2"}
-                ]
-            )
-            db.add(instance)
+            from packages.database.models import MachineInstance
+            instance_exists = db.execute(select(MachineInstance).where(MachineInstance.serial_number == "CNC-2026-X")).scalar_one_or_none()
+            
+            if not instance_exists:
+                instance = MachineInstance(
+                    product_id=lathe.id,
+                    client_id=client_mtz.id,
+                    serial_number="CNC-2026-X",
+                    inventory_number="#992811",
+                    status="repair",
+                    service_history=[
+                        {"date": "15.01.2026", "title": "Заявка принята", "description": "Запрос на капремонт через ТМА", "status": "done", "icon": "CheckCircle2"},
+                        {"date": "16.01.2026", "title": "Дефектовка", "description": "Выявлен износ направляющих", "status": "done", "icon": "Wrench"},
+                        {"date": "В процессе", "title": "Ремонт", "description": "Шлифовка станины", "status": "active", "icon": "Clock"},
+                        {"date": "-", "title": "Готово", "description": "Сдача ОТК", "status": "pending", "icon": "CheckCircle2"}
+                    ]
+                )
+                db.add(instance)
+                logger.info("✅ MachineInstance seeded.")
+            else:
+                logger.info("MachineInstance CNC-2026-X already exists.")
 
         db.commit()
         logger.info("Successfully seeded demo data!")
