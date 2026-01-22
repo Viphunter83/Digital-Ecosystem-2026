@@ -274,6 +274,7 @@ export interface Service {
             problem: string;
             solution: string;
             result: string;
+            image_url?: string;
         }>;
         usp: Array<{
             title: string;
