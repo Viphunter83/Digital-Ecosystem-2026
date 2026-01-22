@@ -249,3 +249,24 @@ class Category(Base):
     filter_group = Column(String, nullable=False)
     sort_order = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class MachineInstance(Base):
+    __tablename__ = "machine_instances"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
+    client_id = Column(UUID(as_uuid=True), ForeignKey("clients.id"))
+    serial_number = Column(String, unique=True, nullable=False)
+    inventory_number = Column(String)
+    manufacturing_date = Column(DateTime)
+    status = Column(String, default='operational')
+    service_history = Column(JSONB, default='[]')
+    telemetry_summary = Column(JSONB, default='{}')
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    product = relationship("Product", back_populates="instances")
+    client = relationship("Client", back_populates="instances")
+
+Product.instances = relationship("MachineInstance", back_populates="product")
+Client.instances = relationship("MachineInstance", back_populates="client")

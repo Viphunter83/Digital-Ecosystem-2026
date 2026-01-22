@@ -142,3 +142,16 @@ class FilterGroupSchema(BaseModel):
 
 class FiltersResponse(BaseModel):
     groups: List[FilterGroupSchema]
+
+class MachineInstanceSchema(BaseModel):
+    id: UUID
+    serial_number: str
+    inventory_number: Optional[str] = None
+    status: str
+    service_history: List[Dict[str, Any]] = []
+    telemetry_summary: Dict[str, Any] = {}
+    
+    product: Optional[ProductSchema] = None
+    
+    class Config:
+        from_attributes = True

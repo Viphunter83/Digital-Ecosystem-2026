@@ -299,7 +299,34 @@ export const fetchServiceBySlug = async (slug: string): Promise<Service | undefi
         if (response.data.error) return undefined;
         return response.data;
     } catch (error) {
-        console.error(`Error fetching service \${slug}:`, error);
+        console.error(`Error fetching service ${slug}:`, error);
+        return undefined;
+    }
+};
+
+export interface MachineInstance {
+    id: string;
+    serial_number: string;
+    inventory_number?: string;
+    status: string;
+    service_history: Array<{
+        date: string;
+        title: string;
+        description: string;
+        status: string;
+        icon: string;
+    }>;
+    telemetry_summary: Record<string, any>;
+    product?: Product;
+}
+
+export const fetchMachineInstance = async (serialNumber: string): Promise<MachineInstance | undefined> => {
+    try {
+        const response = await api.get(`/catalog/instances/${serialNumber}`);
+        if (response.data.error) return undefined;
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching machine instance ${serialNumber}:`, error);
         return undefined;
     }
 };

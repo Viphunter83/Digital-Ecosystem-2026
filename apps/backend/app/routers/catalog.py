@@ -5,8 +5,8 @@ from typing import Optional, List
 
 from apps.backend.app.core.database import get_db
 from apps.backend.app.core.cache import cache
-from packages.database.models import Product, ProductImage, SparePart, SparePartImage
-from apps.backend.app.schemas import ProductSchema, SparePartSchema
+from packages.database.models import Product, ProductImage, SparePart, SparePartImage, MachineInstance
+from apps.backend.app.schemas import ProductSchema, SparePartSchema, MachineInstanceSchema
 
 from apps.backend.services.ai_service import AIService
 
@@ -194,3 +194,18 @@ def get_product(product_id: str, db: Session = Depends(get_db)):
         return {"error": "Product not found"}
     except Exception as e:
         return {"error": str(e)}
+
+@router.get("/instances/{serial_number}")
+def get_instance_by_serial(serial_number: str, db: Session = Depends(get_db)):
+    """
+    Get a unique machine instance by serial number (for Digital Passport).
+    """
+    stmt = select(MachineInstance).options(
+        joinedload(MachineInstance.product).joinedload(Product.images)
+    ).where(MachineInstance.serial_number == serial_number)
+    
+    instance = db.execute(stmt).unique().scalar_one_or_none()
+    if not instance:
+        return {"error": "Instance not found"}
+        
+    return MachineInstanceSchema.model_validate(instance)
