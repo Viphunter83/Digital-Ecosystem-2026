@@ -19,13 +19,12 @@ UPDATE offices SET
 WHERE id = 1;
 
 -- Add site_content entries for contacts page
-INSERT INTO site_content (key, value_ru, value_en) VALUES
-('contacts_title', 'Контакты', 'Contacts'),
-('contacts_subtitle', 'Свяжитесь с нами для обсуждения ваших потребностей в промышленном оборудовании', 'Contact us to discuss your industrial equipment needs'),
-('contacts_order_email', 'zakaz@tdrusstankosbyt.ru', 'zakaz@tdrusstankosbyt.ru'),
-('contacts_phone', '+7 (499) 390-85-04', '+7 (499) 390-85-04'),
-('contacts_working_hours', 'Понедельник — Пятница: 9:00 — 18:00', 'Monday — Friday: 9:00 AM — 6:00 PM'),
-('company_name', 'ООО «ТД РУССтанко-Сбыт»', 'TD RUSStanko-Sbyt LLC')
+INSERT INTO site_content (key, value) VALUES
+('contacts_title', 'Контакты'),
+('contacts_subtitle', 'Свяжитесь с нами для обсуждения ваших потребностей в промышленном оборудовании'),
+('contacts_order_email', 'zakaz@tdrusstankosbyt.ru'),
+('contacts_phone', '+7 (499) 390-85-04'),
+('contacts_working_hours', 'Понедельник — Пятница: 9:00 — 18:00'),
+('company_name', 'ООО «ТД РУССтанко-Сбыт»')
 ON CONFLICT (key) DO UPDATE SET
-    value_ru = EXCLUDED.value_ru,
-    value_en = EXCLUDED.value_en;
+    value = EXCLUDED.value;

@@ -33,7 +33,7 @@ BEGIN
     END IF;
 
     -- Get a sample product
-    SELECT id INTO v_product_id FROM products WHERE slug = '1m63-chnpu' LIMIT 1;
+    SELECT id INTO v_product_id FROM products WHERE slug = '1m63-cnc' LIMIT 1;
     -- If not found, try any product
     IF v_product_id IS NULL THEN
         SELECT id INTO v_product_id FROM products LIMIT 1;
