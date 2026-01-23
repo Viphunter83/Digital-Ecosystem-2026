@@ -15,6 +15,8 @@ __pycache__/
 .env.local
 *.env
 .env.*
+dockploy_env.txt
+dockploy_env.txt*
 
 # IDE
 .vscode/
