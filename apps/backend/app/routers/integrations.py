@@ -25,6 +25,17 @@ async def handle_amocrm_webhook(request: Request, db: Session = Depends(get_db))
     Endpoint receives Webhook from AmoCRM.
     Handles 'leads[status][0][status_id]' change to 'Success' (142 or configured).
     """
+    # 0. Verify Secret if configured
+    import os
+    secret = os.getenv("AMOCRM_WEBHOOK_SECRET")
+    if secret:
+        # AmoCRM can send secret in query params or we can check a custom header if configured
+        # For simplicity, we check if it's passed as a query param 'secret'
+        provided_secret = request.query_params.get("secret")
+        if provided_secret != secret:
+             logger.warning(f"Unauthorized AmoCRM webhook attempt from {request.client.host}")
+             raise HTTPException(status_code=401, detail="Unauthorized")
+
     try:
         # AmoCRM sends data as x-www-form-urlencoded
         form_data = await request.form()

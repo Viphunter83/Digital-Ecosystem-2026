@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from apps.backend.app.core.database import get_db
 from packages.database.models import Lead, LeadSource
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
+import re
 from typing import Optional, Dict, Any
 
 router = APIRouter()
@@ -14,6 +15,17 @@ class LeadCreate(BaseModel):
     email: Optional[EmailStr] = None
     message: Optional[str] = None
     meta: Optional[Dict[str, Any]] = None
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return v
+        # Basic international format check: +7 or 8 followed by digits, spaces, dashes
+        clean_phone = re.sub(r"[\s\-\(\)]", "", v)
+        if not re.match(r"^(\+7|7|8)\d{10}$", clean_phone):
+            raise ValueError("Некорректный формат номера телефона. Используйте +7 (999) 123-45-67")
+        return clean_phone
 
 import os
 import requests

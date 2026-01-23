@@ -26,7 +26,7 @@ class Product(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
-    slug = Column(String, unique=True, nullable=False)
+    slug = Column(String, unique=True, nullable=False, index=True)
     category = Column(String, nullable=False)
     manufacturer = Column(String, nullable=True)
     description = Column(Text)
@@ -211,7 +211,7 @@ class Lead(Base):
     
     # Contact Info
     name = Column(String)
-    phone = Column(String)
+    phone = Column(String, index=True)
     email = Column(String)
     company = Column(String)
     
@@ -245,7 +245,7 @@ class Category(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
-    slug = Column(String, unique=True, nullable=False)
+    slug = Column(String, unique=True, nullable=False, index=True)
     filter_group = Column(String, nullable=False)
     sort_order = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -256,7 +256,7 @@ class MachineInstance(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
     client_id = Column(UUID(as_uuid=True), ForeignKey("clients.id"))
-    serial_number = Column(String, unique=True, nullable=False)
+    serial_number = Column(String, unique=True, nullable=False, index=True)
     inventory_number = Column(String)
     manufacturing_date = Column(DateTime)
     status = Column(String, default='operational')
