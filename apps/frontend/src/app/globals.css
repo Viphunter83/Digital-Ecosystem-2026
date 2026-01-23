@@ -4,89 +4,99 @@
 
 
 :root {
-  /* Default to Dark Industrial */
-  --background: #121212;
-  /* industrial-surface */
-  --foreground: #EDEDED;
-  --card: #1E1E1E;
-  /* industrial-panel */
-  --card-foreground: #EDEDED;
-  --popover: #1E1E1E;
-  --popover-foreground: #EDEDED;
-  --primary: #FF3D00;
-  /* safety-orange */
-  --primary-foreground: #FFFFFF;
-  --secondary: #333333;
-  /* industrial-border/accent */
-  --secondary-foreground: #FFFFFF;
-  --muted: #2A2A2A;
-  --muted-foreground: #A1A1AA;
-  --accent: #FF3D00;
-  --accent-foreground: #FFFFFF;
-  --destructive: #7f1d1d;
-  --destructive-foreground: #fef2f2;
-  --border: #333333;
-  --input: #2A2A2A;
-  --ring: #FF3D00;
-  --chart-1: #FF3D00;
-  --chart-2: #00E676;
-  --chart-3: #00B0FF;
-  --chart-4: #E5E7EB;
-  --chart-5: #4B5563;
-  --sidebar: #0A0A0A;
-  --sidebar-foreground: #F5F5F5;
-  --sidebar-primary: #FF3D00;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #262626;
-  --sidebar-accent-foreground: #F5F5F5;
-  --sidebar-border: #262626;
-  --sidebar-ring: #FF3D00;
+  /* Default to Dark Industrial - Converted to HSL for shadcn compatibility */
+  --background: 0 0% 7%;
+  /* #121212 */
+  --foreground: 0 0% 93%;
+  /* #EDEDED */
+  --card: 0 0% 12%;
+  /* #1E1E1E */
+  --card-foreground: 0 0% 93%;
+  --popover: 0 0% 12%;
+  --popover-foreground: 0 0% 93%;
+  --primary: 14 100% 50%;
+  /* #FF3D00 */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 20%;
+  /* #333333 */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 16%;
+  /* #2A2A2A */
+  --muted-foreground: 240 5% 65%;
+  /* #A1A1AA */
+  --accent: 14 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 63% 31%;
+  /* #7f1d1d */
+  --destructive-foreground: 0 86% 97%;
+  /* #fef2f2 */
+  --border: 0 0% 20%;
+  --input: 0 0% 16%;
+  --ring: 14 100% 50%;
+  --chart-1: 14 100% 50%;
+  --chart-2: 151 100% 45%;
+  /* #00E676 */
+  --chart-3: 199 100% 50%;
+  /* #00B0FF */
+  --chart-4: 220 14% 91%;
+  /* #E5E7EB */
+  --chart-5: 215 14% 34%;
+  /* #4B5563 */
+  --sidebar: 0 0% 4%;
+  /* #0A0A0A */
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-primary: 14 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-border: 0 0% 15%;
+  --sidebar-ring: 14 100% 50%;
 }
 
 .dark {
-  --background: #121212;
-  --foreground: #EDEDED;
-  --card: #1E1E1E;
-  --card-foreground: #EDEDED;
-  --popover: #1E1E1E;
-  --popover-foreground: #EDEDED;
-  --primary: #FF3D00;
-  --primary-foreground: #FFFFFF;
-  --secondary: #333333;
-  --secondary-foreground: #FFFFFF;
-  --muted: #2A2A2A;
-  --muted-foreground: #A1A1AA;
-  --accent: #FF3D00;
-  --accent-foreground: #FFFFFF;
-  --destructive: #7f1d1d;
-  --destructive-foreground: #fef2f2;
-  --border: #333333;
-  --input: #2A2A2A;
-  --ring: #FF3D00;
-  --chart-1: #FF3D00;
-  --chart-2: #00E676;
-  --chart-3: #00B0FF;
-  --chart-4: #E5E7EB;
-  --chart-5: #4B5563;
-  --sidebar: #0A0A0A;
-  --sidebar-foreground: #F5F5F5;
-  --sidebar-primary: #FF3D00;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #262626;
-  --sidebar-accent-foreground: #F5F5F5;
-  --sidebar-border: #262626;
-  --sidebar-ring: #FF3D00;
+  --background: 0 0% 7%;
+  --foreground: 0 0% 93%;
+  --card: 0 0% 12%;
+  --card-foreground: 0 0% 93%;
+  --popover: 0 0% 12%;
+  --popover-foreground: 0 0% 93%;
+  --primary: 14 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 20%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 14 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 0 86% 97%;
+  --border: 0 0% 20%;
+  --input: 0 0% 16%;
+  --ring: 14 100% 50%;
+  --chart-1: 14 100% 50%;
+  --chart-2: 151 100% 45%;
+  --chart-3: 199 100% 50%;
+  --chart-4: 220 14% 91%;
+  --chart-5: 215 14% 34%;
+  --sidebar: 0 0% 4%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-primary: 14 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-border: 0 0% 15%;
+  --sidebar-ring: 14 100% 50%;
 }
 
 @layer base {
   * {
-    border-color: var(--border);
-    outline-color: color-mix(in srgb, var(--ring), transparent 50%);
+    border-color: hsl(var(--border));
+    outline-color: color-mix(in srgb, hsl(var(--ring)), transparent 50%);
   }
 
   body {
-    background-color: var(--background);
-    color: var(--foreground);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-family: var(--font-manrope), sans-serif;
   }
 }
