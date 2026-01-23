@@ -44,12 +44,6 @@ class OfficeSchema(BaseModel):
 def get_site_content(db: Session = Depends(get_db)):
     """
     Get all site content as a key-value map.
-    This allows the frontend to fetch all dynamic strings in one go.
-    Example response:
-    {
-        "home_hero_title": "Welcome to Russtanko",
-        "contact_email": "info@russtanko.ru"
-    }
     """
     stmt = select(SiteContent)
     results = db.execute(stmt).scalars().all()
@@ -59,6 +53,63 @@ def get_site_content(db: Session = Depends(get_db)):
         content_map[item.key] = item.value
         
     return content_map
+
+class ContentUpdateSchema(BaseModel):
+    key: str
+    value: str
+
+@router.post("/", response_model=Dict[str, str])
+def update_site_content(update: ContentUpdateSchema, db: Session = Depends(get_db)):
+    """
+    Update or create a site content key-value pair.
+    """
+    stmt = select(SiteContent).where(SiteContent.key == update.key)
+    item = db.execute(stmt).scalar_one_or_none()
+    
+    if item:
+        item.value = update.value
+    else:
+        item = SiteContent(key=update.key, value=update.value)
+        db.add(item)
+    
+    db.commit()
+    return {"status": "ok", "key": update.key}
+
+from fastapi import UploadFile, File
+import shutil
+import os
+
+@router.post("/upload", response_model=Dict[str, str])
+async def upload_site_file(
+    key: str, 
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db)
+):
+    """
+    Upload a file and link it to a site content key.
+    """
+    upload_dir = os.path.join(os.path.dirname(__file__), "..", "..", "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_path = os.path.join(upload_dir, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # URL to access the file
+    file_url = f"/api/uploads/{file.filename}"
+    
+    # Update DB
+    stmt = select(SiteContent).where(SiteContent.key == key)
+    item = db.execute(stmt).scalar_one_or_none()
+    
+    if item:
+        item.value = file_url
+    else:
+        item = SiteContent(key=key, value=file_url, type="file")
+        db.add(item)
+    
+    db.commit()
+    return {"status": "ok", "url": file_url, "key": key}
 
 @router.get("/solutions", response_model=List[SolutionSchema])
 def get_solutions(db: Session = Depends(get_db)):
