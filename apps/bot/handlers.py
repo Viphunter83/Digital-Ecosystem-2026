@@ -18,6 +18,7 @@ from apps.bot.keyboards import (
     invoice_method_kb,
     get_service_request_kb
 )
+from apps.bot.integrations.amocrm import amocrm
 from apps.bot.database import AsyncSessionLocal
 from packages.database.models import TelegramUser, UserRole, ClientEquipment, ServiceTicket, Product
 
@@ -544,6 +545,16 @@ async def handle_service_request(callback: CallbackQuery):
         session.add(ticket)
         await session.commit()
     
+    # Create lead in AmoCRM (if configured)
+    try:
+        from apps.bot.integrations.amocrm import amocrm
+        await amocrm.create_lead(
+            name=f"ТО/Ремонт: {serial_number} (Бот: {callback.from_user.username or callback.from_user.id})",
+            tags=["service_request", "bot", serial_number]
+        )
+    except Exception as e:
+        logger.error(f"Failed to sync with AmoCRM: {e}")
+    
     await callback.message.edit_text(
         f"✅ *Заявка создана!*\n\n"
         f"📋 Номер заявки: `{ticket_id}`\n"
@@ -586,6 +597,16 @@ async def handle_parts_request(callback: CallbackQuery):
         )
         session.add(ticket)
         await session.commit()
+    
+    # Create lead in AmoCRM (if configured)
+    try:
+        from apps.bot.integrations.amocrm import amocrm
+        await amocrm.create_lead(
+            name=f"Запчасти: {serial_number} (Бот: {callback.from_user.username or callback.from_user.id})",
+            tags=["parts_request", "bot", serial_number]
+        )
+    except Exception as e:
+        logger.error(f"Failed to sync with AmoCRM: {e}")
     
     await callback.message.edit_text(
         f"✅ *Заявка на запчасти создана!*\n\n"
