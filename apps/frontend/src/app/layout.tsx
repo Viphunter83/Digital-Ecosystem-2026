@@ -16,11 +16,11 @@ export const metadata: Metadata = {
   description: "Ведущий поставщик передовых промышленных инженерных решений и систем автоматизации.",
   icons: {
     icon: [
-      { url: "/icon.png", sizes: "32x32" },
-      { url: "/icon.png", sizes: "192x192" },
+      { url: "/favicon.png", sizes: "32x32" },
+      { url: "/favicon.png", sizes: "192x192" },
     ],
     apple: [
-      { url: "/apple-icon.png", sizes: "180x180" },
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
     ],
   },
 };
