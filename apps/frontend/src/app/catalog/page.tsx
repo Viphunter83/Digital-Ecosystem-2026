@@ -217,27 +217,29 @@ export default function CatalogPage() {
                         </div>
 
                         {/* SEARCH INPUT */}
-                        <div className="flex-1 flex items-center px-6 py-3 lg:py-0 relative">
-                            <Search className="text-white/20 absolute left-8 pointer-events-none" size={18} />
-                            <input
-                                type="text"
-                                placeholder="ПОИСК ПО НАИМЕНОВАНИЮ, МОДЕЛИ ИЛИ ХАРАКТЕРИСТИКАМ..."
-                                className="w-full bg-transparent border-none text-white text-xs font-mono pl-10 pr-12 py-5 focus:outline-none placeholder:text-white/10 uppercase tracking-widest"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            />
-                            {searchQuery && (
-                                <button
-                                    onClick={() => { setSearchQuery(""); handleSearch(); }}
-                                    className="absolute right-32 text-white/20 hover:text-safety-orange transition-colors"
-                                >
-                                    <X size={16} />
-                                </button>
-                            )}
+                        <div className="flex-1 flex flex-col sm:flex-row items-center px-4 md:px-6 py-3 lg:py-0 relative gap-3 sm:gap-0">
+                            <div className="relative w-full flex-1">
+                                <Search className="text-white/20 absolute left-4 sm:left-2 pointer-events-none" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder="ПОИСК ПО НАИМЕНОВАНИЮ, МОДЕЛИ..."
+                                    className="w-full bg-transparent border-none text-white text-[10px] md:text-xs font-mono pl-10 pr-10 py-4 sm:py-5 focus:outline-none placeholder:text-white/10 uppercase tracking-widest"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => { setSearchQuery(""); handleSearch(); }}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-white/20 hover:text-safety-orange transition-colors"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                )}
+                            </div>
                             <button
                                 onClick={handleSearch}
-                                className="ml-4 px-6 py-2 bg-safety-orange text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-safety-orange/50"
+                                className="w-full sm:w-auto px-6 py-3 sm:py-2 bg-safety-orange text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-safety-orange/50"
                             >
                                 Найти
                             </button>

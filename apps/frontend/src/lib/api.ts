@@ -20,6 +20,7 @@ export interface Project {
 export interface Product {
     id: string; // Changed to string for UUID support
     name: string;
+    slug?: string;
     description?: string;
     category?: string;
     specs?: Record<string, any>;
@@ -319,6 +320,7 @@ export interface MachineInstance {
     }>;
     telemetry_summary: Record<string, any>;
     product?: Product;
+    next_maintenance_date?: string;
 }
 
 export const fetchMachineInstance = async (serialNumber: string): Promise<MachineInstance | undefined> => {
@@ -340,6 +342,16 @@ export const fetchFeaturedInstance = async (): Promise<MachineInstance | undefin
     } catch (error) {
         console.error('Error fetching featured instance:', error);
         return undefined;
+    }
+};
+
+export const fetchRecommendedSpares = async (serialNumber: string): Promise<Product[]> => {
+    try {
+        const response = await api.get(`/catalog/instances/${serialNumber}/recommended-spares`);
+        return response.data || [];
+    } catch (error) {
+        console.error(`Error fetching recommended spares for ${serialNumber}:`, error);
+        return [];
     }
 };
 

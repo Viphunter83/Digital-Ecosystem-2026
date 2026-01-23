@@ -14,6 +14,14 @@ export default function MapComponent({ projects }: MapComponentProps) {
     const apiKey = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || 'da2795c4-0e28-4f3a-b58a-83432b0942b2';
     const isKeyValid = apiKey && apiKey !== 'placeholder_replace_with_real_key';
 
+    // Domain verification for debugging
+    if (typeof window !== 'undefined' && isKeyValid) {
+        console.log(`[YandexMaps] Initializing on domain: ${window.location.hostname}`);
+        if (window.location.hostname === 'td-rss.ru' && apiKey.startsWith('da2795')) {
+            console.warn('[YandexMaps] Using fallback key. Ensure this key is authorized for td-rss.ru in Yandex Developer Console.');
+        }
+    }
+
     const defaultState = {
         center: [55.751574, 37.573856],
         zoom: 3,
@@ -27,10 +35,16 @@ export default function MapComponent({ projects }: MapComponentProps) {
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" /><circle cx="12" cy="10" r="3" /></svg>
                 </div>
-                <h3 className="font-bold uppercase tracking-widest text-sm mb-2">Интерактивная карта временно недоступна</h3>
+                <h3 className="font-bold uppercase tracking-widest text-sm mb-2">Карта в режиме ожидания</h3>
                 <p className="text-xs max-w-xs leading-relaxed">
-                    Для отображения карты требуется настройка API ключа в кабинете разработчика Yandex.
+                    Для активации карты необходимо подтвердить API ключ в переменных окружения на домене td-rss.ru.
                 </p>
+                <button
+                    onClick={() => window.open('https://developer.tech.yandex.ru/', '_blank')}
+                    className="mt-4 text-[10px] uppercase font-mono border border-white/20 px-3 py-1 hover:bg-white/5 transition-colors"
+                >
+                    Кабинет Разработчика ➔
+                </button>
             </div>
         );
     }

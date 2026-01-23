@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { fetchMachineInstance, MachineInstance } from "@/lib/api";
+import { fetchMachineInstance, MachineInstance, fetchRecommendedSpares, Product } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     CheckCircle2,
@@ -17,13 +17,17 @@ import {
     Cpu,
     Settings,
     FileText,
-    Download
+    Download,
+    ShoppingCart,
+    Plus,
+    Package
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DigitalTwinViewer } from "@/components/DigitalTwinViewer";
+import { useCartStore } from "@/lib/stores/useCartStore";
 
 // Icon mapping for status steps
 const STATUS_ICON_MAP: Record<string, any> = {
@@ -36,19 +40,37 @@ export default function MachinePassportPage() {
     const params = useParams();
     const id = params.id as string;
     const [instance, setInstance] = useState<MachineInstance | null>(null);
+    const [recommendedSpares, setRecommendedSpares] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"passport" | "twin" | "docs">("passport");
+
+    const addItem = useCartStore(state => state.addItem);
 
     useEffect(() => {
         const loadData = async () => {
             if (id) {
                 const data = await fetchMachineInstance(id);
-                if (data) setInstance(data);
+                if (data) {
+                    setInstance(data);
+                    const spares = await fetchRecommendedSpares(data.serial_number);
+                    setRecommendedSpares(spares);
+                }
                 setLoading(false);
             }
         };
         loadData();
     }, [id]);
+
+    const handleAddToCart = (product: Product) => {
+        addItem({
+            id: product.id,
+            name: product.name,
+            price: product.price || 0,
+            image_url: product.image_url,
+            slug: product.slug || ''
+        });
+        toast.success(`Добавлено: ${product.name}`);
+    };
 
     if (loading) {
         return (
@@ -81,27 +103,27 @@ export default function MachinePassportPage() {
                 <div className="container mx-auto px-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                         <div className="space-y-4">
-                            <Link href="/service" className="inline-flex items-center text-white/40 hover:text-safety-orange transition-colors font-mono text-xs uppercase tracking-widest">
-                                <ArrowLeft size={14} className="mr-2" /> Вернуться в Сервис
+                            <Link href="/service" className="inline-flex items-center text-white/40 hover:text-safety-orange transition-colors font-mono text-[10px] md:text-xs uppercase tracking-widest">
+                                <ArrowLeft size={14} className="mr-2" /> <span className="hidden xs:inline">Вернуться в </span>Сервис
                             </Link>
                             <div>
-                                <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-2">
+                                <h1 className="text-3xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-2">
                                     {instance.serial_number}
                                 </h1>
-                                <div className="flex items-center gap-4 font-mono text-xs text-white/30 uppercase">
+                                <div className="flex flex-wrap items-center gap-2 md:gap-4 font-mono text-[10px] md:text-xs text-white/30 uppercase">
                                     <span>{productNames}</span>
-                                    <span className="w-1.5 h-1.5 bg-white/10 rounded-full" />
+                                    <span className="hidden xs:block w-1.5 h-1.5 bg-white/10 rounded-full" />
                                     <span>Inv: {instance.inventory_number || "N/A"}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex gap-1 p-1 bg-black/40 border border-white/5 rounded-none">
+                        <div className="flex w-full md:w-auto gap-1 p-1 bg-black/40 border border-white/5 rounded-none overflow-x-auto no-scrollbar">
                             {(["passport", "twin", "docs"] as const).map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
-                                    className={`px-6 py-2 text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === tab ? "bg-safety-orange text-white" : "text-white/40 hover:bg-white/5 hover:text-white"}`}
+                                    className={`flex-1 md:flex-none px-3 md:px-6 py-2 text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === tab ? "bg-safety-orange text-white" : "text-white/40 hover:bg-white/5 hover:text-white"}`}
                                 >
                                     {tab === "passport" && "Паспорт"}
                                     {tab === "twin" && "Двойник"}
@@ -180,9 +202,14 @@ export default function MachinePassportPage() {
                                         <div className="text-2xl font-black font-mono">12,480 <span className="text-[10px] font-light">ч</span></div>
                                     </div>
                                     <div className="bg-industrial-panel border border-white/5 p-4 space-y-2">
-                                        <Zap size={16} className="text-safety-orange" />
-                                        <div className="text-[10px] text-white/40 uppercase font-bold">Энергия</div>
-                                        <div className="text-2xl font-black font-mono">15.4 <span className="text-[10px] font-light">кВт/ч</span></div>
+                                        <Clock size={16} className="text-safety-orange" />
+                                        <div className="text-[10px] text-white/40 uppercase font-bold">След. ТО</div>
+                                        <div className="text-xl font-black font-mono">
+                                            {instance.next_maintenance_date
+                                                ? new Date(instance.next_maintenance_date).toLocaleDateString('ru-RU')
+                                                : "Н/Д"
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -229,6 +256,38 @@ export default function MachinePassportPage() {
                                         <p className="text-[11px] text-white/40 leading-relaxed uppercase tracking-wider">Усиленный шпиндель (15кВт), Fanuc 0i-TF.</p>
                                     </div>
                                 </div>
+
+                                {recommendedSpares.length > 0 && (
+                                    <section className="space-y-6">
+                                        <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                            <Package size={24} className="text-safety-orange" />
+                                            Рекомендованный Комплект ТО
+                                        </h2>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {recommendedSpares.map((spare) => (
+                                                <div key={spare.id} className="bg-industrial-panel border border-white/5 p-4 flex flex-col justify-between group hover:border-safety-orange/30 transition-all">
+                                                    <div>
+                                                        <div className="aspect-square bg-white/5 mb-4 overflow-hidden">
+                                                            <img
+                                                                src={spare.image_url || "/images/products/spare_placeholder.png"}
+                                                                alt={spare.name}
+                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                                            />
+                                                        </div>
+                                                        <h3 className="text-xs font-bold uppercase tracking-tight mb-1 line-clamp-2">{spare.name}</h3>
+                                                        <p className="text-[10px] text-white/30 font-mono mb-4">{spare.price?.toLocaleString()} ₽</p>
+                                                    </div>
+                                                    <Button
+                                                        onClick={() => handleAddToCart(spare)}
+                                                        className="w-full bg-white/5 hover:bg-safety-orange text-white text-[10px] font-bold uppercase h-9 rounded-none flex items-center gap-2"
+                                                    >
+                                                        <Plus size={14} /> В корзину
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
                             </div>
                         </motion.div>
                     )}

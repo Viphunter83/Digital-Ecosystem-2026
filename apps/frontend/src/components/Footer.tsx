@@ -116,7 +116,7 @@ export function Footer() {
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-muted-foreground font-mono uppercase tracking-wide">
                     <p>&copy; 2026 ТД РУССТАНКОСБЫТ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</p>
                     <div className="flex gap-6 mt-4 md:mt-0">
-                        <Link href="#" className="hover:text-white">Политика конфиденциальности</Link>
+                        <Link href="/privacy" className="hover:text-white transition-colors">Политика конфиденциальности</Link>
                         <Link href="#" className="hover:text-white">Условия использования</Link>
                     </div>
                 </div>

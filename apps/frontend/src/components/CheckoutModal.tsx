@@ -56,6 +56,7 @@ export function CheckoutModal({
         phone: "",
         email: "",
         comment: "",
+        agreed: false,
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -75,6 +76,10 @@ export function CheckoutModal({
 
         if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             newErrors.email = "Некорректный email";
+        }
+
+        if (!formData.agreed) {
+            newErrors.agreed = "Необходимо согласие на обработку данных";
         }
 
         setErrors(newErrors);
@@ -134,7 +139,23 @@ export function CheckoutModal({
 
             // Haptic success
             if (telegramUser && (window as any).Telegram?.WebApp) {
-                (window as any).Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                const tg = (window as any).Telegram.WebApp;
+                tg.HapticFeedback.notificationOccurred('success');
+
+                // Send data back to the bot
+                try {
+                    tg.sendData(JSON.stringify({
+                        type: "ORDER",
+                        items: items.map(item => ({
+                            name: item.name,
+                            quantity: item.quantity,
+                            price: item.price
+                        })),
+                        total: totalAmount
+                    }));
+                } catch (sendErr) {
+                    console.error("Failed to send data to Telegram:", sendErr);
+                }
             }
 
             onSuccess();
@@ -240,6 +261,26 @@ export function CheckoutModal({
                             rows={3}
                             className="w-full rounded-md bg-black/50 border border-white/20 text-white placeholder:text-white/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-safety-orange focus:border-transparent"
                         />
+                    </div>
+
+                    <div className="flex items-start space-x-3 pt-2">
+                        <div className="flex items-center h-5">
+                            <input
+                                id="agreed"
+                                type="checkbox"
+                                checked={formData.agreed}
+                                onChange={(e) => setFormData(prev => ({ ...prev, agreed: e.target.checked }))}
+                                className="w-4 h-4 rounded border-white/20 bg-black/50 text-safety-orange focus:ring-safety-orange"
+                            />
+                        </div>
+                        <div className="text-xs text-gray-400 leading-tight">
+                            <label htmlFor="agreed" className="cursor-pointer">
+                                Согласен на <span className="text-white underline">обработку персональных данных</span> в соответствии с 152-ФЗ РФ
+                            </label>
+                            {errors.agreed && (
+                                <p className="text-red-500 mt-1">{errors.agreed}</p>
+                            )}
+                        </div>
                     </div>
 
                     {/* Order Summary */}
