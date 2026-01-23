@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, Wrench, ShieldCheck, Zap, Cog, History, ArrowRight, Check } from "lucide-react";
-import QRCode from "react-qr-code";
 import { fetchServiceBySlug, fetchFeaturedInstance, Service, MachineInstance } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
