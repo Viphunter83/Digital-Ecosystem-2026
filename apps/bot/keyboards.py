@@ -1,6 +1,11 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 # --- Onboarding / Role Selection ---
+consent_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="✅ Согласен и продолжить", callback_data="consent_accept")],
+    [InlineKeyboardButton(text="📄 Политика конфиденциальности", url="https://russtankosbyt.ru/privacy")]
+])
+
 role_selection_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="👷♂️ Гл. Инженер / Механик", callback_data="role_engineer")],
     [InlineKeyboardButton(text="💼 Снабженец / Закупщик", callback_data="role_procurement")],

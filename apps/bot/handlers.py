@@ -11,12 +11,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.bot.keyboards import (
-    role_selection_kb, 
-    engineer_kb, 
-    procurement_kb, 
-    director_kb,
     invoice_method_kb,
-    get_service_request_kb
+    get_service_request_kb,
+    consent_kb
 )
 from apps.bot.integrations.amocrm import amocrm
 from apps.bot.database import AsyncSessionLocal
@@ -30,6 +27,7 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 class Registration(StatesGroup):
+    waiting_for_consent = State()
     choosing_role = State()
 
 class InvoiceStates(StatesGroup):
@@ -65,11 +63,29 @@ async def register_user_role(tg_id: int, role_key: str):
 async def cmd_start(message: Message, state: FSMContext):
     user_id = message.from_user.id
     
-    # Parse deep link parameter (e.g., /start help or /start service_CNC-2026-X)
+    # Check if user exists and has role
+    existing_role = await get_user_role(user_id)
+    
+    # Parse deep link parameter
     args = message.text.split(maxsplit=1)
-    if len(args) > 1:
-        param = args[1].strip()
-        
+    param = args[1].strip() if len(args) > 1 else None
+
+    if not existing_role:
+        # Store param for later if it exists
+        if param:
+            await state.update_data(start_param=param)
+            
+        # Mandatory 152-FZ Consent
+        await message.answer(
+            "👋 Вас приветствует Цифровой Ассистент «РусСтанкоСбыт».\n\n"
+            "Для продолжения работы, пожалуйста, ознакомьтесь с нашей политикой конфиденциальности и подтвердите согласие на обработку персональных данных (152-ФЗ).",
+            reply_markup=consent_kb
+        )
+        await state.set_state(Registration.waiting_for_consent)
+        return
+
+    # If already registered, handle params or main menu
+    if param:
         # Handle help command
         if param == "help":
             await message.answer(
@@ -82,25 +98,13 @@ async def cmd_start(message: Message, state: FSMContext):
             )
             return
             
-        # Handle service deep link (from QR code)
+        # Handle service deep link
         if param.startswith("service_"):
             serial_number = param.replace("service_", "")
             await show_machine_status(message, serial_number, state)
             return
     
-    # Default flow: Check if user exists in DB
-    existing_role = await get_user_role(user_id)
-    
-    if existing_role:
-        await send_role_menu(message, existing_role)
-    else:
-        # Start onboarding
-        await message.answer(
-            "👋 Вас приветствует Цифровой Ассистент «РусСтанкоСбыт».\n\n"
-            "Для настройки интерфейса, выберите вашу роль:",
-            reply_markup=role_selection_kb
-        )
-        await state.set_state(Registration.choosing_role)
+    await send_role_menu(message, existing_role)
 
 
 async def show_machine_status(message: Message, serial_number: str, state: FSMContext):
@@ -197,10 +201,20 @@ async def cmd_login(message: Message):
     else:
         await message.answer("❌ Неверный пароль.")
 
+@router.callback_query(F.data == "consent_accept")
+async def process_consent(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text(
+        "✅ Согласие получено.\n\n"
+        "Теперь выберите вашу роль для настройки интерфейса:",
+        reply_markup=role_selection_kb
+    )
+    await state.set_state(Registration.choosing_role)
+    await callback.answer()
+
 # --- Role Selection Callback ---
 @router.callback_query(F.data.startswith("role_"))
 async def process_role_selection(callback: CallbackQuery, state: FSMContext):
-    role_code = callback.data.split("_")[1] # engineer, procurement, director
+    role_code = callback.data.split("_")[1]
     user_id = callback.from_user.id
     
     # Save to DB
@@ -214,6 +228,25 @@ async def process_role_selection(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await callback.message.answer(f"✅ Роль установлена: *{role_code.upper()}*")
     
+    # Check if we have a pending deep link parameter
+    state_data = await state.get_data()
+    param = state_data.get("start_param")
+    
+    if param:
+        # Process deep link
+        if param == "help":
+             await callback.message.answer(
+                "🛠 *Помощь по боту «РусСтанкоСбыт»*\n\n"
+                "• /start — Главное меню\n"
+                "• /login <пароль> — Авторизация менеджера"
+            )
+        elif param.startswith("service_"):
+            serial_number = param.replace("service_", "")
+            await show_machine_status(callback.message, serial_number, state)
+            # Don't clear state yet as show_machine_status uses it
+            await callback.answer()
+            return
+
     # Send appropriate menu
     await send_role_menu(callback.message, role_code)
     
