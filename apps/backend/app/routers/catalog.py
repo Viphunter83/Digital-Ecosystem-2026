@@ -106,70 +106,67 @@ async def search_products(
             "total": total_count
         }
 
-    # Check if this looks like a semantic query (e.g. > 1 word)
-    # AI Search handles its own limiting (top N relevance). 
-    # Pagination for AI search is tricky without re-running embedding. 
-    # For now, we return Top Limit matches for AI.
-    is_semantic = len(q.split()) > 1
+    # HYBRID SEARCH (MACHINES)
+    # We combine Keyword match (ILIKE) and Semantic match (pgvector)
     
-    if is_semantic:
+    # 1. Keyword search (always performed as it's fast and precise for model numbers)
+    kw_query = select(Product).where(Product.is_published == True)
+    if q:
+        kw_query = kw_query.where(Product.name.ilike(f"%{q}%"))
+    if category:
+        kw_query = kw_query.where(Product.category == category)
+    
+    kw_results = await run_in_threadpool(lambda: db.execute(kw_query.options(joinedload(Product.images))).unique().scalars().all())
+    
+    # 2. Semantic search (if q is meaningful)
+    semantic_results = []
+    if q and len(q.split()) > 0:
         try:
             ai_service = AIService()
             query_embedding = await ai_service.get_embedding(q)
             
-            # Semantic search using cosine distance (<=> operator)
             distance_expr = Product.embedding.cosine_distance(query_embedding).label("distance")
             
-            stmt = select(Product, distance_expr).options(
+            sem_stmt = select(Product, distance_expr).options(
                 joinedload(Product.images)
-            ).where(Product.is_published == True).order_by(distance_expr).limit(limit).offset(offset) # Apply Limit/Offset to AI too?
-            # AI search usually needs strict ordering. 
-            # If we offset deep, relevance drops.
+            ).where(Product.is_published == True)
             
-            # Execute and filter in python (Async DB)
-            results = await run_in_threadpool(lambda: db.execute(stmt).unique().all())
+            if category:
+                sem_stmt = sem_stmt.where(Product.category == category)
+                
+            sem_stmt = sem_stmt.order_by(distance_expr).limit(limit)
             
-            # Total count for AI is hard to guess without fetching all. 
-            # We can assume limit+1 or something. 
-            # Or simplified: AI results are finite.
-            # Let's count matching rows locally? No.
-            # For UX, we say total = len(results) if no pagination supported for semantic yet.
-            # But let's try to support it. 
+            sem_raw = await run_in_threadpool(lambda: db.execute(sem_stmt).unique().all())
             
-            filtered_products = []
-            for product, dist in results:
-                if dist < 0.6:
-                    filtered_products.append(product)
-            
-            return {
-                "results": [ProductSchema.model_validate(p) for p in filtered_products],
-                "total": len(filtered_products) # Approximated for semantic
-            }
-            
+            # Threshold for semantic relevance
+            for product, dist in sem_raw:
+                if dist < 0.6: # 0.6 is a reasonable threshold for cosine distance
+                    semantic_results.append(product)
+                    
         except Exception as e:
             print(f"Semantic search failed: {e}")
-            pass
             
-    # Minimal/Keyword search
-    query = select(Product).where(Product.is_published == True)
-    query = query.where(Product.name.ilike(f"%{q}%"))
+    # 3. Merge and Deduplicate
+    # Keyword results go first (more precise for specific models), then semantic (similar items)
+    seen_ids = set()
+    merged_results = []
     
-    # Apply category filter
-    if category:
-        query = query.where(Product.category == category)
+    for p in kw_results:
+        if p.id not in seen_ids:
+            merged_results.append(p)
+            seen_ids.add(p.id)
+            
+    for p in semantic_results:
+        if p.id not in seen_ids:
+            merged_results.append(p)
+            seen_ids.add(p.id)
+            
+    total_count = len(merged_results)
+    # Apply pagination to merged results
+    paged_results = merged_results[offset : offset + limit]
     
-    # Count
-    count_stmt = select(func.count()).select_from(query.subquery())
-    total_count = await run_in_threadpool(lambda: db.execute(count_stmt).scalar()) or 0
-
-    # Data
-    query = query.options(joinedload(Product.images)).limit(limit).offset(offset)
-    
-    # Async DB Execution
-    results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
-    data = [ProductSchema.model_validate(p) for p in results]
     return {
-        "results": data,
+        "results": [ProductSchema.model_validate(p) for p in paged_results],
         "total": total_count
     }
 
@@ -211,6 +208,42 @@ def get_featured_instance(db: Session = Depends(get_db)):
         return {"error": "No instances available"}
         
     return MachineInstanceSchema.model_validate(instance)
+
+from apps.backend.app.schemas import SparePartSchema
+
+@router.get("/instances/{serial_number}/recommended-spares")
+async def get_recommended_spares(serial_number: str, db: Session = Depends(get_db)):
+    """
+    Find recommended spare parts for a machine using semantic similarity.
+    """
+    from packages.database.models import SparePart
+    
+    # 1. Get Instance and Product
+    stmt = select(MachineInstance).where(MachineInstance.serial_number == serial_number)
+    instance = db.execute(stmt).scalar_one_or_none()
+    if not instance:
+        return {"error": "Instance not found"}
+        
+    product_stmt = select(Product).where(Product.id == instance.product_id)
+    product = db.execute(product_stmt).scalar_one_or_none()
+    
+    # 2. Semantic Search if product has embedding
+    if product and hasattr(product, 'embedding') and product.embedding is not None:
+        try:
+            # We use product embedding as a query for spares
+            distance_expr = SparePart.embedding.cosine_distance(product.embedding).label("distance")
+            spares_stmt = select(SparePart, distance_expr).order_by(distance_expr).limit(6)
+            
+            spares_raw = await run_in_threadpool(lambda: db.execute(spares_stmt).all())
+            
+            return [SparePartSchema.model_validate(s) for s, dist in spares_raw]
+        except Exception as e:
+            print(f"Recommended spares search failed: {e}")
+            
+    # Fallback: Get some default popular spares
+    spares_stmt = select(SparePart).limit(6)
+    spares = db.execute(spares_stmt).scalars().all()
+    return [SparePartSchema.model_validate(s) for s in spares]
 
 
 @router.get("/debug/migrations")

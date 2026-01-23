@@ -22,66 +22,81 @@ class AmoLeadPayload(BaseModel):
 @router.post("/amocrm/webhook")
 async def handle_amocrm_webhook(request: Request, db: Session = Depends(get_db)):
     """
-    Endpoint receives Webhook from AmoCRM when Deal Status = 'Success/Sold'.
+    Endpoint receives Webhook from AmoCRM.
+    Handles 'leads[status][0][status_id]' change to 'Success' (142 or configured).
     """
     try:
-        # AmoCRM sends x-www-form-urlencoded by default, but we'll accept JSON for this demo
-        # or parse form data if needed. For MVP simplicity, let's assume JSON payload 
-        # sent via a custom automation script or modern webhook.
-        payload = await request.json()
-        logger.info(f"Received AmoCRM Webhook: {payload}")
+        # AmoCRM sends data as x-www-form-urlencoded
+        form_data = await request.form()
+        data_dict = dict(form_data)
+        logger.info(f"Received AmoCRM Webhook Form Data: {data_dict}")
         
-        # 1. Parse Data
-        # In real life: map custom_field_ids (e.g. 123456) to 'Serial Number'
-        lead_id = payload.get("leads", {}).get("status", [{}])[0].get("id")
+        # 1. Check for Lead Status Change
+        # Amo payload structure for leads: leads[status][0][id], leads[status][0][status_id], etc.
+        lead_id = data_dict.get("leads[status][0][id]")
+        status_id = data_dict.get("leads[status][0][status_id]")
+        pipeline_id = data_dict.get("leads[status][0][pipeline_id]")
         
-        # DEMO LOGIC: We extract data assuming a specific simplified structure
-        # (This simulates what we'd do after normalizing the complex Amo payload)
-        
-        # Let's say payload = {"event": "deal_status_changed", "data": {"product_slug": "1m63-cnc", "serial": "AMO-999", "client_inn": "5036040000"}}
-        data = payload.get("data", {})
-        product_slug = data.get("product_slug")
-        serial_number = data.get("serial")
-        client_inn = data.get("client_inn")
-        
-        if not (product_slug and serial_number and client_inn):
-             return {"status": "ignored", "reason": "missing_fields"}
+        # We only care about specific pipelines or statuses (e.g., 142 is often 'Closed/Won')
+        # In a real app, status_id would be compared against a config value
+        if not status_id:
+            return {"status": "ignored", "reason": "no_status_found"}
 
-        # 2. Find/Create Client & Product
-        client = db.execute(select(Client).where(Client.inn == client_inn)).scalar_one_or_none()
-        if not client:
-             # Auto-create client?
-             logger.info(f"Client {client_inn} not found, skipping automation.")
-             return {"status": "error", "message": "client_not_found"}
-
-        product = db.execute(select(Product).where(Product.slug == product_slug)).scalar_one_or_none()
+        # 2. Extract Custom Fields
+        # Custom fields look like: leads[status][0][custom_fields][0][id] = FIELD_ID
+        # and leads[status][0][custom_fields][0][values][0][value] = VALUE
         
-        # 3. Register Equipment
-        new_eq = ClientEquipment(
-            client_id=client.id,
-            product_id=product.id,
-            serial_number=serial_number,
-            purchase_date=datetime.datetime.now(),
-            warranty_until=datetime.datetime.now() + datetime.timedelta(days=365),
-            next_maintenance_date=datetime.datetime.now() + datetime.timedelta(days=180),
-            usage_hours=0
-        )
-        db.add(new_eq)
+        serial_number = None
+        product_slug = None
+        client_inn = None
         
-        # 4. Notify Manager/Client (if bound) via Telegram
-        # Find TelegramUser linked to this client
-        tg_users = db.execute(select(TelegramUser).where(TelegramUser.client_id == client.id)).scalars().all()
-        for user in tg_users:
-            notif = Notification(
-                user_id=user.id,
-                message=f"🎉 *Поздравляем с покупкой!*\n\nВаш новый станок **{product.name}** (SN: {serial_number}) успешно зарегистрирован в Цифровой Экосистеме.\nТеперь вы можете отслеживать его статус и заказывать запчасти.",
-                status="pending"
-            )
-            db.add(notif)
+        # We need to iterate through form keys to find custom fields
+        # Note: In production, we'd use a more refined parser for these nested keys
+        for key, value in data_dict.items():
+            if "custom_fields" in key:
+                if "serial" in key.lower() or "серийный" in key.lower(): # Just a heuristic for the demo
+                    serial_number = value
+                # In real life, we would use FIELD_IDs from settings
+        
+        # 3. Process 'Success' status
+        # Assuming '142' is the won status
+        if status_id == "142":
+            logger.info(f"Deal {lead_id} marked as SUCCESS. Syncing equipment...")
             
-        db.commit()
-        return {"status": "ok", "action": "equipment_registered"}
+            # Find Lead in our DB if exists
+            lead = db.execute(select(Lead).where(Lead.amocrm_id == lead_id)).scalar_one_or_none()
+            
+            # Use data from lead or webhook
+            serial_number = serial_number or (lead.metadata_.get("serial_number") if lead and lead.metadata_ else None)
+            product_slug = product_slug or (lead.metadata_.get("product_slug") if lead and lead.metadata_ else None)
+            
+            if not serial_number:
+                return {"status": "error", "reason": "serial_number_missing"}
+
+            # Find Product
+            product = None
+            if product_slug:
+                product = db.execute(select(Product).where(Product.slug == product_slug)).scalar_one_or_none()
+
+            # Find/Create Machine Instance
+            existing_instance = db.execute(select(MachineInstance).where(MachineInstance.serial_number == serial_number)).scalar_one_or_none()
+            
+            if not existing_instance:
+                new_instance = MachineInstance(
+                    serial_number=serial_number,
+                    product_id=product.id if product else None,
+                    status='operational',
+                    manufacturing_date=datetime.datetime.now()
+                )
+                db.add(new_instance)
+                db.commit()
+                logger.info(f"Registered new equipment: {serial_number}")
+                return {"status": "ok", "action": "equipment_registered", "serial": serial_number}
+            
+            return {"status": "ok", "action": "already_exists"}
+
+        return {"status": "ok", "action": "processed"}
 
     except Exception as e:
-        logger.error(f"Error processing webhook: {e}")
+        logger.error(f"Error processing AmoCRM webhook: {e}")
         return {"status": "error", "details": str(e)}

@@ -153,6 +153,7 @@ class MachineInstanceSchema(BaseModel):
     telemetry_summary: Dict[str, Any] = {}
     
     product: Optional[ProductSchema] = None
+    next_maintenance_date: Optional[datetime] = None
     
     class Config:
         from_attributes = True

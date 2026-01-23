@@ -200,6 +200,55 @@ class AmoCRMClient:
             return None
 
 
+    async def update_lead_status(self, lead_id: str, status_id: int) -> bool:
+        """Update the status of a lead in AmoCRM."""
+        if not self.enabled:
+            return False
+            
+        payload = [
+            {
+                "id": int(lead_id),
+                "status_id": status_id
+            }
+        ]
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.patch(
+                    f"{self.base_url}/leads",
+                    headers=self.headers,
+                    json=payload
+                ) as resp:
+                    return resp.status in (200, 204)
+        except Exception as e:
+            logger.error(f"AmoCRM update_lead_status error: {e}")
+            return False
+
+    async def update_contact(self, contact_id: int, custom_fields: List[Dict[str, Any]]) -> bool:
+        """Update contact custom fields."""
+        if not self.enabled:
+            return False
+            
+        payload = [
+            {
+                "id": contact_id,
+                "custom_fields_values": custom_fields
+            }
+        ]
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.patch(
+                    f"{self.base_url}/contacts",
+                    headers=self.headers,
+                    json=payload
+                ) as resp:
+                    return resp.status in (200, 204)
+        except Exception as e:
+            logger.error(f"AmoCRM update_contact error: {e}")
+            return False
+
+
 # Singleton instance
 amocrm_client = AmoCRMClient()
 
