@@ -272,7 +272,7 @@ def debug_migration_files():
     """
     DEBUG: List migration files present on disk.
     """
-    path = "/app/supabase/migrations"
+    path = "/app/packages/database/migrations"
     try:
         import os
         files = sorted(os.listdir(path))
@@ -285,7 +285,7 @@ def debug_migration_content():
     """
     DEBUG: Read content of the first failing migration.
     """
-    path = "/app/supabase/migrations/20260122030737_update_contacts_info.sql"
+    path = "/app/packages/database/migrations/20260122030737_update_contacts_info.sql"
     try:
         with open(path, "r") as f:
             return {"content": f.read()}

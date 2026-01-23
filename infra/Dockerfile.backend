@@ -21,8 +21,6 @@ COPY packages /app/packages
 # Copy Backend Code
 COPY apps/backend /app/apps/backend
 
-# Copy Migrations
-COPY supabase /app/supabase
 
 # Set Python Path to root so imports work like 'from apps.backend...' or 'from packages...'
 ENV PYTHONPATH=/app
