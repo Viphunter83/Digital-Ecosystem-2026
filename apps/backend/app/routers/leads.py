@@ -88,7 +88,10 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                 # Extract price if available (e.g. from cart total)
                 price = 0
                 if new_lead.metadata_ and "total" in new_lead.metadata_:
-                    price = int(new_lead.metadata_["total"])
+                    try:
+                        price = float(new_lead.metadata_["total"])
+                    except (ValueError, TypeError):
+                        price = 0
                 
                 # Create Lead
                 amo_lead = await amocrm_client.create_lead(

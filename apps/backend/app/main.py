@@ -18,8 +18,16 @@ app = FastAPI(
 async def log_requests(request, call_next):
     import logging
     logger = logging.getLogger("uvicorn")
+    
+    # Sanitize headers for security
+    safe_headers = dict(request.headers)
+    if "authorization" in safe_headers:
+        safe_headers["authorization"] = "Bearer ********"
+    if "cookie" in safe_headers:
+        safe_headers["cookie"] = "SESSID=********"
+    
     logger.info(f"Incoming Request: {request.method} {request.url}")
-    logger.info(f"Headers: {request.headers}")
+    logger.info(f"Headers: {safe_headers}")
     
     response = await call_next(request)
     
