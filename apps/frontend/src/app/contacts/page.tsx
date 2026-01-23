@@ -29,6 +29,7 @@ export default function ContactsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [offices, setOffices] = useState<Office[]>([]);
+    const [agreed, setAgreed] = useState(false);
 
     useEffect(() => {
         fetchOffices().then(setOffices);
@@ -36,6 +37,12 @@ export default function ContactsPage() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (!agreed) {
+            setStatus('error');
+            return;
+        }
+
         setIsLoading(true);
         setStatus('idle');
 
@@ -148,6 +155,20 @@ export default function ContactsPage() {
                             <div className="space-y-2">
                                 <label className="text-xs font-mono uppercase text-muted-foreground">Суть Запроса</label>
                                 <textarea name="message" rows={4} className="w-full bg-black/40 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none transition-colors rounded-none placeholder:text-white/20" placeholder="Интересует поставка оборудования..." required />
+                            </div>
+
+                            <div className="flex items-start space-x-2 py-2">
+                                <input
+                                    type="checkbox"
+                                    id="agreed-contacts"
+                                    checked={agreed}
+                                    onChange={(e) => setAgreed(e.target.checked)}
+                                    className="mt-1 h-4 w-4 rounded border-white/10 bg-black/40 text-safety-orange focus:ring-safety-orange"
+                                    required
+                                />
+                                <label htmlFor="agreed-contacts" className="text-[10px] text-muted-foreground uppercase font-mono leading-tight">
+                                    Я даю согласие на обработку <a href="/privacy" className="text-safety-orange underline">персональных данных</a> (152-ФЗ).
+                                </label>
                             </div>
 
                             {status === 'success' && (

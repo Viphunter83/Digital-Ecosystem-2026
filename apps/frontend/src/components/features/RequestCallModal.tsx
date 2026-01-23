@@ -25,7 +25,8 @@ export function RequestCallModal({ children }: { children: React.ReactNode }) {
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
-        message: ""
+        message: "",
+        agreed: false
     })
 
     // Detect Telegram WebApp context
@@ -33,6 +34,12 @@ export function RequestCallModal({ children }: { children: React.ReactNode }) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!formData.agreed) {
+            setError("Пожалуйста, подтвердите согласие на обработку персональных данных")
+            return
+        }
+
         setLoading(true)
         setError("")
 
@@ -126,6 +133,20 @@ export function RequestCallModal({ children }: { children: React.ReactNode }) {
                                     value={formData.message}
                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                 />
+                            </div>
+
+                            <div className="flex items-start space-x-2 py-2">
+                                <input
+                                    type="checkbox"
+                                    id="agreed"
+                                    checked={formData.agreed}
+                                    onChange={(e) => setFormData({ ...formData, agreed: e.target.checked })}
+                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-safety-orange focus:ring-safety-orange"
+                                    required
+                                />
+                                <label htmlFor="agreed" className="text-xs text-muted-foreground leading-tight">
+                                    Я даю согласие на обработку моих <a href="/privacy" className="text-safety-orange underline hover:text-orange-600">персональных данных</a> в соответствии с 152-ФЗ.
+                                </label>
                             </div>
 
                             {error && <p className="text-sm text-red-500">{error}</p>}

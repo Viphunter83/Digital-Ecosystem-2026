@@ -523,6 +523,19 @@ function StepResult({ data, result, onClose, user }: { data: DiagnosticData; res
                         placeholder="Ваш Telegram для отчета"
                         className="w-full bg-white/5 border border-white/10 p-3 text-sm text-white focus:border-safety-orange focus:outline-none placeholder:text-muted-foreground/50 text-center"
                     />
+
+                    <div className="flex items-start space-x-2 text-left bg-white/5 p-2 border border-white/10">
+                        <input
+                            {...register("agreed", { required: true })}
+                            type="checkbox"
+                            id="agreed-diag"
+                            className="mt-1 h-4 w-4 rounded border-white/10 bg-black text-safety-orange focus:ring-safety-orange"
+                        />
+                        <label htmlFor="agreed-diag" className="text-[9px] text-muted-foreground leading-tight uppercase font-mono">
+                            Я согласен на обработку <a href="/privacy" className="text-safety-orange underline">персональных данных</a> (152-ФЗ).
+                        </label>
+                    </div>
+
                     <button
                         type="submit"
                         className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(255,61,0,0.4)] animate-pulse"
