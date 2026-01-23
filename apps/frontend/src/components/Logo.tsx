@@ -38,7 +38,7 @@ export function Logo({ className, showSubtitle = true, variant = "light" }: Logo
 
             {/* Typography */}
             <div className="flex flex-col leading-none">
-                <div className={cn("font-black tracking-tighter uppercase text-xl flex items-center gap-1", textColor)}>
+                <div className={cn("font-black tracking-tighter uppercase text-xl flex items-center gap-1 whitespace-nowrap", textColor)}>
                     <span>ТД</span>
                     <span className="text-safety-orange">РУС</span>
                     <span>СтанкоСбыт</span>

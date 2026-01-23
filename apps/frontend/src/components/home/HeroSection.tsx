@@ -97,7 +97,7 @@ function HeroSectionContent({ onOpenDiagnostics, siteContent }: { onOpenDiagnost
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white leading-[1.0] lg:leading-[0.9] tracking-tighter uppercase mb-4 lg:mb-6 break-normal hyphens-none">
+                            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.0] lg:leading-[0.9] tracking-tighter uppercase mb-4 lg:mb-6 break-normal hyphens-none">
                                 {content.title}
                             </h1>
 
@@ -188,7 +188,7 @@ function DebugPanel({ role, setRole }: { role: UserRole, setRole: (r: UserRole) 
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className={`fixed bottom-28 right-4 z-50 transition-all duration-300 ${isOpen ? 'translate-y-0' : 'translate-y-[calc(100%-40px)]'}`}>
+        <div className={`fixed bottom-28 right-4 z-50 transition-all duration-300 hidden lg:block ${isOpen ? 'translate-y-0' : 'translate-y-[calc(100%-40px)]'}`}>
             <div className="bg-black/80 border border-industrial-border backdrop-blur rounded-lg shadow-2xl overflow-hidden">
                 <button
                     onClick={() => setIsOpen(!isOpen)}

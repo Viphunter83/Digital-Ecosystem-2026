@@ -97,7 +97,7 @@ export function NavBar() {
                             <CartBadge />
                         </Button>
                     </Link>
-                    <Link href="/contacts">
+                    <Link href="/contacts" className="hidden md:flex">
                         <Button className="bg-safety-orange hover:bg-safety-orange-vivid text-white rounded-none border-l-2 border-white/20 font-bold uppercase tracking-wider text-xs px-6 h-10 shadow-[0_0_15px_rgba(255,61,0,0.3)] hover:shadow-[0_0_25px_rgba(255,61,0,0.5)] transition-all">
                             {t('ui_btn_request_cp', 'Запрос КП')}
                         </Button>
