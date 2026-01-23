@@ -71,7 +71,7 @@ export function RequestCallModal({ children }: { children: React.ReactNode }) {
             setTimeout(() => {
                 setOpen(false)
                 setSuccess(false)
-                setFormData({ name: "", phone: "", message: "" })
+                setFormData({ name: "", phone: "", message: "", agreed: false })
             }, 2000)
 
         } catch (err) {
