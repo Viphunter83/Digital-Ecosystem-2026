@@ -40,3 +40,6 @@ apps/backend/data/
 # apps/frontend/public/images/products/*
 # !apps/frontend/public/images/products/.gitkeep
 # !apps/frontend/public/images/products/placeholder_russtanko.jpg
+
+# GGShield
+.cache_ggshield

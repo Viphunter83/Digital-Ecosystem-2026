@@ -193,7 +193,11 @@ async def cmd_login(message: Message):
         return
     
     password = args[1]
-    manager_password = os.getenv("MANAGER_PASSWORD", "admin2026")
+    manager_password = os.getenv("MANAGER_PASSWORD")
+    if not manager_password:
+        logger.error("MANAGER_PASSWORD env var is not set!")
+        await message.answer("⚠️ Авторизация временно недоступна. Обратитесь к администратору.")
+        return
     
     if password == manager_password: 
         await register_user_role(message.from_user.id, "manager")
