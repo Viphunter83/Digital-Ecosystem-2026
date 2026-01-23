@@ -15,7 +15,8 @@ from apps.bot.keyboards import (
     engineer_kb, 
     procurement_kb, 
     director_kb,
-    invoice_method_kb
+    invoice_method_kb,
+    get_service_request_kb
 )
 from apps.bot.database import AsyncSessionLocal
 from packages.database.models import TelegramUser, UserRole, ClientEquipment, ServiceTicket, Product
@@ -156,8 +157,9 @@ async def show_machine_status(message: Message, serial_number: str, state: FSMCo
                         f"📊 Статус: {icon} *{text}*\n\n"
                         f"📜 *История обслуживания:*\n{history_text}\n"
                         f"━━━━━━━━━━━━━━━━━━\n"
-                        f"💡 Нажмите кнопку ниже для создания заявки.",
-                        reply_markup=engineer_kb
+                        f"👇 Выберите действие:",
+                        reply_markup=get_service_request_kb(serial_number),
+                        parse_mode="Markdown"
                     )
                     
                     # Save context for potential service request
@@ -507,3 +509,105 @@ async def director_offer(message: Message):
 @router.message(F.text.contains("Менеджер"))
 async def call_manager(message: Message):
     await message.answer("📞 Ваш менеджер Алексей: +7 (999) 000-00-00")
+
+
+# --- Service Request Callbacks (from machine status view) ---
+
+@router.callback_query(F.data.startswith("request_service_"))
+async def handle_service_request(callback: CallbackQuery):
+    """Handle service/maintenance request from machine status inline keyboard."""
+    serial_number = callback.data.replace("request_service_", "")
+    user_id = callback.from_user.id
+    
+    async with AsyncSessionLocal() as session:
+        # Get or create user
+        user_res = await session.execute(select(TelegramUser).where(TelegramUser.tg_id == user_id))
+        user = user_res.scalar_one_or_none()
+        
+        if not user:
+            user = TelegramUser(tg_id=user_id)
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
+        
+        # Create service ticket
+        import uuid
+        ticket_id = f"REQ-{uuid.uuid4().hex[:6].upper()}"
+        
+        ticket = ServiceTicket(
+            ticket_number=ticket_id,
+            author_id=user.id,
+            description=f"Заявка на ТО/Ремонт для станка {serial_number} (из Telegram)",
+            status="new",
+            priority="normal"
+        )
+        session.add(ticket)
+        await session.commit()
+    
+    await callback.message.edit_text(
+        f"✅ *Заявка создана!*\n\n"
+        f"📋 Номер заявки: `{ticket_id}`\n"
+        f"🔖 Станок: `{serial_number}`\n"
+        f"📞 Тип: ТО / Ремонт\n\n"
+        f"Наш менеджер свяжется с вами в течение 15 минут.\n"
+        f"Телефон: +7 (499) 390-85-04",
+        parse_mode="Markdown"
+    )
+    await callback.answer("Заявка создана!", show_alert=True)
+
+
+@router.callback_query(F.data.startswith("request_parts_"))
+async def handle_parts_request(callback: CallbackQuery):
+    """Handle spare parts request from machine status inline keyboard."""
+    serial_number = callback.data.replace("request_parts_", "")
+    user_id = callback.from_user.id
+    
+    async with AsyncSessionLocal() as session:
+        # Get or create user
+        user_res = await session.execute(select(TelegramUser).where(TelegramUser.tg_id == user_id))
+        user = user_res.scalar_one_or_none()
+        
+        if not user:
+            user = TelegramUser(tg_id=user_id)
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
+        
+        # Create parts request ticket
+        import uuid
+        ticket_id = f"PARTS-{uuid.uuid4().hex[:6].upper()}"
+        
+        ticket = ServiceTicket(
+            ticket_number=ticket_id,
+            author_id=user.id,
+            description=f"Заявка на запчасти для станка {serial_number} (из Telegram)",
+            status="new",
+            priority="normal"
+        )
+        session.add(ticket)
+        await session.commit()
+    
+    await callback.message.edit_text(
+        f"✅ *Заявка на запчасти создана!*\n\n"
+        f"📋 Номер заявки: `{ticket_id}`\n"
+        f"🔖 Станок: `{serial_number}`\n"
+        f"📦 Тип: Заказ запчастей\n\n"
+        f"Менеджер подготовит КП и свяжется с вами.\n"
+        f"📧 zakaz@tdrusstankosbyt.ru",
+        parse_mode="Markdown"
+    )
+    await callback.answer("Заявка на запчасти создана!", show_alert=True)
+
+
+@router.callback_query(F.data == "call_manager")
+async def handle_call_manager(callback: CallbackQuery):
+    """Handle 'Call Manager' button click."""
+    await callback.message.answer(
+        "📞 *Контакты менеджера:*\n\n"
+        "Телефон: +7 (499) 390-85-04\n"
+        "Email: zakaz@tdrusstankosbyt.ru\n"
+        "Telegram: @tdrusstankosbyt\n\n"
+        "Рабочие часы: Пн-Пт, 9:00-18:00",
+        parse_mode="Markdown"
+    )
+    await callback.answer()

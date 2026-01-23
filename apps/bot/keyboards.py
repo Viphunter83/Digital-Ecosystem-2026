@@ -57,3 +57,12 @@ invoice_method_kb = InlineKeyboardMarkup(inline_keyboard=[
 cargo_dummy_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Проверить по номеру заказа", callback_data="cargo_check")]
 ])
+
+# --- Service Request from Machine Status ---
+def get_service_request_kb(serial_number: str) -> InlineKeyboardMarkup:
+    """Inline keyboard for creating service request from machine status view."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🛠 Заказать ТО / Ремонт", callback_data=f"request_service_{serial_number}")],
+        [InlineKeyboardButton(text="📦 Заказать Запчасти", callback_data=f"request_parts_{serial_number}")],
+        [InlineKeyboardButton(text="📞 Позвонить Менеджеру", callback_data="call_manager")]
+    ])
