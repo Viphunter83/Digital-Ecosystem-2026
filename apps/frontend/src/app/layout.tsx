@@ -14,15 +14,6 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jet
 export const metadata: Metadata = {
   title: "ТД РУССТАНКОСБЫТ | Цифровая Экосистема",
   description: "Ведущий поставщик передовых промышленных инженерных решений и систем автоматизации.",
-  icons: {
-    icon: [
-      { url: "/favicon.png", sizes: "32x32" },
-      { url: "/favicon.png", sizes: "192x192" },
-    ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180" },
-    ],
-  },
 };
 
 export default function RootLayout({
