@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { ShimmerButton } from "@/components/ShimmerButton";
@@ -5,6 +6,29 @@ import { Product } from "@/lib/api";
 
 interface ProductTableProps {
     products: Product[];
+}
+
+function ProductTableImage({ url, name }: { url?: string; name: string }) {
+    const [imageError, setImageError] = useState(false);
+
+    return (
+        <div className="relative w-12 h-12 bg-industrial-surface border border-industrial-border overflow-hidden">
+            {url ? (
+                <Image
+                    src={imageError ? "/images/placeholder_machine.jpg" : url}
+                    alt={name}
+                    fill
+                    className="object-cover"
+                    onError={() => setImageError(true)}
+                    sizes="48px"
+                />
+            ) : (
+                <div className="w-full h-full flex items-center justify-center text-[8px] text-white/20 font-mono">
+                    NO IMG
+                </div>
+            )}
+        </div>
+    );
 }
 
 export function ProductTable({ products }: ProductTableProps) {
@@ -29,20 +53,7 @@ export function ProductTable({ products }: ProductTableProps) {
                             className="group hover:bg-white/5 transition-colors duration-200"
                         >
                             <td className="p-3">
-                                <div className="relative w-12 h-12 bg-industrial-surface border border-industrial-border overflow-hidden">
-                                    {product.image_url ? (
-                                        <Image
-                                            src={product.image_url}
-                                            alt={product.name}
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-[8px] text-white/20 font-mono">
-                                            NO IMG
-                                        </div>
-                                    )}
-                                </div>
+                                <ProductTableImage url={product.image_url} name={product.name} />
                             </td>
                             <td className="p-4 font-mono text-sm text-white/70">
                                 {product.id.toString().substring(0, 8).toUpperCase()}

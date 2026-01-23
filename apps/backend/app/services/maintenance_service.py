@@ -2,8 +2,9 @@ import logging
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
-from packages.database.models import MachineInstance, TelegramUser, Notification, Client
+from packages.database.models import MachineInstance, TelegramUser, Notification, Client, Product
 from apps.backend.app.services.notification import notification_service
+from sqlalchemy import func
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +67,28 @@ class MaintenanceService:
                 status='pending'
             )
             self.db.add(new_notif)
+
+            # Publish to Redis for immediate bot notification and AmoCRM task creation
+            # Try to get machine name if possible
+            machine_name = "Оборудование"
+            if instance.product_id:
+                product_stmt = select(Product).where(Product.id == instance.product_id)
+                product = self.db.execute(product_stmt).scalar_one_or_none()
+                if product:
+                    machine_name = product.name
+
+            payload = {
+                "tg_id": user.tg_id,
+                "serial_number": instance.serial_number,
+                "date": instance.next_maintenance_date.strftime("%d.%m.%Y"),
+                "machine_name": machine_name,
+                "client_id": instance.client_id,
+                "client_name": getattr(instance.client, 'name', 'Клиент') if hasattr(instance, 'client') else 'Клиент'
+            }
+            
+            await notification_service.publish_event("maintenance_reminder", payload)
             
         self.db.commit()
-        logger.info(f"Created maintenance notifications for machine {instance.serial_number}")
+        logger.info(f"Created maintenance notifications and published to Redis for machine {instance.serial_number}")
 
 # Note: In a real scheduler, we'd pass a session from a session maker

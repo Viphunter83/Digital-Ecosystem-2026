@@ -16,9 +16,8 @@ export default function MapComponent({ projects }: MapComponentProps) {
 
     // Domain verification for debugging
     if (typeof window !== 'undefined' && isKeyValid) {
-        console.log(`[YandexMaps] Initializing on domain: ${window.location.hostname}`);
-        if (window.location.hostname === 'td-rss.ru' && apiKey.startsWith('da2795')) {
-            console.warn('[YandexMaps] Using fallback key. Ensure this key is authorized for td-rss.ru in Yandex Developer Console.');
+        if (window.location.hostname === 'td-rss.ru' || window.location.hostname.endsWith('.ru')) {
+            console.log(`[YandexMaps] Initializing for .ru domain: ${window.location.hostname}`);
         }
     }
 
@@ -53,7 +52,7 @@ export default function MapComponent({ projects }: MapComponentProps) {
         <div
             className="h-full w-full overflow-hidden bg-deep-graphite relative z-0 group"
         >
-            <YMaps query={{ apikey: apiKey }}>
+            <YMaps query={{ apikey: apiKey, lang: 'ru_RU' }}>
                 <div className="w-full h-full relative">
                     <Map
                         defaultState={defaultState}

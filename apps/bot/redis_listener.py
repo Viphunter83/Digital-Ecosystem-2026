@@ -7,6 +7,7 @@ from aiogram import Bot
 from sqlalchemy import select
 from apps.bot.database import AsyncSessionLocal
 from packages.database.models import TelegramUser, UserRole
+from apps.bot.integrations.amocrm import amocrm
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +102,15 @@ async def start_redis_listener(bot: Bot):
                                 logger.info(f"Maintenance reminder sent to {tg_id}")
                             except Exception as send_err:
                                 logger.error(f"Failed to send reminder to {tg_id}: {send_err}")
+                        
+                        # Phase 3: Create AmoCRM Lead for Sales followup
+                        client_name = payload.get("client_name", "Клиент")
+                        lead_name = f"ТО: {name} ({sn}) - {client_name}"
+                        await amocrm.create_lead(
+                            name=lead_name,
+                            price=0,
+                            tags=["Сервис", "ТО", "Maintenance Upsell"]
+                        )
                                 
                 except json.JSONDecodeError:
                     logger.error("Failed to decode Redis message")

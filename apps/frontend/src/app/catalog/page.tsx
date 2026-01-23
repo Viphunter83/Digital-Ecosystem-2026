@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ProductCard } from '@/components/ProductCard';
 import { ProductTable } from '@/components/ProductTable';
 import { Product, fetchCatalog, fetchFilters, FilterGroup } from '@/lib/api';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export default function CatalogPage() {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -15,6 +16,7 @@ export default function CatalogPage() {
 
     const [activeCategory, setActiveCategory] = useState<string | null>(null); // null = ALL
     const [searchQuery, setSearchQuery] = useState("");
+    const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
     // Pagination State
     const [limit, setLimit] = useState(40);
@@ -57,13 +59,14 @@ export default function CatalogPage() {
         loadFilters();
     }, []);
 
-    // Initial Load & Tab/Category Change
+    // Initial Load & Tab/Category/Search Change
     useEffect(() => {
         setOffset(0);
-        loadData(searchQuery, activeTab, limit, 0, false, activeCategory);
-    }, [activeTab, limit, activeCategory]);
+        loadData(debouncedSearchQuery, activeTab, limit, 0, false, activeCategory);
+    }, [activeTab, limit, activeCategory, debouncedSearchQuery]);
 
     const handleSearch = () => {
+        // Explicit search trigger (e.g. Enter key)
         setOffset(0);
         loadData(searchQuery, activeTab, limit, 0, false, activeCategory);
     };

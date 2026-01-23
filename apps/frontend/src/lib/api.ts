@@ -73,6 +73,21 @@ api.interceptors.request.use(config => {
     return Promise.reject(error);
 });
 
+// Add Response Interceptor for Auth Errors (401)
+api.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 401) {
+            if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('accessToken');
+                // Optional: window.location.href = '/'; 
+                // Or let the useTelegramAuth hook handle it on next refresh
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export const fetchProjects = async (): Promise<Project[]> => {
     try {
         console.log('API Request:', api.defaults.baseURL, '/projects/');

@@ -55,6 +55,7 @@ function formatSpecValue(value: string): string {
 export function ProductDetail({ product }: ProductDetailProps) {
     const addToCart = useCartStore((state) => state.addItem);
     const [added, setAdded] = useState(false);
+    const [imageError, setImageError] = useState(false);
 
     const handleAddToCart = () => {
         // Clean name for cart
@@ -106,10 +107,12 @@ export function ProductDetail({ product }: ProductDetailProps) {
 
                         {product.image_url ? (
                             <Image
-                                src={product.image_url}
+                                src={imageError ? "/images/placeholder_machine.jpg" : product.image_url}
                                 alt={cleanName}
                                 fill
                                 className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
+                                onError={() => setImageError(true)}
+                                priority
                             />
                         ) : (
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">

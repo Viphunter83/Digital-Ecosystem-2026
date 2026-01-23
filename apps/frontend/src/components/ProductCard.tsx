@@ -132,8 +132,10 @@ export function ProductCard({ product }: ProductCardProps) {
         ? Object.entries(product.specs)
             .filter(([key, value]) => {
                 const k = key.toUpperCase();
-                // Filter out description and empty values
-                return k !== 'DESCRIPTION' && value && String(value).trim() !== '';
+                // Filter out description, main/summary and empty values for the card preview
+                // These fields are too long for a card and already exist in description or detail view.
+                const isTooLong = k.includes('DESCRIPTION') || k.includes('MAIN') || k.includes('ОСНОВН') || k.includes('SUMMARY') || k.includes('ОПИСАН');
+                return !isTooLong && value && String(value).trim() !== '';
             })
             .map(([key, value]) => ({
                 parameter: SPEC_MAP[key] || SPEC_MAP[key.toUpperCase()] || key,
@@ -171,12 +173,13 @@ export function ProductCard({ product }: ProductCardProps) {
 
                 {product.image_url ? (
                     <Image
-                        src={imageError ? "/uploads/placeholder_russtanko.jpg" : product.image_url}
+                        src={imageError ? "/images/placeholder_machine.jpg" : product.image_url}
                         alt={displayName}
                         fill
                         className="object-cover object-center transition-transform duration-700 group-hover:scale-105 group-hover:saturate-110"
                         onError={() => setImageError(true)}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        loading="lazy"
                     />
                 ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">
@@ -205,11 +208,11 @@ export function ProductCard({ product }: ProductCardProps) {
 
             <CardContent className="flex-grow relative z-10">
                 <Link href={`/catalog/${product.id}`}>
-                    <div className="grid gap-[1px] bg-industrial-border border border-industrial-border my-2">
+                    <div className="flex flex-col gap-[1px] bg-industrial-border border border-industrial-border my-2 overflow-hidden">
                         {specsArray.slice(0, 3).map((spec, index) => (
-                            <div key={index} className="flex justify-between items-center bg-industrial-panel px-3 py-2 gap-2">
-                                <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold font-mono truncate max-w-[45%]" title={spec.parameter}>{spec.parameter}</span>
-                                <span className="text-[10px] font-mono text-white/90 truncate text-right max-w-[55%]" title={spec.value}>{spec.value}</span>
+                            <div key={index} className="flex flex-col bg-industrial-panel px-3 py-1.5 min-w-0">
+                                <span className="text-[8px] uppercase tracking-widest text-gray-500 font-bold font-mono truncate mb-0.5" title={spec.parameter}>{spec.parameter}</span>
+                                <span className="text-[10px] font-mono text-white/90 line-clamp-2 leading-tight" title={spec.value}>{spec.value}</span>
                             </div>
                         ))}
                     </div>

@@ -41,15 +41,27 @@ export function useTelegramAuth() {
                 return;
             }
 
-            // 2. Check existing session
+            // 2. Check existing session and token validity
             const existingToken = sessionStorage.getItem("accessToken");
             if (existingToken) {
-                setAuth({
-                    user: telegram.initDataUnsafe?.user,
-                    isAuthenticated: true,
-                    isLoading: false
-                });
-                return;
+                // Potential improvement: Check JWT expiration locally
+                try {
+                    const payload = JSON.parse(atob(existingToken.split('.')[1]));
+                    const isExpired = payload.exp * 1000 < Date.now();
+                    if (isExpired) {
+                        sessionStorage.removeItem("accessToken");
+                        // Fall through to re-login
+                    } else {
+                        setAuth({
+                            user: telegram.initDataUnsafe?.user,
+                            isAuthenticated: true,
+                            isLoading: false
+                        });
+                        return;
+                    }
+                } catch (e) {
+                    sessionStorage.removeItem("accessToken");
+                }
             }
 
             // 3. Perform Login
