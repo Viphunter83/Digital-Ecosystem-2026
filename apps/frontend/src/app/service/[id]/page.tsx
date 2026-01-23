@@ -163,7 +163,7 @@ export default function MachinePassportPage() {
                                                 );
                                             })}
                                         </div>
-                                        <Link href={`https://t.me/td_rss_bot?start=service_${instance.serial_number}`} target="_blank" className="block w-full">
+                                        <Link href={`https://t.me/Russtanko2026_bot?start=service_${instance.serial_number}`} target="_blank" className="block w-full">
                                             <Button
                                                 className="w-full mt-8 bg-safety-orange hover:bg-white hover:text-black text-white font-black rounded-none uppercase tracking-widest text-xs h-12 transition-all"
                                             >

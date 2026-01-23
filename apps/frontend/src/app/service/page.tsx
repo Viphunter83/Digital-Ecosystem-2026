@@ -175,57 +175,71 @@ export default function ServicePage() {
                     {/* Right Column: Passport & USP */}
                     <div className="lg:col-span-4 space-y-8">
 
-                        {/* Digital Passport Section */}
+                        {/* Equipment Status Lookup - Makes Business Sense */}
                         <Card className="bg-gradient-to-br from-deep-graphite to-black border-safety-orange/30 text-white overflow-hidden sticky top-24">
                             <CardHeader className="pb-2 border-b border-white/5 bg-white/5">
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-sm uppercase tracking-[0.2em] text-safety-orange flex items-center gap-2">
                                         <History size={16} />
-                                        Digital Passport
+                                        Статус Оборудования
                                     </CardTitle>
                                     <div className="w-2 h-2 bg-safety-orange rounded-full animate-pulse" />
                                 </div>
                             </CardHeader>
                             <CardContent className="p-6 space-y-6">
-                                <Link href={`/service/${machineSerial}`} className="block transform hover:scale-[1.02] transition-transform">
-                                    <div className="flex justify-center bg-white p-3 rounded-xl mx-auto w-fit shadow-[0_0_30px_rgba(255,61,0,0.2)]">
-                                        <QRCode
-                                            value={machineUrl}
-                                            size={140}
-                                            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                                            viewBox={`0 0 256 256`}
-                                        />
+                                {/* S/N Lookup Form */}
+                                <div className="space-y-4">
+                                    <div className="text-center space-y-2">
+                                        <h3 className="font-bold text-lg uppercase tracking-wider">Проверить Статус</h3>
+                                        <p className="text-xs text-gray-400">Введите серийный номер станка</p>
                                     </div>
-                                </Link>
-                                <div className="text-center space-y-2">
-                                    <h3 className="font-bold text-lg uppercase tracking-wider">{machineSerial}</h3>
-                                    <p className="text-xs text-gray-400">{machineInventory} • Инвентарный номер</p>
+
+                                    <form
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            const form = e.target as HTMLFormElement;
+                                            const input = form.elements.namedItem('serial') as HTMLInputElement;
+                                            if (input.value.trim()) {
+                                                window.location.href = `/service/${input.value.trim()}`;
+                                            }
+                                        }}
+                                        className="space-y-3"
+                                    >
+                                        <input
+                                            name="serial"
+                                            type="text"
+                                            placeholder="Например: CNC-2026-X"
+                                            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-gray-500 focus:border-safety-orange focus:outline-none font-mono text-sm uppercase"
+                                        />
+                                        <Button type="submit" className="w-full bg-white/10 hover:bg-white/20 text-white font-bold h-11 uppercase tracking-widest transition-all border border-white/10">
+                                            Найти
+                                        </Button>
+                                    </form>
                                 </div>
 
-                                <div className="space-y-4 pt-4 border-t border-white/5">
-                                    {steps.map((step, index) => {
-                                        const Icon = step.icon;
-                                        return (
-                                            <div key={index} className="flex items-center gap-4">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border transition-colors ${step.done ? 'bg-safety-orange border-safety-orange text-white' : step.active ? 'border-safety-orange text-safety-orange animate-pulse' : 'border-white/10 text-white/20'}`}>
-                                                    <Icon size={14} />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className={`text-xs font-bold ${step.active ? 'text-white' : 'text-gray-500'}`}>{step.title}</span>
-                                                    <span className="text-[10px] text-gray-500">{step.date}</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                <div className="relative">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <div className="w-full border-t border-white/10" />
+                                    </div>
+                                    <div className="relative flex justify-center text-xs uppercase">
+                                        <span className="bg-deep-graphite px-2 text-gray-500">или</span>
+                                    </div>
                                 </div>
 
-                                <Link href={`https://t.me/td_rss_bot?start=service_${machineSerial}`} target="_blank" className="block w-full">
-                                    <Button className="w-full bg-safety-orange hover:bg-white hover:text-black text-white font-black h-12 uppercase tracking-widest transition-all">
-                                        Вызвать инженера
-                                    </Button>
-                                </Link>
+                                {/* Direct Contact CTA */}
+                                <div className="space-y-3">
+                                    <Link href="https://t.me/Russtanko2026_bot" target="_blank" className="block w-full">
+                                        <Button className="w-full bg-safety-orange hover:bg-white hover:text-black text-white font-black h-12 uppercase tracking-widest transition-all">
+                                            Связаться с Инженером
+                                        </Button>
+                                    </Link>
+                                    <p className="text-[10px] text-center text-gray-500">
+                                        Telegram: @Russtanko2026_bot
+                                    </p>
+                                </div>
                             </CardContent>
                         </Card>
+
 
                         {/* USP Section */}
                         <div className="space-y-4">
