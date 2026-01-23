@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 # Config
 DATABASE_URL = os.getenv("DATABASE_URL")
-MIGRATIONS_DIR = "/app/packages/database/migrations"
+MIGRATIONS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../packages/database/migrations"))
 
 def apply_migrations():
     if not DATABASE_URL:
