@@ -87,73 +87,77 @@ export function RequestCallModal({ children }: { children: React.ReactNode }) {
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-industrial-panel border-white/10 text-white">
                 {success ? (
                     <div className="flex flex-col items-center justify-center space-y-4 py-8">
-                        <div className="rounded-full bg-green-100 p-3">
-                            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                        <div className="rounded-full bg-green-500/20 p-3 border border-green-500/50">
+                            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                         </div>
-                        <h3 className="text-xl font-medium text-center">Заявка отправлена!</h3>
-                        <p className="text-center text-muted-foreground">Мы свяжемся с вами в ближайшее время.</p>
+                        <h3 className="text-xl font-bold uppercase tracking-tight text-center">Заявка отправлена!</h3>
+                        <p className="text-center text-gray-400 text-sm">Мы свяжемся с вами в ближайшее время.</p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit}>
                         <DialogHeader>
-                            <DialogTitle>Заказать звонок</DialogTitle>
-                            <DialogDescription>
+                            <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-white">Заказать звонок</DialogTitle>
+                            <DialogDescription className="text-gray-400 text-sm">
                                 Оставьте свои контакты, и мы перезвоним вам для уточнения деталей.
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-4 py-4">
+                        <div className="grid gap-4 py-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Ваше имя</Label>
+                                <Label htmlFor="name" className="text-xs uppercase font-mono tracking-widest text-gray-400">Ваше имя</Label>
                                 <Input
                                     id="name"
                                     placeholder="Иван Иванов"
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-safety-orange"
                                     required
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="phone">Телефон</Label>
+                                <Label htmlFor="phone" className="text-xs uppercase font-mono tracking-widest text-gray-400">Телефон</Label>
                                 <Input
                                     id="phone"
+                                    type="tel"
                                     placeholder="+7 (999) 000-00-00"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-safety-orange"
                                     required
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="message">Комментарий (необязательно)</Label>
+                                <Label htmlFor="message" className="text-xs uppercase font-mono tracking-widest text-gray-400">Комментарий (необязательно)</Label>
                                 <Textarea
                                     id="message"
                                     placeholder="Меня интересует..."
                                     value={formData.message}
                                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-600 focus:border-safety-orange min-h-[80px]"
                                 />
                             </div>
 
-                            <div className="flex items-start space-x-2 py-2">
+                            <div className="flex items-start space-x-3 py-2">
                                 <input
                                     type="checkbox"
                                     id="agreed"
                                     checked={formData.agreed}
                                     onChange={(e) => setFormData({ ...formData, agreed: e.target.checked })}
-                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-safety-orange focus:ring-safety-orange"
+                                    className="mt-1 h-4 w-4 rounded border-white/20 bg-white/5 text-safety-orange focus:ring-safety-orange cursor-pointer"
                                     required
                                 />
-                                <label htmlFor="agreed" className="text-xs text-muted-foreground leading-tight">
+                                <label htmlFor="agreed" className="text-[10px] text-gray-500 leading-tight cursor-pointer selection:bg-transparent">
                                     Я даю согласие на обработку моих <a href="/privacy" className="text-safety-orange underline hover:text-orange-600">персональных данных</a> в соответствии с 152-ФЗ.
                                 </label>
                             </div>
 
-                            {error && <p className="text-sm text-red-500">{error}</p>}
+                            {error && <p className="text-xs text-red-500 bg-red-500/10 p-2 border border-red-500/20">{error}</p>}
 
                         </div>
                         <DialogFooter>
-                            <Button type="submit" disabled={loading} className="w-full bg-safety-orange hover:bg-orange-600 text-white">
+                            <Button type="submit" disabled={loading} className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold h-12 uppercase tracking-widest transition-all shadow-[0_4px_15px_rgba(255,61,0,0.3)]">
                                 {loading ? "Отправка..." : "Отправить заявку"}
                             </Button>
                         </DialogFooter>
