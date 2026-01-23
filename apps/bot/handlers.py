@@ -372,35 +372,42 @@ async def web_app_data_handler(message: Message):
 @router.message(F.text == "🏭 Мой Парк")
 async def engineer_machines(message: Message):
     async with AsyncSessionLocal() as session:
-        # For demo: fetch all equipment (in prod: where(client_id=user.client_id))
-        stmt = select(ClientEquipment).join(Product)
+        # Use MachineInstance as primary source for 'Passport' data
+        stmt = select(MachineInstance).join(Product)
         result = await session.execute(stmt)
-        equipment_list = result.scalars().all()
+        instances = result.scalars().all()
         
-        if not equipment_list:
+        if not instances:
              await message.answer("Список оборудования пуст.")
              return
 
         response = "🏭 *Ваше Оборудование:*\n\n"
-        for eq in equipment_list:
-             # Need to fetch product lazy load or use joined load option
-             # Quick fix: refresh or explicit join query
-             # Since we joined, we can access if options set, but lazy load works in async usually if session open? No, async requires eager.
-             # Let's perform a specific query or assume seed data.
-             # Better: fetch product name
-             prod_res = await session.execute(select(Product).where(Product.id == eq.product_id))
+        for inst in instances:
+             # Fetch product details (joined above)
+             prod_res = await session.execute(select(Product).where(Product.id == inst.product_id))
              prod = prod_res.scalar_one()
              
-             status_icon = "🟢"
-             if eq.next_maintenance_date and (str(eq.next_maintenance_date) < "2026-02-01"):
-                 status_icon = "🟡 (Скоро ТО)"
+             status_icons = {
+                "operational": "🟢",
+                "maintenance": "🟡",
+                "repair": "🔴",
+                "offline": "⚫"
+             }
+             icon = status_icons.get(inst.status, "❓")
              
+             # Check for upcoming maintenance
+             is_soon = False
+             if inst.next_maintenance_date:
+                 days_diff = (inst.next_maintenance_date - datetime.datetime.now(datetime.timezone.utc)).days
+                 if 0 < days_diff <= 30:
+                     is_soon = True
+
              response += (
-                 f"**{prod.name}**\n"
-                 f"🆔 SN: `{eq.serial_number}`\n"
-                 f"⏱ Наработка: {eq.usage_hours} ч\n"
-                 f"🗓 След. ТО: {eq.next_maintenance_date.strftime('%d.%m.%Y') if eq.next_maintenance_date else 'Н/Д'}\n"
-                 f"Статус: {status_icon}\n\n"
+                 f"{icon} **{prod.name}**\n"
+                 f"🆔 SN: `{inst.serial_number}`\n"
+                 f"📊 Статус: {inst.status.upper()}\n"
+                 f"🗓 След. ТО: {inst.next_maintenance_date.strftime('%d.%m.%Y') if inst.next_maintenance_date else 'Н/Д'}"
+                 f"{' ⚠️ *СКОРО!*' if is_soon else ''}\n\n"
              )
         await message.answer(response)
 

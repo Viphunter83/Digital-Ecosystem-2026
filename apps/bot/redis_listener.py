@@ -69,7 +69,7 @@ async def start_redis_listener(bot: Bot):
                            # Try env var
                            admin_id = os.getenv("TELEGRAM_ADMIN_CHAT_ID")
                            if admin_id:
-                               manager_ids = [int(admin_id)]
+                                manager_ids = [int(admin_id)]
 
                         if not manager_ids:
                             logger.warning("No managers found to notify.")
@@ -80,6 +80,27 @@ async def start_redis_listener(bot: Bot):
                                 logger.info(f"Notification sent to {tg_id}")
                             except Exception as send_err:
                                 logger.error(f"Failed to send to {tg_id}: {send_err}")
+                    
+                    elif event_type == "maintenance_reminder":
+                        tg_id = payload.get("tg_id")
+                        sn = payload.get("serial_number")
+                        date = payload.get("date")
+                        name = payload.get("machine_name", "Оборудование")
+                        
+                        text = (
+                            f"🗓 *Напоминание о ТО!*\n\n"
+                            f"⚙️ *Станок:* {name} (`{sn}`)\n"
+                            f"🕒 *Плановое ТО:* {date}\n\n"
+                            f"💡 До планового обслуживания осталось *30 дней*. "
+                            f"Рекомендуем заранее проверить наличие необходимых расходных материалов."
+                        )
+                        
+                        if tg_id:
+                            try:
+                                await bot.send_message(chat_id=int(tg_id), text=text, parse_mode="Markdown")
+                                logger.info(f"Maintenance reminder sent to {tg_id}")
+                            except Exception as send_err:
+                                logger.error(f"Failed to send reminder to {tg_id}: {send_err}")
                                 
                 except json.JSONDecodeError:
                     logger.error("Failed to decode Redis message")
