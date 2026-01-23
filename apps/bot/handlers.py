@@ -107,12 +107,11 @@ async def cmd_start(message: Message, state: FSMContext):
     await send_role_menu(message, existing_role)
 
 
-async def show_machine_status(message: Message, serial_number: str, state: FSMContext):
+async def show_machine_status(message: Message, serial_number: str, state: FSMContext, http_session: aiohttp.ClientSession):
     """Show machine status when user scans QR code and opens bot."""
     # Fetch machine data from backend
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{BACKEND_URL}/catalog/instances/{serial_number}") as resp:
+        async with http_session.get(f"{BACKEND_URL}/catalog/instances/{serial_number}") as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     if "error" in data:
@@ -194,8 +193,9 @@ async def cmd_login(message: Message):
         return
     
     password = args[1]
-    # In a real app, hash checking or env var. MVP: hardcoded.
-    if password == "admin2026": 
+    manager_password = os.getenv("MANAGER_PASSWORD", "admin2026")
+    
+    if password == manager_password: 
         await register_user_role(message.from_user.id, "manager")
         await message.answer("✅ Вы авторизованы как Менеджер. Вы будете получать уведомления о заявках.")
     else:
@@ -302,15 +302,7 @@ async def handle_invoice_upload(message: Message, state: FSMContext):
             "username": message.from_user.username
         }
         
-        async with aiohttp.ClientSession() as session:
-            payload = {
-                "source": "bot",
-                "name": user_info['name'],
-                "message": f"Запрос счета (Файл: {file_name}). Username: @{user_info.get('username', 'N/A')}",
-                "meta": {"telegram_file_id": file_id}
-            }
-            # Fire and forget (or await response)
-            async with session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+        async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
                 if resp.status == 200:
                     logger.info(f"Lead created for {message.from_user.id}")
                 else:
@@ -368,30 +360,22 @@ async def web_app_data_handler(message: Message):
         
         await message.answer(receipt_text)
         
-        # Send to Backend as Lead
-        try:
-            user_info = {
-                "name": message.from_user.full_name,
-                "username": message.from_user.username
-            }
-            
-            async with aiohttp.ClientSession() as session:
-                payload = {
-                    "source": "bot_order",
-                    "name": user_info['name'],
-                    "message": f"Заказ из WebApp:\n{raw_data}\nUsername: @{user_info.get('username', 'N/A')}",
-                    "meta": {
-                        "telegram_user_id": message.from_user.id,
-                        "order_data": data
-                    }
+            # Send to Backend as Lead
+            payload = {
+                "source": "bot_order",
+                "name": user_info['name'],
+                "message": f"Заказ из WebApp:\n{raw_data}\nUsername: @{user_info.get('username', 'N/A')}",
+                "meta": {
+                    "telegram_user_id": message.from_user.id,
+                    "order_data": data
                 }
-                
-                async with session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
-                    if resp.status == 200:
-                        logger.info(f"Order Lead created for {message.from_user.id}")
-                    else:
-                        err = await resp.text()
-                        logger.error(f"Failed to create order lead: {err}")
+            }
+            async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+                if resp.status == 200:
+                    logger.info(f"Order Lead created for {message.from_user.id}")
+                else:
+                    err = await resp.text()
+                    logger.error(f"Failed to create order lead: {err}")
         except Exception as e:
             logger.error(f"Error sending order to backend: {e}")
             
@@ -404,9 +388,12 @@ async def web_app_data_handler(message: Message):
 
 @router.message(F.text == "🏭 Мой Парк")
 async def engineer_machines(message: Message):
+    # Optimizing: Fetch only SN and Status first if the fleet is large.
+    # For now, adding basic limit to prevent message overflow.
     async with AsyncSessionLocal() as session:
-        # Use MachineInstance as primary source for 'Passport' data
-        stmt = select(MachineInstance).join(Product)
+        # User-specific machine filtering could be added here if client_id is known
+        # For now, limiting to top 15 to ensure stability
+        stmt = select(MachineInstance).limit(15)
         result = await session.execute(stmt)
         instances = result.scalars().all()
         

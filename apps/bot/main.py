@@ -26,19 +26,26 @@ async def main():
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     
-    # Include main router
-    dp.include_router(router)
-    
-    # Start Poller (DB)
-    from apps.bot.poller import start_notification_poller
-    asyncio.create_task(start_notification_poller(bot))
+    # Setup Global aiohttp session
+    import aiohttp
+    timeout = aiohttp.ClientTimeout(total=10) # 10s global timeout
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        # Pass session to handlers or context
+        dp["http_session"] = session
+        
+        # Include main router
+        dp.include_router(router)
+        
+        # Start Poller (DB)
+        from apps.bot.poller import start_notification_poller
+        asyncio.create_task(start_notification_poller(bot))
 
-    # Start Redis Listener
-    from apps.bot.redis_listener import start_redis_listener
-    asyncio.create_task(start_redis_listener(bot))
-    
-    logger.info("Starting Role-Based Bot...")
-    await dp.start_polling(bot)
+        # Start Redis Listener
+        from apps.bot.redis_listener import start_redis_listener
+        asyncio.create_task(start_redis_listener(bot))
+        
+        logger.info("Starting Role-Based Bot with Global Session...")
+        await dp.start_polling(bot)
 
 if __name__ == "__main__":
     try:
