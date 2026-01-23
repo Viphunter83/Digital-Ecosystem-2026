@@ -352,4 +352,50 @@ def get_product(product_id: str, db: Session = Depends(get_db)):
 
         return {"error": "Product not found"}
     except Exception as e:
+        return {"error": "Product not found"}
+
+@router.post("/reindex/{product_id}")
+async def reindex_product(product_id: str, db: Session = Depends(get_db)):
+    """
+    Triggered by Directus hook to update embeddings for a product.
+    """
+    try:
+        stmt = select(Product).where(Product.id == product_id)
+        product = await run_in_threadpool(lambda: db.execute(stmt).scalar_one_or_none())
+        if not product:
+            return {"error": "Product not found"}
+            
+        ai_service = AIService()
+        specs_str = ", ".join([f"{k}: {v}" for k, v in (product.specs or {}).items()])
+        text_to_embed = f"{product.name} Category: {product.category}. Specs: {specs_str}. {product.description or ''}"
+        
+        embedding = await ai_service.get_embedding(text_to_embed)
+        product.embedding = embedding
+        
+        await run_in_threadpool(lambda: db.commit())
+        return {"status": "success", "message": f"Product {product_id} reindexed"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.post("/reindex-spare/{spare_id}")
+async def reindex_spare(spare_id: str, db: Session = Depends(get_db)):
+    """
+    Triggered by Directus hook to update embeddings for a spare part.
+    """
+    try:
+        stmt = select(SparePart).where(SparePart.id == spare_id)
+        spare = await run_in_threadpool(lambda: db.execute(stmt).scalar_one_or_none())
+        if not spare:
+            return {"error": "Spare part not found"}
+            
+        ai_service = AIService()
+        specs_str = ", ".join([f"{k}: {v}" for k, v in (spare.specs or {}).items()])
+        text_to_embed = f"Spare Part: {spare.name}. Specs: {specs_str}."
+        
+        embedding = await ai_service.get_embedding(text_to_embed)
+        spare.embedding = embedding
+        
+        await run_in_threadpool(lambda: db.commit())
+        return {"status": "success", "message": f"Spare part {spare_id} reindexed"}
+    except Exception as e:
         return {"error": str(e)}
