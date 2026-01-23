@@ -40,17 +40,28 @@ class OfficeSchema(BaseModel):
     class Config:
         from_attributes = True
 
+import re
+from apps.backend.app.core.config import settings
+
+UUID_PATTERN = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', re.I)
+
 @router.get("/", response_model=Dict[str, Any])
 def get_site_content(db: Session = Depends(get_db)):
     """
     Get all site content as a key-value map.
+    Automatically resolves Directus file UUIDs to full URLs.
     """
     stmt = select(SiteContent)
     results = db.execute(stmt).scalars().all()
     
     content_map = {}
     for item in results:
-        content_map[item.key] = item.value
+        val = item.value
+        # If value looks like a UUID and type is 'file', expand to full URL
+        if val and item.type == "file" and UUID_PATTERN.match(val):
+            val = f"{settings.DIRECTUS_URL.rstrip('/')}/assets/{val}"
+        
+        content_map[item.key] = val
         
     return content_map
 

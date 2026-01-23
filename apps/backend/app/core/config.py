@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     # Telegram
     TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
 
+    # Directus
+    DIRECTUS_URL: str = os.getenv("DIRECTUS_URL", "https://admin.td-rss.ru")
+
     class Config:
         case_sensitive = True
 
