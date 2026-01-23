@@ -35,7 +35,8 @@ class Product(Base):
     currency = Column(String, default="RUB")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    embedding = Column(Vector(1536))
+    meta_title = Column(String(255), nullable=True)
+    meta_description = Column(Text, nullable=True)
     is_published = Column(Boolean, default=True)
 
     images = relationship("ProductImage", back_populates="product")
