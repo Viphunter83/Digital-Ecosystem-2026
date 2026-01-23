@@ -262,6 +262,7 @@ class MachineInstance(Base):
     status = Column(String, default='operational')
     service_history = Column(JSONB, default='[]')
     telemetry_summary = Column(JSONB, default='{}')
+    next_maintenance_date = Column(DateTime)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from apps.backend.app.core.database import get_db
-from packages.database.models import Client, ClientEquipment, Product, TelegramUser, Notification
+from packages.database.models import Client, MachineInstance, Product, TelegramUser, Notification, Lead
 import logging
 import datetime
 
@@ -32,51 +32,50 @@ async def handle_amocrm_webhook(request: Request, db: Session = Depends(get_db))
         logger.info(f"Received AmoCRM Webhook Form Data: {data_dict}")
         
         # 1. Check for Lead Status Change
-        # Amo payload structure for leads: leads[status][0][id], leads[status][0][status_id], etc.
+        # Amo payload structure: leads[status][0][id], leads[status][0][status_id], etc.
         lead_id = data_dict.get("leads[status][0][id]")
         status_id = data_dict.get("leads[status][0][status_id]")
-        pipeline_id = data_dict.get("leads[status][0][pipeline_id]")
         
-        # We only care about specific pipelines or statuses (e.g., 142 is often 'Closed/Won')
-        # In a real app, status_id would be compared against a config value
         if not status_id:
+            logger.warning("AmoCRM webhook received without status_id")
             return {"status": "ignored", "reason": "no_status_found"}
 
-        # 2. Extract Custom Fields
-        # Custom fields look like: leads[status][0][custom_fields][0][id] = FIELD_ID
-        # and leads[status][0][custom_fields][0][values][0][value] = VALUE
-        
+        # 2. Extract Custom Fields and Contact Info
         serial_number = None
-        product_slug = None
-        client_inn = None
+        client_phone = None
         
-        # We need to iterate through form keys to find custom fields
-        # Note: In production, we'd use a more refined parser for these nested keys
+        # Heuristic parsing for nested AmoCRM form data
         for key, value in data_dict.items():
-            if "custom_fields" in key:
-                if "serial" in key.lower() or "серийный" in key.lower(): # Just a heuristic for the demo
-                    serial_number = value
-                # In real life, we would use FIELD_IDs from settings
+            key_lower = key.lower()
+            # Look for serial number in custom fields
+            if "custom_fields" in key_lower and ("serial" in key_lower or "серийный" in key_lower):
+                serial_number = value
+            # Look for phone in contacts
+            if "contacts" in key_lower and "phone" in key_lower:
+                client_phone = value
         
-        # 3. Process 'Success' status
-        # Assuming '142' is the won status
+        # 3. Process 'Success' status (142 is default 'Closed/Won')
         if status_id == "142":
-            logger.info(f"Deal {lead_id} marked as SUCCESS. Syncing equipment...")
+            logger.info(f"Deal {lead_id} marked as SUCCESS. Serial: {serial_number}")
             
-            # Find Lead in our DB if exists
-            lead = db.execute(select(Lead).where(Lead.amocrm_id == lead_id)).scalar_one_or_none()
+            # Find Lead in our DB if exists (for additional context)
+            lead = db.execute(select(Lead).where(Lead.amocrm_id == str(lead_id))).scalar_one_or_none()
             
-            # Use data from lead or webhook
+            # Use data from lead if webhook is missing it
             serial_number = serial_number or (lead.metadata_.get("serial_number") if lead and lead.metadata_ else None)
-            product_slug = product_slug or (lead.metadata_.get("product_slug") if lead and lead.metadata_ else None)
             
             if not serial_number:
+                logger.error(f"Cannot register equipment for lead {lead_id}: serial_number missing")
                 return {"status": "error", "reason": "serial_number_missing"}
 
-            # Find Product
-            product = None
-            if product_slug:
-                product = db.execute(select(Product).where(Product.slug == product_slug)).scalar_one_or_none()
+            # Find Client by phone if we have it
+            client = None
+            if client_phone:
+                # Basic normalization of phone could be added here
+                # Search in TelegramUser first as they are most likely 'clients' in TMA context
+                tg_user = db.execute(select(TelegramUser).where(TelegramUser.phone == client_phone)).scalar_one_or_none()
+                if tg_user and tg_user.client_id:
+                    client = db.execute(select(Client).where(Client.id == tg_user.client_id)).scalar_one_or_none()
 
             # Find/Create Machine Instance
             existing_instance = db.execute(select(MachineInstance).where(MachineInstance.serial_number == serial_number)).scalar_one_or_none()
@@ -84,19 +83,25 @@ async def handle_amocrm_webhook(request: Request, db: Session = Depends(get_db))
             if not existing_instance:
                 new_instance = MachineInstance(
                     serial_number=serial_number,
-                    product_id=product.id if product else None,
+                    client_id=client.id if client else None,
                     status='operational',
                     manufacturing_date=datetime.datetime.now()
                 )
                 db.add(new_instance)
                 db.commit()
-                logger.info(f"Registered new equipment: {serial_number}")
+                logger.info(f"Registered new equipment: {serial_number} for client {client.name if client else 'Unknown'}")
                 return {"status": "ok", "action": "equipment_registered", "serial": serial_number}
+            else:
+                # Update existing instance if client was just found
+                if client and not existing_instance.client_id:
+                    existing_instance.client_id = client.id
+                    db.commit()
+                    logger.info(f"Associated existing equipment {serial_number} with client {client.name}")
             
-            return {"status": "ok", "action": "already_exists"}
+            return {"status": "ok", "action": "already_exists_or_updated"}
 
         return {"status": "ok", "action": "processed"}
 
     except Exception as e:
-        logger.error(f"Error processing AmoCRM webhook: {e}")
+        logger.error(f"Error processing AmoCRM webhook: {e}", exc_info=True)
         return {"status": "error", "details": str(e)}

@@ -14,6 +14,7 @@ interface DiagnosticData {
     age: number;
     issues: string[];
     contact: { phone: string; email: string };
+    agreed_tg: boolean;
 }
 
 const MACHINE_TYPES = [
@@ -40,14 +41,15 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
         type: null,
         age: 5,
         issues: [],
-        contact: { phone: '', email: '' }
+        contact: { phone: '', email: '' },
+        agreed_tg: false
     });
 
     // Reset state when opening
     useEffect(() => {
         if (isOpen) {
             setStep('start');
-            setData({ type: null, age: 5, issues: [], contact: { phone: '', email: '' } });
+            setData({ type: null, age: 5, issues: [], contact: { phone: '', email: '' }, agreed_tg: false });
             webApp?.HapticFeedback.impactOccurred('medium');
         }
     }, [isOpen, webApp]);
@@ -202,7 +204,7 @@ export function DiagnosticsWidget({ isOpen, onClose }: { isOpen: boolean; onClos
                             <StepAnalyzing key="analyzing" />
                         )}
                         {step === 'result' && (
-                            <StepResult data={data} result={analysisResult} onClose={onClose} key="result" user={user} />
+                            <StepResult data={data} result={analysisResult} onClose={onClose} key="result" user={user} onUpdate={updateData} />
                         )}
                     </AnimatePresence>
                 </div>
@@ -410,7 +412,13 @@ function StepAnalyzing() {
     );
 }
 
-function StepResult({ data, result, onClose, user }: { data: DiagnosticData; result: any; onClose: () => void; user: any }) {
+function StepResult({ data, result, onClose, user, onUpdate }: {
+    data: DiagnosticData;
+    result: any;
+    onClose: () => void;
+    user: any;
+    onUpdate: (updates: Partial<DiagnosticData>) => void;
+}) {
     const { register, handleSubmit } = useForm();
 
     // Use real data from backend or fallback
@@ -505,9 +513,30 @@ function StepResult({ data, result, onClose, user }: { data: DiagnosticData; res
                         </div>
                         <p className="text-sm text-safety-orange font-mono">@{user.username}</p>
                     </div>
+                    <div className="flex items-start space-x-2 text-left bg-white/5 p-2 border border-white/10">
+                        <input
+                            type="checkbox"
+                            id="agreed-diag-tg"
+                            checked={data.agreed_tg}
+                            onChange={(e) => onUpdate({ agreed_tg: e.target.checked })}
+                            className="mt-1 h-4 w-4 rounded border-white/10 bg-black text-safety-orange focus:ring-safety-orange cursor-pointer"
+                        />
+                        <label htmlFor="agreed-diag-tg" className="text-[9px] text-muted-foreground leading-tight uppercase font-mono cursor-pointer">
+                            Я согласен на обработку <a href="/privacy" className="text-safety-orange underline">персональных данных</a> (152-ФЗ).
+                        </label>
+                    </div>
+
                     <button
-                        onClick={() => onSubmit({ phone: `@${user.username} (ID: ${user.id})` })}
-                        className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(255,61,0,0.4)] animate-pulse"
+                        onClick={() => {
+                            if (!data.agreed_tg) {
+                                toast.error("Необходимо согласие", {
+                                    description: "Пожалуйста, подтвердите согласие на обработку данных."
+                                });
+                                return;
+                            }
+                            onSubmit({ phone: `@${user.username} (ID: ${user.id})` });
+                        }}
+                        className="w-full bg-safety-orange hover:bg-safety-orange-vivid text-white font-bold py-3 uppercase tracking-wider text-sm shadow-[0_0_20px_rgba(255,61,0,0.4)]"
                     >
                         ОТПРАВИТЬ РЕЗУЛЬТАТ
                     </button>

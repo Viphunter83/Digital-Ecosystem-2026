@@ -85,10 +85,15 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                         email=new_lead.email
                     )
                 
+                # Extract price if available (e.g. from cart total)
+                price = 0
+                if new_lead.metadata_ and "total" in new_lead.metadata_:
+                    price = int(new_lead.metadata_["total"])
+                
                 # Create Lead
                 amo_lead = await amocrm_client.create_lead(
                     name=f"Заявка: {new_lead.source.value} ({new_lead.name})",
-                    price=0,
+                    price=price,
                     contact_id=contact.get("id") if contact else None,
                     custom_fields={
                         # Map your internal lead ID or other metadata
