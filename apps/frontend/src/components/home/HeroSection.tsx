@@ -70,7 +70,7 @@ function HeroSectionContent({ onOpenDiagnostics, siteContent }: { onOpenDiagnost
     if (!mounted) return null;
 
     return (
-        <section className="relative min-h-[90vh] h-auto flex flex-col items-center justify-center overflow-hidden border-b border-industrial-border bg-industrial-bg pb-24 lg:pb-0">
+        <section className="relative min-h-screen lg:min-h-[90vh] h-auto flex flex-col items-center justify-center overflow-hidden border-b border-industrial-border bg-industrial-bg pb-24 lg:pb-0">
 
             {/* Background Effects */}
             <div className="absolute inset-0 z-0">
