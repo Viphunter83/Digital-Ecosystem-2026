@@ -164,3 +164,36 @@ class AIService:
             "next_steps": recommendations[:3]
         }
 
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=2, max=5))
+    async def expand_query(self, query: str) -> str:
+        """
+        Expands a short user search query into a richer technical context for better semantic matching.
+        """
+        system_prompt = """You are an expert in industrial metalworking equipment. 
+Your goal is to expand a short user search query into a set of technical terms, synonyms, and related categories.
+This will be used for semantic search in a catalog.
+
+RULES:
+- Return ONLY the expanded text in the same language as the query (Russian).
+- Include synonyms, technical names of the process, and related machine types.
+- Keep it concise (1-2 sentences).
+
+Example:
+Input: 'резка'
+Output: 'лазерная резка металла, плазменная резка, ленточнопильные станки, гильотины, оборудование для разделения листового и сортового металла.'"""
+
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.chat_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Search query: '{query}'"}
+                ],
+                temperature=0.3,
+                max_tokens=150
+            )
+            expanded = response.choices[0].message.content.strip()
+            return f"{query} {expanded}"
+        except Exception as e:
+            print(f"Query expansion failed: {e}")
+            return query

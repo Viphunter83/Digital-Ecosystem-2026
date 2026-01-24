@@ -77,7 +77,11 @@ async def search_products(
         if q and len(q.split()) > 0:
             try:
                 ai_service = AIService()
-                query_embedding = await ai_service.get_embedding(q)
+                # Query Expansion for better semantic matching
+                expanded_q = await ai_service.expand_query(q)
+                print(f"DEBUG: Expanded spare query '{q}' -> '{expanded_q}'")
+                
+                query_embedding = await ai_service.get_embedding(expanded_q)
                 
                 distance_expr = SparePart.embedding.cosine_distance(query_embedding).label("distance")
                 sem_stmt = select(SparePart, distance_expr).options(
@@ -88,7 +92,7 @@ async def search_products(
                 sem_raw = await run_in_threadpool(lambda: db.execute(sem_stmt).unique().all())
                 
                 for spare, dist in sem_raw:
-                    if dist < 0.6: # Same threshold as for products
+                    if dist < 0.75: # Softened threshold
                         semantic_results.append(spare)
             except Exception as e:
                 print(f"Semantic search for spares failed: {e}")
@@ -154,7 +158,11 @@ async def search_products(
     if q and len(q.split()) > 0:
         try:
             ai_service = AIService()
-            query_embedding = await ai_service.get_embedding(q)
+            # Query Expansion for better semantic matching
+            expanded_q = await ai_service.expand_query(q)
+            print(f"DEBUG: Expanded product query '{q}' -> '{expanded_q}'")
+            
+            query_embedding = await ai_service.get_embedding(expanded_q)
             
             distance_expr = Product.embedding.cosine_distance(query_embedding).label("distance")
             
@@ -171,7 +179,7 @@ async def search_products(
             
             # Threshold for semantic relevance
             for product, dist in sem_raw:
-                if dist < 0.6: # 0.6 is a reasonable threshold for cosine distance
+                if dist < 0.75: # Softened threshold
                     semantic_results.append(product)
                     
         except Exception as e:
