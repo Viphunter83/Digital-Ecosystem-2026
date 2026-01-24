@@ -117,9 +117,12 @@ async def start_redis_listener(bot: Bot):
                 except Exception as e:
                     logger.error(f"Error processing message: {e}")
                     
+    except asyncio.CancelledError:
+        logger.info("Redis Listener Task Cancelled.")
+        if 'pubsub' in locals():
+            await pubsub.close()
     except Exception as e:
         logger.error(f"Redis Listener Error: {e}")
-        # Retry logic could be added here
         await asyncio.sleep(5)
         # Restarting listener is handled by main loop or supervisor in a robust system
         # For now, we log and exit the task (or recursively call?)

@@ -53,6 +53,9 @@ async def start_notification_poller(bot: Bot):
                 if notifications:
                     await session.commit()
 
+        except asyncio.CancelledError:
+            logger.info("Notification Poller Task Cancelled.")
+            break
         except Exception as e:
             logger.error(f"Poller Error: {e}")
         

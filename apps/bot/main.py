@@ -30,22 +30,33 @@ async def main():
     import aiohttp
     timeout = aiohttp.ClientTimeout(total=10) # 10s global timeout
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        # Pass session to handlers or context
+        # Pass session to all handlers via context
         dp["http_session"] = session
         
         # Include main router
         dp.include_router(router)
         
-        # Start Poller (DB)
+        # Start Background Services
         from apps.bot.poller import start_notification_poller
-        asyncio.create_task(start_notification_poller(bot))
-
-        # Start Redis Listener
         from apps.bot.redis_listener import start_redis_listener
-        asyncio.create_task(start_redis_listener(bot))
         
-        logger.info("Starting Role-Based Bot with Global Session...")
-        await dp.start_polling(bot)
+        poller_task = asyncio.create_task(start_notification_poller(bot))
+        redis_task = asyncio.create_task(start_redis_listener(bot))
+        
+        logger.info("Starting Role-Based Bot with Global Session & Background Services...")
+        
+        try:
+            await dp.start_polling(bot)
+        finally:
+            # Clean shutdown of tasks
+            poller_task.cancel()
+            redis_task.cancel()
+            # Handle cancellation to avoid noisy logs
+            try:
+                await asyncio.gather(poller_task, redis_task, return_exceptions=True)
+            except Exception:
+                pass
+            logger.info("Background tasks stopped.")
 
 if __name__ == "__main__":
     try:

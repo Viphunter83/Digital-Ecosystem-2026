@@ -65,7 +65,7 @@ async def register_user_role(tg_id: int, role_key: str):
         await session.commit()
 
 @router.message(CommandStart())
-async def cmd_start(message: Message, state: FSMContext):
+async def cmd_start(message: Message, state: FSMContext, http_session: aiohttp.ClientSession):
     user_id = message.from_user.id
     
     # Check if user exists and has role
@@ -106,18 +106,17 @@ async def cmd_start(message: Message, state: FSMContext):
         # Handle service deep link
         if param.startswith("service_"):
             serial_number = param.replace("service_", "")
-            await show_machine_status(message, serial_number, state)
+            await show_machine_status(message, serial_number, state, http_session)
             return
     
     await send_role_menu(message, existing_role)
 
 
-async def show_machine_status(message: Message, serial_number: str, state: FSMContext):
+async def show_machine_status(message: Message, serial_number: str, state: FSMContext, http_session: aiohttp.ClientSession):
     """Show machine status when user scans QR code and opens bot."""
     # Fetch machine data from backend
     try:
-        async with aiohttp.ClientSession() as http_session:
-            async with http_session.get(f"{BACKEND_URL}/catalog/instances/{serial_number}") as resp:
+        async with http_session.get(f"{BACKEND_URL}/catalog/instances/{serial_number}") as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     if "error" in data:
@@ -252,7 +251,7 @@ async def process_role_selection(callback: CallbackQuery, state: FSMContext):
             )
         elif param.startswith("service_"):
             serial_number = param.replace("service_", "")
-            await show_machine_status(callback.message, serial_number, state)
+            await show_machine_status(callback.message, serial_number, state, http_session)
             # Don't clear state yet as show_machine_status uses it
             await callback.answer()
             return
@@ -293,7 +292,7 @@ async def invoice_excel_handler(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 @router.message(InvoiceStates.waiting_for_file, F.content_type.in_({types.ContentType.PHOTO, types.ContentType.DOCUMENT}))
-async def handle_invoice_upload(message: Message, state: FSMContext):
+async def handle_invoice_upload(message: Message, state: FSMContext, http_session: aiohttp.ClientSession):
     # Determine file type
     file_id = None
     file_name = "unknown"
@@ -322,8 +321,7 @@ async def handle_invoice_upload(message: Message, state: FSMContext):
             }
         }
         
-        async with aiohttp.ClientSession() as http_session:
-            async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+        async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
                 if resp.status == 200:
                     logger.info(f"Lead created for {message.from_user.id}")
                 else:
@@ -355,7 +353,7 @@ async def procurement_catalog(message: Message):
     )
 
 @router.message(F.content_type == types.ContentType.WEB_APP_DATA)
-async def web_app_data_handler(message: Message):
+async def web_app_data_handler(message: Message, http_session: aiohttp.ClientSession):
     import json
     raw_data = message.web_app_data.data
     
@@ -397,8 +395,7 @@ async def web_app_data_handler(message: Message):
                     "order_data": data
                 }
             }
-            async with aiohttp.ClientSession() as http_session:
-                async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+            async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
                     if resp.status == 200:
                         logger.info(f"Order Lead created for {message.from_user.id}")
                     else:
