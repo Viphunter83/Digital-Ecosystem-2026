@@ -19,3 +19,4 @@ email-validator
 python-jose[cryptography]
 passlib[bcrypt]
 redis>=5.0.0
+aiohttp>=3.9.0
