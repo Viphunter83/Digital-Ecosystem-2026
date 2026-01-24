@@ -103,6 +103,54 @@ class AmoCRMClient:
             logger.error(f"AmoCRM connection error: {e}")
             return None
     
+    async def add_note(
+        self,
+        entity_type: str,
+        entity_id: int,
+        text: str
+    ) -> bool:
+        """
+        Add a note to an entity (lead or contact) in AmoCRM.
+        
+        Args:
+            entity_type: 'leads' or 'contacts'
+            entity_id: ID of the entity
+            text: Note content
+            
+        Returns:
+            True on success
+        """
+        if not self.enabled:
+            return False
+            
+        payload = [
+            {
+                "entity_id": entity_id,
+                "note_type": "common",
+                "params": {
+                    "text": text
+                }
+            }
+        ]
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{self.base_url}/{entity_type}/notes",
+                    headers=self.headers,
+                    json=payload
+                ) as resp:
+                    if resp.status in (200, 201):
+                        logger.info(f"Added note to {entity_type} {entity_id}")
+                        return True
+                    else:
+                        error = await resp.text()
+                        logger.error(f"AmoCRM add_note error: {resp.status} - {error}")
+                        return False
+        except Exception as e:
+            logger.error(f"AmoCRM connection error (add_note): {e}")
+            return False
+    
     async def create_contact(
         self,
         name: str,
