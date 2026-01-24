@@ -38,6 +38,7 @@ class Product(Base):
     meta_title = Column(String(255), nullable=True)
     meta_description = Column(Text, nullable=True)
     is_published = Column(Boolean, default=True)
+    image_file = Column(UUID(as_uuid=True), nullable=True)
 
     images = relationship("ProductImage", back_populates="product")
 
@@ -64,6 +65,7 @@ class SparePart(Base):
     meta_title = Column(String(255), nullable=True)
     meta_description = Column(Text, nullable=True)
     is_published = Column(Boolean, default=True)
+    image_file = Column(UUID(as_uuid=True), nullable=True)
     embedding = Column(Vector(1536))
 
     images = relationship("SparePartImage", back_populates="spare_part")
@@ -115,6 +117,7 @@ class Article(Base):
     content = Column(Text)
     tags = Column(ARRAY(String))
     cover_image = Column(String)
+    image_file = Column(UUID(as_uuid=True), nullable=True)
     # embedding = Column(Vector(1536))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
@@ -239,6 +242,7 @@ class SiteContent(Base):
     value = Column(Text)
     description = Column(String) # For admin reference
     type = Column(String, default="text") # text, html, image, json
+    image_file = Column(UUID(as_uuid=True), nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -255,6 +259,21 @@ class Category(Base):
     filter_group = Column(String, nullable=False)
     sort_order = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class ServiceCase(Base):
+    __tablename__ = "service_cases"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    service_id = Column(UUID(as_uuid=True), ForeignKey("services.id"), nullable=False)
+    model = Column(String, nullable=False)
+    problem = Column(Text)
+    solution = Column(Text)
+    result = Column(String)
+    image_file = Column(UUID(as_uuid=True), nullable=True)
+    image_url = Column(String, nullable=True)
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
 class MachineInstance(Base):
     __tablename__ = "machine_instances"

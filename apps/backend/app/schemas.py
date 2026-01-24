@@ -61,12 +61,18 @@ class ProductSchema(BaseModel):
     category: str
     specs: Optional[Dict[str, Any]] = None
     price: Optional[float] = None
+    image_file: Optional[UUID] = Field(default=None, exclude=True)
     
     # Hidden field to load images from ORM
     images: List[ProductImageSchema] = Field(default=[], exclude=True)
     
     @computed_field
     def image_url(self) -> Optional[str]:
+        # 1. Priority: Main image_file UUID (new column)
+        if hasattr(self, "image_file") and self.image_file:
+            return f"/assets/{self.image_file}"
+        
+        # 2. Secondary: Related images table
         if self.images:
             img = next((i for i in self.images if i.is_primary), self.images[0])
             if img.directus_id:
@@ -86,9 +92,12 @@ class ArticleSchema(BaseModel):
     cover_image: Optional[str] = None
     tags: Optional[List[str]] = None
     created_at: Optional[datetime] = None
+    image_file: Optional[UUID] = Field(default=None, exclude=True)
     
     @computed_field
     def image_url(self) -> Optional[str]:
+        if hasattr(self, "image_file") and self.image_file:
+            return f"/assets/{self.image_file}"
         return self.cover_image
 
     @computed_field
@@ -122,11 +131,17 @@ class SparePartSchema(BaseModel):
     price: Optional[float] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
+    image_file: Optional[UUID] = Field(default=None, exclude=True)
     
     images: List[SparePartImageSchema] = Field(default=[], exclude=True)
     
     @computed_field
     def image_url(self) -> Optional[str]:
+        # 1. Priority: image_file UUID
+        if hasattr(self, "image_file") and self.image_file:
+            return f"/assets/{self.image_file}"
+            
+        # 2. Secondary: images table
         if self.images:
             img = next((i for i in self.images if i.is_primary), self.images[0])
             if img.directus_id:

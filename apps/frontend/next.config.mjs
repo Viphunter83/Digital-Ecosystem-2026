@@ -43,6 +43,10 @@ const nextConfig = {
                 source: '/uploads/:path*',
                 destination: process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/uploads/:path*` : 'http://localhost:8000/uploads/:path*', // Proxy Uploads
             },
+            {
+                source: '/assets/:path*',
+                destination: 'http://localhost:8055/assets/:path*', // Proxy Directus Assets
+            },
         ];
     },
 };

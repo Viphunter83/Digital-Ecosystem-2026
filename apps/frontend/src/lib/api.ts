@@ -25,6 +25,7 @@ export interface Product {
     category?: string;
     specs?: Record<string, any>;
     image_url?: string;
+    image_file?: string;
     price?: number;
     manufacturer?: string;
 }
@@ -37,6 +38,7 @@ export interface Article {
     published_at?: string;
     author?: string;
     image_url?: string;
+    image_file?: string;
 }
 
 const getBaseUrl = () => {
