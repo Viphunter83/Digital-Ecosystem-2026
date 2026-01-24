@@ -2,9 +2,14 @@ import requests
 import os
 
 DIRECTUS_URL = "https://admin.td-rss.ru"
-DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "aA0tIPuv1ad7TFsaTr_lLATfM5cjHKgA")
-WEBHOOK_URL = "https://api.td-rss.ru/webhook/clear-cache"
-WEBHOOK_SECRET = "rss-secret-2026"
+DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://api.td-rss.ru/webhook/clear-cache")
+WEBHOOK_SECRET = os.getenv("DIRECTUS_WEBHOOK_SECRET")
+
+if not DIRECTUS_TOKEN:
+    raise ValueError("DIRECTUS_TOKEN environment variable is not set")
+if not WEBHOOK_SECRET:
+    raise ValueError("DIRECTUS_WEBHOOK_SECRET environment variable is not set")
 
 headers = {
     "Authorization": f"Bearer {DIRECTUS_TOKEN}",

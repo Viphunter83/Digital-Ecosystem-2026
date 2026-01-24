@@ -2,7 +2,10 @@ import requests
 import os
 
 DIRECTUS_URL = "https://admin.td-rss.ru"
-DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN", "aA0tIPuv1ad7TFsaTr_lLATfM5cjHKgA")
+DIRECTUS_TOKEN = os.getenv("DIRECTUS_TOKEN")
+
+if not DIRECTUS_TOKEN:
+    raise ValueError("DIRECTUS_TOKEN environment variable is not set")
 
 headers = {
     "Authorization": f"Bearer {DIRECTUS_TOKEN}",
