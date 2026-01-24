@@ -37,13 +37,19 @@ async def get_filters(db: Session = Depends(get_db)):
     
     # Format response
     groups = []
-    # Define group order manually or fetch from DB if we had Group table. 
-    # For now: defined order in list.
-    ordered_groups = ["МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"]
     
-    for g_name in ordered_groups:
-        if g_name in groups_map:
-            groups.append(FilterGroupSchema(group=g_name, categories=groups_map[g_name]))
+    # Define primary group order, others will follow alphabetically
+    primary_order = ["МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"]
+    
+    # Get all unique groups present in the data
+    all_groups = sorted(list(groups_map.keys()))
+    
+    # Reorder groups based on primary_order
+    sorted_groups = [g for g in primary_order if g in groups_map]
+    sorted_groups += [g for g in all_groups if g not in sorted_groups]
+    
+    for g_name in sorted_groups:
+        groups.append(FilterGroupSchema(group=g_name, categories=groups_map[g_name]))
             
     return FiltersResponse(groups=groups)
 
