@@ -15,6 +15,7 @@ export interface Project {
     latitude?: number;
     longitude?: number;
     image_url?: string;
+    isOffice?: boolean; // New flag for offices
 }
 
 export interface Product {

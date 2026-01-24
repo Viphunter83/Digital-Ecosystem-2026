@@ -16,13 +16,14 @@ const MapComponent = dynamic(
 const officeToMapProject = (office: Office) => ({
     id: office.id,
     title: office.name.toUpperCase(),
-    client: { name: "ТД РУССтанкоСбыт", industry: "Engineering", region: office.region },
-    region: office.region || "МОСКВА, РОССИЯ",
-    latitude: office.latitude || 55.751244,
-    longitude: office.longitude || 37.618423,
+    client: { name: "ТД РУССтанкоСбыт", industry: "Engineering", region: office.address || office.region },
+    region: office.address || office.region || "МОСКВА, РОССИЯ",
+    latitude: office.latitude || 55.790484,
+    longitude: office.longitude || 37.467581,
     status: "ACTIVE",
     kpi: 100,
-    description: office.description || ""
+    description: office.description || "",
+    isOffice: true // Flag to distinguish from projects
 });
 
 export default function ContactsPage() {

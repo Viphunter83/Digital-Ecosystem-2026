@@ -81,7 +81,7 @@ export default function MapComponent({ projects }: MapComponentProps) {
                                                 <h3 class="font-bold text-sm uppercase tracking-wider text-safety-orange mb-1" style="color: #FF3D00; font-family: system-ui;">${project.title}</h3>
                                                 <p class="text-xs text-gray-800 font-mono mb-2">${project.description || project.client?.name || ''}</p>
                                                 <div class="text-[10px] text-gray-500 mb-2">${project.region}</div>
-                                                ${project.id ? `<a href="/projects/${project.id}" target="_blank" class="block w-full text-center bg-[#FF3D00] text-white text-xs font-bold py-1 px-2 rounded hover:bg-[#E63700] transition-colors" style="background-color: #FF3D00; color: white; display: block; padding: 4px; text-decoration: none; border-radius: 4px;">ПОДРОБНЕЕ</a>` : ''}
+                                                ${(project.id && !project.isOffice) ? `<a href="/projects/${project.id}" target="_blank" class="block w-full text-center bg-[#FF3D00] text-white text-xs font-bold py-1 px-2 rounded hover:bg-[#E63700] transition-colors" style="background-color: #FF3D00; color: white; display: block; padding: 4px; text-decoration: none; border-radius: 4px;">ПОДРОБНЕЕ</a>` : ''}
                                             </div>
                                         `,
                                     }}
