@@ -13,11 +13,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.bot.keyboards import (
     invoice_method_kb,
     get_service_request_kb,
-    consent_kb
+    consent_kb,
+    role_selection_kb,
+    engineer_kb,
+    procurement_kb,
+    director_kb
 )
 from apps.bot.integrations.amocrm import amocrm
 from apps.bot.database import AsyncSessionLocal
-from packages.database.models import TelegramUser, UserRole, ClientEquipment, ServiceTicket, Product
+from packages.database.models import TelegramUser, UserRole, ClientEquipment, ServiceTicket, Product, MachineInstance
+import datetime
 
 # Constants
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
@@ -107,11 +112,12 @@ async def cmd_start(message: Message, state: FSMContext):
     await send_role_menu(message, existing_role)
 
 
-async def show_machine_status(message: Message, serial_number: str, state: FSMContext, http_session: aiohttp.ClientSession):
+async def show_machine_status(message: Message, serial_number: str, state: FSMContext):
     """Show machine status when user scans QR code and opens bot."""
     # Fetch machine data from backend
     try:
-        async with http_session.get(f"{BACKEND_URL}/catalog/instances/{serial_number}") as resp:
+        async with aiohttp.ClientSession() as http_session:
+            async with http_session.get(f"{BACKEND_URL}/catalog/instances/{serial_number}") as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     if "error" in data:
@@ -298,15 +304,26 @@ async def handle_invoice_upload(message: Message, state: FSMContext):
     elif message.document:
         file_id = message.document.file_id
         file_name = message.document.file_name
-        
+    
+    user_info = {
+        "name": message.from_user.full_name,
+        "username": message.from_user.username
+    }
+    
     # Send Lead to Backend
     try:
-        user_info = {
-            "name": message.from_user.full_name,
-            "username": message.from_user.username
+        payload = {
+            "source": "bot_invoice",
+            "name": user_info['name'],
+            "message": f"Загружен файл: {file_name}\nUsername: @{user_info.get('username', 'N/A')}",
+            "meta": {
+                "telegram_user_id": message.from_user.id,
+                "file_id": file_id
+            }
         }
         
-        async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+        async with aiohttp.ClientSession() as http_session:
+            async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
                 if resp.status == 200:
                     logger.info(f"Lead created for {message.from_user.id}")
                 else:
@@ -364,6 +381,12 @@ async def web_app_data_handler(message: Message):
         
         await message.answer(receipt_text)
         
+        user_info = {
+            "name": message.from_user.full_name,
+            "username": message.from_user.username
+        }
+
+        try:
             # Send to Backend as Lead
             payload = {
                 "source": "bot_order",
@@ -374,12 +397,13 @@ async def web_app_data_handler(message: Message):
                     "order_data": data
                 }
             }
-            async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
-                if resp.status == 200:
-                    logger.info(f"Order Lead created for {message.from_user.id}")
-                else:
-                    err = await resp.text()
-                    logger.error(f"Failed to create order lead: {err}")
+            async with aiohttp.ClientSession() as http_session:
+                async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+                    if resp.status == 200:
+                        logger.info(f"Order Lead created for {message.from_user.id}")
+                    else:
+                        err = await resp.text()
+                        logger.error(f"Failed to create order lead: {err}")
         except Exception as e:
             logger.error(f"Error sending order to backend: {e}")
             
