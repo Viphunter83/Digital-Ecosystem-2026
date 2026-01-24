@@ -65,22 +65,53 @@ async def search_products(
 
     # SPARE PARTS MODE
     if type == "spares":
-        # Base query
-        query = select(SparePart).where(SparePart.is_published == True)
+        # 1. Keyword search
+        kw_query = select(SparePart).where(SparePart.is_published == True)
         if q:
-            query = query.where(SparePart.name.ilike(f"%{q}%"))
+            kw_query = kw_query.where(SparePart.name.ilike(f"%{q}%"))
         
-        # Count query
-        count_stmt = select(func.count()).select_from(query.subquery())
-        total_count = await run_in_threadpool(lambda: db.execute(count_stmt).scalar()) or 0
+        kw_results = await run_in_threadpool(lambda: db.execute(kw_query.options(joinedload(SparePart.images))).unique().scalars().all())
+        
+        # 2. Semantic search
+        semantic_results = []
+        if q and len(q.split()) > 0:
+            try:
+                ai_service = AIService()
+                query_embedding = await ai_service.get_embedding(q)
+                
+                distance_expr = SparePart.embedding.cosine_distance(query_embedding).label("distance")
+                sem_stmt = select(SparePart, distance_expr).options(
+                    joinedload(SparePart.images)
+                ).where(SparePart.is_published == True)
+                
+                sem_stmt = sem_stmt.order_by(distance_expr).limit(limit)
+                sem_raw = await run_in_threadpool(lambda: db.execute(sem_stmt).unique().all())
+                
+                for spare, dist in sem_raw:
+                    if dist < 0.6: # Same threshold as for products
+                        semantic_results.append(spare)
+            except Exception as e:
+                print(f"Semantic search for spares failed: {e}")
 
-        # Pagination
-        query = query.options(joinedload(SparePart.images)).limit(limit).offset(offset)
+        # 3. Merge and Deduplicate
+        seen_ids = set()
+        merged_results = []
         
-        # Async DB Execution
-        results = await run_in_threadpool(lambda: db.execute(query).unique().scalars().all())
+        for p in kw_results:
+            if p.id not in seen_ids:
+                merged_results.append(p)
+                seen_ids.add(p.id)
+                
+        for p in semantic_results:
+            if p.id not in seen_ids:
+                merged_results.append(p)
+                seen_ids.add(p.id)
+                
+        total_count = len(merged_results)
+        paged_results = merged_results[offset : offset + limit]
+
         return {
-            "results": [SparePartSchema.model_validate(p) for p in results],
+            "results": [SparePartSchema.model_validate(p) for p in paged_results],
             "total": total_count
         }
 
@@ -389,8 +420,8 @@ async def reindex_spare(spare_id: str, db: Session = Depends(get_db)):
             return {"error": "Spare part not found"}
             
         ai_service = AIService()
-        specs_str = ", ".join([f"{k}: {v}" for k, v in (spare.specs or {}).items()])
-        text_to_embed = f"Spare Part: {spare.name}. Specs: {specs_str}."
+        # Including description if available for better semantic matching
+        text_to_embed = f"Spare Part: {spare.name}. Description: {spare.description or ''}. Specs: {spare.specs or ''}."
         
         embedding = await ai_service.get_embedding(text_to_embed)
         spare.embedding = embedding

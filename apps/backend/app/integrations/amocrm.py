@@ -224,7 +224,7 @@ class AmoCRMClient:
             logger.error(f"AmoCRM update_lead_status error: {e}")
             return False
 
-    async def update_contact(self, contact_id: int, custom_fields: List[Dict[str, Any]]) -> bool:
+    async def update_contact(self, contact_id: int, custom_fields: list) -> bool:
         """Update contact custom fields."""
         if not self.enabled:
             return False
@@ -247,6 +247,24 @@ class AmoCRMClient:
         except Exception as e:
             logger.error(f"AmoCRM update_contact error: {e}")
             return False
+
+    async def get_lead(self, lead_id: int) -> Optional[Dict[str, Any]]:
+        """Fetch full lead details including custom fields."""
+        if not self.enabled:
+            return None
+            
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{self.base_url}/leads/{lead_id}?with=contacts",
+                    headers=self.headers
+                ) as resp:
+                    if resp.status == 200:
+                        return await resp.json()
+                    return None
+        except Exception as e:
+            logger.error(f"AmoCRM get_lead error: {e}")
+            return None
 
 
 # Singleton instance

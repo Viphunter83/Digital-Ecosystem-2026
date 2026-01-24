@@ -530,14 +530,31 @@ async def engineer_knowledge(message: Message):
 # --- Director Handlers ---
 
 @router.message(F.text == "📊 Сводка Расходов")
-async def director_stats(message: Message):
-    await message.answer(
-        "📊 *Финансовая Сводка (2025)*\n\n"
-        "Всего потрачено на ТО: 1.2 млн ₽\n"
-        "Капитальные ремонты: 4.5 млн ₽\n"
-        "Закупка запчастей: 350 тыс ₽\n\n"
-        "📈 Экономия за счет планово-предупредительного ремонта: ~15%"
-    )
+async def director_stats(message: Message, http_session: aiohttp.ClientSession):
+    try:
+        async with http_session.get(f"{BACKEND_URL}/analytics/director-stats") as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                
+                service_total = data.get("service_total", 0)
+                orders_total = data.get("orders_total", 0)
+                active_leads = data.get("active_leads", 0)
+                
+                response = (
+                    "📊 *Финансовая Сводка (2026)*\n\n"
+                    f"💰 Всего потрачено на ТО: {service_total:,} ₽\n"
+                    f"🛍 Заказы запчастей: {orders_total:,} ₽\n"
+                    f"📂 Активных заявок: {active_leads}\n\n"
+                    f"📈 {data.get('summary', 'Данные за текущий период')}\n"
+                    "━━━━━━━━━━━━━━━━━━\n"
+                    "👇 Аналитика обновляется в режиме реального времени на основе данных из БД и CRM."
+                )
+                await message.answer(response, parse_mode="Markdown")
+            else:
+                await message.answer("⚠️ Не удалось получить данные аналитики. Попробуйте позже.")
+    except Exception as e:
+        logger.error(f"Error fetching director stats: {e}")
+        await message.answer("❌ Ошибка при запросе аналитики.")
     
 @router.message(F.text == "🏆 Активные Проекты")
 async def director_projects(message: Message):

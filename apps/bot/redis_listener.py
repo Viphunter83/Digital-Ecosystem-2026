@@ -54,6 +54,33 @@ async def start_redis_listener(bot: Bot):
                                 f"🧾 *Товары:*\n{items_text}\n\n"
                                 f"💰 *Итого:* {total:,.0f} ₽"
                             )
+                        elif source == "diagnostics_widget":
+                            analysis = payload.get('meta', {}).get('analysis_result', {})
+                            risk_level = analysis.get('risk_level', 'Unknown')
+                            probability = analysis.get('probability', '??')
+                            recommendation = analysis.get('recommendation', 'Требуется осмотр')
+                            
+                            risk_icons = {
+                                "Low": "🟢",
+                                "Moderate": "🟡",
+                                "High": "🟠",
+                                "Critical": "🔴",
+                                "Unknown": "⚪"
+                            }
+                            icon = risk_icons.get(risk_level, "⚪")
+                            
+                            text = (
+                                f"🔬 *Результат Экспресс-Диагностики*\n\n"
+                                f"👤 *Клиент:* {payload.get('name', 'Не указано')}\n"
+                                f"📞 *Контакт:* {payload.get('phone', 'Не указан')}\n"
+                                f"⚙️ *Тип:* {payload.get('meta', {}).get('type', 'н/д')}\n"
+                                f"📅 *Возраст:* {payload.get('meta', {}).get('age', 'н/д')} лет\n\n"
+                                f"📊 *Анализ ИИ:*\n"
+                                f"{icon} Уровень риска: *{risk_level}*\n"
+                                f"📉 Вероятность отказа: *{probability}%*\n\n"
+                                f"💡 *Рекомендация:*\n{recommendation}\n\n"
+                                f"🔗 Источник: Виджет диагностики"
+                            )
                         else:
                             text = (
                                 f"🔔 *Новая заявка!*\n\n"

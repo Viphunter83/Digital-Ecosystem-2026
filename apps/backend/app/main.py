@@ -65,6 +65,9 @@ app.include_router(leads.router, prefix="/ingest", tags=["leads"])
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(webhooks.router, prefix="/webhook", tags=["webhooks"])
 
+from apps.backend.app.routers import analytics
+app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
+
 from apps.backend.app.routers import content
 app.include_router(content.router, prefix="/content", tags=["content"])
 

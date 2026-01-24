@@ -47,6 +47,7 @@ class ProductImage(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
     url = Column(String, nullable=False)
+    directus_id = Column(UUID(as_uuid=True), nullable=True)
     is_primary = Column(Boolean, default=False)
     order = Column(Integer, default=0)
 
@@ -73,6 +74,7 @@ class SparePartImage(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     spare_part_id = Column(UUID(as_uuid=True), ForeignKey("spare_parts.id"))
     url = Column(String, nullable=False)
+    directus_id = Column(UUID(as_uuid=True), nullable=True)
     is_primary = Column(Boolean, default=False)
     order = Column(Integer, default=0)
 

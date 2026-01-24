@@ -47,6 +47,7 @@ class ProjectSchema(BaseModel):
 
 class ProductImageSchema(BaseModel):
     url: str
+    directus_id: Optional[UUID] = None
     is_primary: bool = False
 
     class Config:
@@ -67,10 +68,10 @@ class ProductSchema(BaseModel):
     @computed_field
     def image_url(self) -> Optional[str]:
         if self.images:
-            for img in self.images:
-                if img.is_primary:
-                    return img.url
-            return self.images[0].url
+            img = next((i for i in self.images if i.is_primary), self.images[0])
+            if img.directus_id:
+                return f"/assets/{img.directus_id}"
+            return img.url
         return None
 
     class Config:
@@ -107,6 +108,7 @@ class ArticleSchema(BaseModel):
 
 class SparePartImageSchema(BaseModel):
     url: str
+    directus_id: Optional[UUID] = None
     is_primary: bool = False
 
     class Config:
@@ -126,10 +128,10 @@ class SparePartSchema(BaseModel):
     @computed_field
     def image_url(self) -> Optional[str]:
         if self.images:
-            for img in self.images:
-                if img.is_primary:
-                    return img.url
-            return self.images[0].url
+            img = next((i for i in self.images if i.is_primary), self.images[0])
+            if img.directus_id:
+                return f"/assets/{img.directus_id}"
+            return img.url
         return None
 
     class Config:
