@@ -19,27 +19,6 @@ interface ProductCardProps {
     product: Product;
 }
 
-const CATEGORY_MAP: Record<string, string> = {
-    // Canonical categories (from cleanup)
-    'Turning': 'ТОКАРНЫЙ',
-    'Milling': 'ФРЕЗЕРНЫЙ',
-    'Drilling': 'СВЕРЛИЛЬНЫЙ',
-    'Grinding': 'ШЛИФОВАЛЬНЫЙ',
-    'Pressing': 'ПРЕСС',
-    'Laser': 'ЛАЗЕР',
-    'CNC Machines': 'ЧПУ',
-    'Advanced Machining': 'ОБРАБ. ЦЕНТР',
-    'Other': 'ПРОЧЕЕ',
-    // Legacy/fallback values
-    'MILLING': 'ФРЕЗЕРНЫЙ',
-    'TURNING': 'ТОКАРНЫЙ',
-    'CNC_CENTER': 'ОБРАБ. ЦЕНТР',
-    'PRESS': 'ПРЕСС',
-    'LASER': 'ЛАЗЕР',
-    'Machine': 'СТАНОК',
-    'machine': 'СТАНОК',
-};
-
 const SPEC_MAP: Record<string, string> = {
     // Standard specs (lowercase - from API)
     'power': 'МОЩНОСТЬ',
@@ -190,7 +169,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 {/* Category Badge */}
                 {product.category && (
                     <div className="absolute bottom-0 left-0 bg-safety-orange text-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest font-mono z-10 clip-path-slant">
-                        {CATEGORY_MAP[product.category] || product.category}
+                        {product.category}
                     </div>
                 )}
             </Link>
