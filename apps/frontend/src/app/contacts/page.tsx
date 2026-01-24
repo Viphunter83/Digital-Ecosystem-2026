@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { submitLead } from '@/lib/leadService';
-import { fetchOffices, Office } from '@/lib/api';
+import { fetchOffices, Office, fetchSiteContent } from '@/lib/api';
 
 import dynamic from 'next/dynamic';
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
@@ -30,9 +30,11 @@ export default function ContactsPage() {
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [offices, setOffices] = useState<Office[]>([]);
     const [agreed, setAgreed] = useState(false);
+    const [siteContent, setSiteContent] = useState<Record<string, string>>({});
 
     useEffect(() => {
         fetchOffices().then(setOffices);
+        fetchSiteContent().then(setSiteContent);
     }, []);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -123,8 +125,42 @@ export default function ContactsPage() {
                         <div className="bg-industrial-panel p-6 border border-industrial-border group hover:border-safety-orange transition-colors duration-300">
                             <MapPin className="w-6 h-6 text-safety-orange mb-4" />
                             <h3 className="font-mono text-xs text-muted-foreground uppercase mb-1">Офис</h3>
-                            <p className="text-lg font-bold text-white">г. Москва, Россия</p>
+                            <p className="text-lg font-bold text-white line-clamp-2">
+                                {siteContent.contact_address || "Москва, улица Берзарина, 36, стр. 2"}
+                            </p>
                             <p className="text-sm text-gray-500 mt-1">Центральный офис</p>
+                        </div>
+                    </div>
+
+                    {/* Requisites Section */}
+                    <div className="bg-industrial-panel/30 border border-white/5 p-8 font-mono text-xs space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-2 h-2 bg-safety-orange" />
+                            <h3 className="font-bold uppercase tracking-widest text-white">Реквизиты Компании</h3>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-muted-foreground">
+                            <div>
+                                <span className="block text-white/40 mb-1">ИНН:</span>
+                                <span className="text-white text-sm">{siteContent.company_inn || "7718986022"}</span>
+                            </div>
+                            <div>
+                                <span className="block text-white/40 mb-1">КПП:</span>
+                                <span className="text-white text-sm">{siteContent.company_kpp || "773401001"}</span>
+                            </div>
+                        </div>
+                        <div className="space-y-3 pt-2 border-t border-white/5">
+                            <div>
+                                <span className="block text-safety-orange/70 mb-1 uppercase tracking-tighter">АО «АЛЬФА-БАНК»</span>
+                                <p className="text-white/80 leading-relaxed">
+                                    {siteContent.company_bank_alfa || "БИК: 44525593, Р/С: 40702810402020007936"}
+                                </p>
+                            </div>
+                            <div>
+                                <span className="block text-safety-orange/70 mb-1 uppercase tracking-tighter">АО КБ «МОДУЛЬБАНК»</span>
+                                <p className="text-white/80 leading-relaxed">
+                                    {siteContent.company_bank_modul || "БИК: 44525092, Р/С: 40702810370010439680"}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
