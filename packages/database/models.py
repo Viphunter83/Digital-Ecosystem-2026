@@ -57,10 +57,13 @@ class SparePart(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
+    slug = Column(String, unique=True, nullable=True, index=True)
     specs = Column(JSONB)
     price = Column(DECIMAL)
+    meta_title = Column(String(255), nullable=True)
+    meta_description = Column(Text, nullable=True)
     is_published = Column(Boolean, default=True)
-    # embedding = Column(Vector(1536))
+    embedding = Column(Vector(1536))
 
     images = relationship("SparePartImage", back_populates="spare_part")
 

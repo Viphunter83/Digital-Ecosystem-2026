@@ -115,8 +115,11 @@ class SparePartImageSchema(BaseModel):
 class SparePartSchema(BaseModel):
     id: UUID
     name: str
+    slug: Optional[str] = None
     specs: Optional[Dict[str, Any]] = None
     price: Optional[float] = None
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
     
     images: List[SparePartImageSchema] = Field(default=[], exclude=True)
     
