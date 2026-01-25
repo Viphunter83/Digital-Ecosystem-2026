@@ -145,20 +145,12 @@ async def show_machine_status(message: Message, serial_number: str, state: FSMCo
                     icon = status_icons.get(status, "❓")
                     text = status_text.get(status, status)
                     
-                    product_name = "Оборудование"
+                    image_url = None
                     if data.get("product"):
                         product_name = data["product"].get("name", "Оборудование")
+                        image_url = data["product"].get("image_url")
                     
-                    # Build service history
-                    history_text = ""
-                    for step in data.get("service_history", [])[:5]:
-                        step_icon = "✅" if step.get("status") == "done" else "🔄" if step.get("status") == "active" else "⏳"
-                        history_text += f"{step_icon} {step.get('title', 'N/A')} — {step.get('date', 'N/A')}\n"
-                    
-                    if not history_text:
-                        history_text = "История пуста"
-                    
-                    await message.answer(
+                    caption = (
                         f"🏭 *{product_name}*\n"
                         f"━━━━━━━━━━━━━━━━━━\n"
                         f"🔖 Серийный номер: `{serial_number}`\n"
@@ -166,10 +158,22 @@ async def show_machine_status(message: Message, serial_number: str, state: FSMCo
                         f"📊 Статус: {icon} *{text}*\n\n"
                         f"📜 *История обслуживания:*\n{history_text}\n"
                         f"━━━━━━━━━━━━━━━━━━\n"
-                        f"👇 Выберите действие:",
-                        reply_markup=get_service_request_kb(serial_number),
-                        parse_mode="Markdown"
+                        f"👇 Выберите действие:"
                     )
+
+                    if image_url:
+                        await message.answer_photo(
+                            photo=image_url,
+                            caption=caption,
+                            reply_markup=get_service_request_kb(serial_number),
+                            parse_mode="Markdown"
+                        )
+                    else:
+                        await message.answer(
+                            caption,
+                            reply_markup=get_service_request_kb(serial_number),
+                            parse_mode="Markdown"
+                        )
                     
                     # Save context for potential service request
                     await state.update_data(current_machine=serial_number)
