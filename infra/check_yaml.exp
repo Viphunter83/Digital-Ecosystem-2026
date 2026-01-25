@@ -4,7 +4,7 @@ set ip "194.156.118.128"
 set user "root"
 set password "MaksimNiretin2602201213!"
 
-spawn ssh -o StrictHostKeyChecking=no $user@$ip "
+spawn ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $user@$ip "
 cat /etc/dokploy/compose/russtanko-russtankoprod-colyja/code/docker-compose.prod.yml
 "
 
