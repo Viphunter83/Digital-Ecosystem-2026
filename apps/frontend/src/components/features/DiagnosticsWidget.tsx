@@ -449,6 +449,27 @@ function StepResult({ data, result, onClose, user, onUpdate }: {
             });
 
             if (response.ok) {
+                // Send data back to the bot
+                if ((window as any).Telegram?.WebApp) {
+                    const tg = (window as any).Telegram.WebApp;
+                    tg.HapticFeedback.notificationOccurred('success');
+                    try {
+                        tg.sendData(JSON.stringify({
+                            type: "DIAGNOSTICS",
+                            machine_type: data.type,
+                            age: data.age,
+                            issues: data.issues,
+                            result: {
+                                risk_level: riskLevel,
+                                probability: probability,
+                                recommendation: recommendation
+                            }
+                        }));
+                    } catch (sendErr) {
+                        console.error("Failed to send diagnostics data to Telegram:", sendErr);
+                    }
+                }
+
                 toast.success("Отчёт отправлен!", {
                     description: "Ожидайте звонка от инженера."
                 });

@@ -404,6 +404,67 @@ async def web_app_data_handler(message: Message, http_session: aiohttp.ClientSes
         except Exception as e:
             logger.error(f"Error sending order to backend: {e}")
             
+    elif isinstance(data, dict) and data.get("type") == "DIAGNOSTICS":
+        # Handle Diagnostics Result
+        machine_type = data.get("machine_type", "н/д")
+        age = data.get("age", "н/д")
+        issues = data.get("issues", [])
+        result = data.get("result", {})
+        
+        risk_level = result.get("risk_level", "Unknown")
+        probability = result.get("probability", "??")
+        recommendation = result.get("recommendation", "Требуется осмотр")
+        
+        risk_icons = {
+            "Low": "🟢",
+            "Moderate": "🟡",
+            "High": "🟠",
+            "Critical": "🔴",
+            "Unknown": "⚪"
+        }
+        icon = risk_icons.get(risk_level, "⚪")
+        
+        issues_text = ", ".join(issues) if issues else "нет"
+        
+        report_text = (
+            f"🔬 *Результат Экспресс-Диагностики*\n\n"
+            f"⚙️ *Тип:* {machine_type.upper()}\n"
+            f"📅 *Возраст:* {age} лет\n"
+            f"⚠️ *Проблемы:* {issues_text}\n\n"
+            f"📊 *Анализ ИИ:*\n"
+            f"{icon} Уровень риска: *{risk_level}*\n"
+            f"📉 Вероятность отказа: *{probability}*\n\n"
+            f"💡 *Рекомендация:*\n{recommendation}\n\n"
+            f"📂 Данные переданы инженеру. Ожидайте звонка."
+        )
+        
+        await message.answer(report_text)
+        
+        user_info = {
+            "name": message.from_user.full_name,
+            "username": message.from_user.username
+        }
+
+        try:
+            # Send to Backend as Lead
+            payload = {
+                "source": "bot_diagnostics",
+                "name": user_info['name'],
+                "message": f"Результат диагностики из WebApp:\n{raw_data}\nUsername: @{user_info.get('username', 'N/A')}",
+                "meta": {
+                    "telegram_user_id": message.from_user.id,
+                    "diagnostics_data": data
+                }
+            }
+            async with http_session.post(f"{BACKEND_URL}/ingest/leads", json=payload) as resp:
+                    if resp.status == 200:
+                        logger.info(f"Diagnostics Lead created for {message.from_user.id}")
+                    else:
+                        err = await resp.text()
+                        logger.error(f"Failed to create diagnostics lead: {err}")
+        except Exception as e:
+            logger.error(f"Error sending diagnostics to backend: {e}")
+
     else:
         # Generic handler
         await message.answer(f"✅ *Данные получены*\n\n`{raw_data}`")

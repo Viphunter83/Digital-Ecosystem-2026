@@ -2,7 +2,7 @@
 
 import { useCartStore } from "@/lib/stores/useCartStore";
 import { useTelegram } from "@/providers/TelegramProvider";
-import { Minus, Plus, Trash2, ShoppingCart, ArrowRight } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart, ArrowRight, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -10,9 +10,18 @@ import { motion } from "framer-motion";
 import { CheckoutModal } from "@/components/CheckoutModal";
 
 export default function CartPage() {
-    const { items, removeItem, updateQuantity, totalAmount, clearCart } = useCartStore();
+    const { items, removeItem, updateQuantity, totalAmount, clearCart, hydrated } = useCartStore();
     const { webApp, user } = useTelegram();
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+    // Prevent hydration mismatch or flash of empty state
+    if (!hydrated) {
+        return (
+            <div className="min-h-screen bg-black text-white pt-24 pb-20 px-4 flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 text-safety-orange animate-spin" />
+            </div>
+        );
+    }
 
     useEffect(() => {
         if (webApp) {

@@ -17,12 +17,19 @@ interface CartState {
     updateQuantity: (id: string, quantity: number) => void;
     clearCart: () => void;
     totalAmount: () => number;
+    hydrated: boolean;
+    setHasHydrated: (state: boolean) => void;
 }
 
 export const useCartStore = create<CartState>()(
     persist(
         (set, get) => ({
             items: [],
+            hydrated: false,
+
+            setHasHydrated: (state) => {
+                set({ hydrated: state });
+            },
 
             addItem: (product) => {
                 const { items } = get();
@@ -66,7 +73,9 @@ export const useCartStore = create<CartState>()(
         {
             name: 'cart-storage',
             storage: createJSONStorage(() => localStorage),
-            skipHydration: true, // Need to handle hydration manually in Next.js usually, or use useEffect check
+            onRehydrateStorage: (state) => {
+                return () => state?.setHasHydrated(true);
+            },
         }
     )
 );
