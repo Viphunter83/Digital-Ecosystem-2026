@@ -1,36 +1,44 @@
-"use client";
-
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Article, fetchArticleById } from '@/lib/api';
+import { fetchArticleById } from '@/lib/api';
 import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
 
-export default function ArticlePage() {
-    const params = useParams();
-    const [article, setArticle] = useState<Article | null>(null);
-    const [loading, setLoading] = useState(true);
+type Props = {
+    params: { id: string }
+};
 
-    useEffect(() => {
-        async function load() {
-            if (params.id) {
-                const data = await fetchArticleById(params.id as string);
-                if (data) setArticle(data);
-            }
-            setLoading(false);
-        }
-        load();
-    }, [params.id]);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { id } = params;
+    const article = await fetchArticleById(id);
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-industrial-surface flex items-center justify-center text-safety-orange font-mono">
-                [ ЗАГРУЗКА МАТЕРИАЛА... ]
-            </div>
-        );
+    if (!article) {
+        return {
+            title: 'Материал не найден | ТД РусСтанкоСбыт',
+        };
     }
+
+    const title = `${article.title} | Инженерный журнал 2026`;
+    const description = article.summary || article.content?.substring(0, 160) || 'Читайте аналитические материалы о промышленном оборудовании и автоматизации.';
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            type: 'article',
+            publishedTime: article.published_at,
+            authors: [article.author || 'Редакция'],
+            images: article.image_url ? [{ url: article.image_url }] : [],
+        },
+    };
+}
+
+export default async function ArticlePage({ params }: Props) {
+    const { id } = params;
+    const article = await fetchArticleById(id);
 
     if (!article) {
         return (
@@ -83,19 +91,17 @@ export default function ArticlePage() {
             {/* Content */}
             <div className="container mx-auto px-6 py-12 md:py-20">
                 <div className="max-w-3xl mx-auto">
-                    <div className="prose prose-invert prose-lg prose-headings:font-black prose-headings:uppercase prose-p:font-light prose-p:leading-relaxed prose-a:text-safety-orange focus:outline-none">
-                        {/* We are rendering plain text as content here, but in real app would use markdown renderer */}
+                    <article className="prose prose-invert prose-lg prose-headings:font-black prose-headings:uppercase prose-p:font-light prose-p:leading-relaxed prose-a:text-safety-orange focus:outline-none">
                         {article.content?.split('\n').map((paragraph, idx) => (
                             <p key={idx} className="mb-6 indent-8 text-gray-300">
                                 {paragraph}
                             </p>
                         ))}
-                    </div>
+                    </article>
 
                     <div className="mt-16 pt-8 border-t border-industrial-border">
                         <h3 className="text-xs font-mono uppercase text-muted-foreground mb-4">[ Метки ]</h3>
                         <div className="flex gap-2">
-                            {/* Mock tags since they are in DB but API interface might need update to return them or we just skip */}
                             <span className="px-2 py-1 bg-industrial-panel border border-industrial-border text-xs">INDUSTRY 4.0</span>
                             <span className="px-2 py-1 bg-industrial-panel border border-industrial-border text-xs">TECH</span>
                         </div>
