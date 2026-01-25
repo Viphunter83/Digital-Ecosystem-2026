@@ -26,6 +26,7 @@ import datetime
 
 # Constants
 BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8000")
+DIRECTUS_URL = os.getenv("DIRECTUS_URL", "https://admin.td-rss.ru")
 
 # Router setup
 router = Router()
@@ -162,6 +163,10 @@ async def show_machine_status(message: Message, serial_number: str, state: FSMCo
                     )
 
                     if image_url:
+                        # Resolve relative URL for Telegram
+                        if image_url.startswith("/"):
+                            image_url = f"{DIRECTUS_URL}{image_url}"
+                        
                         await message.answer_photo(
                             photo=image_url,
                             caption=caption,

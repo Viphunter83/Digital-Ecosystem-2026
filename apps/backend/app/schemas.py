@@ -38,10 +38,7 @@ class ProjectSchema(BaseModel):
     @computed_field
     def image_url(self) -> Optional[str]:
         if hasattr(self, "raw_data") and self.raw_data:
-            url = self.raw_data.get("image_url")
-            if url and not url.startswith("http"):
-                return f"{settings.DIRECTUS_URL}{url}"
-            return url
+            return self.raw_data.get("image_url")
         return None
 
     model_config = ConfigDict(from_attributes=True)
@@ -73,11 +70,11 @@ class ProductSchema(BaseModel):
     def image_url(self) -> Optional[str]:
         try:
             if hasattr(self, "image_file") and self.image_file:
-                return f"{settings.DIRECTUS_URL}/assets/{self.image_file}"
+                return f"/assets/{self.image_file}"
             if hasattr(self, "images") and self.images:
                 img = next((i for i in self.images if i.is_primary), self.images[0])
-                if img.directus_id: return f"{settings.DIRECTUS_URL}/assets/{img.directus_id}"
-                if img.image_file: return f"{settings.DIRECTUS_URL}/assets/{img.image_file}"
+                if img.directus_id: return f"/assets/{img.directus_id}"
+                if img.image_file: return f"/assets/{img.image_file}"
                 return img.url
         except Exception: pass
         return None
@@ -96,9 +93,7 @@ class ArticleSchema(BaseModel):
     @computed_field
     def image_url(self) -> Optional[str]:
         if hasattr(self, "image_file") and self.image_file:
-            return f"{settings.DIRECTUS_URL}/assets/{self.image_file}"
-        if self.cover_image and not self.cover_image.startswith("http"):
-             return f"{settings.DIRECTUS_URL}{self.cover_image}"
+            return f"/assets/{self.image_file}"
         return self.cover_image
 
     @computed_field
@@ -139,11 +134,11 @@ class SparePartSchema(BaseModel):
     def image_url(self) -> Optional[str]:
         try:
             if hasattr(self, "image_file") and self.image_file:
-                return f"{settings.DIRECTUS_URL}/assets/{self.image_file}"
+                return f"/assets/{self.image_file}"
             if hasattr(self, "images") and self.images:
                 img = next((i for i in self.images if i.is_primary), self.images[0])
-                if img.directus_id: return f"{settings.DIRECTUS_URL}/assets/{img.directus_id}"
-                if img.image_file: return f"{settings.DIRECTUS_URL}/assets/{img.image_file}"
+                if img.directus_id: return f"/assets/{img.directus_id}"
+                if img.image_file: return f"/assets/{img.image_file}"
                 return img.url
         except Exception: pass
         return None

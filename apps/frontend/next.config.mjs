@@ -22,6 +22,10 @@ const nextConfig = {
                 hostname: 'placehold.co',
             },
             {
+                protocol: 'https',
+                hostname: 'admin.td-rss.ru',
+            },
+            {
                 protocol: 'http',
                 hostname: 'localhost',
                 port: '8055',
@@ -34,18 +38,21 @@ const nextConfig = {
         ],
     },
     async rewrites() {
+        const backendUrl = process.env.BACKEND_URL || 'http://backend:8000';
+        const directusUrl = process.env.DIRECTUS_URL || 'http://directus:8055';
+
         return [
             {
                 source: '/api/:path*',
-                destination: process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/:path*` : 'http://localhost:8000/:path*', // Proxy to Backend
+                destination: `${backendUrl}/:path*`,
             },
             {
                 source: '/uploads/:path*',
-                destination: process.env.BACKEND_URL ? `${process.env.BACKEND_URL}/uploads/:path*` : 'http://localhost:8000/uploads/:path*', // Proxy Uploads
+                destination: `${backendUrl}/uploads/:path*`,
             },
             {
                 source: '/assets/:path*',
-                destination: 'http://localhost:8055/assets/:path*', // Proxy Directus Assets
+                destination: `${directusUrl}/assets/:path*`,
             },
         ];
     },
