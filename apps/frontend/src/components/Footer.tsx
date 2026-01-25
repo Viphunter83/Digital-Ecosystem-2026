@@ -77,7 +77,7 @@ export function Footer() {
                     </div>
 
                     {/* Column 4: Contacts */}
-                    <div className="md:col-span-3">
+                    <div className="md:col-span-3" id="contacts">
                         <h4 className="font-bold uppercase tracking-wider mb-6 text-sm text-white/90">Контакты</h4>
                         <div className="space-y-4 text-sm text-muted-foreground">
                             <p>

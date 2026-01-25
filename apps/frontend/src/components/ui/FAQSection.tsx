@@ -143,8 +143,13 @@ export function FAQSection() {
                     </div>
                     <Button
                         variant="outline"
-                        className="bg-transparent border-white/10 hover:border-safety-orange hover:text-safety-orange transition-all px-8 py-6 rounded-xl font-bold uppercase tracking-wider text-xs"
-                        onClick={() => window.scrollTo({ top: document.getElementById('contact')?.offsetTop, behavior: 'smooth' })}
+                        className="bg-transparent border-white/10 hover:bg-safety-orange hover:border-safety-orange transition-all px-8 py-6 rounded-xl font-bold uppercase tracking-wider text-xs text-white"
+                        onClick={() => {
+                            const footerContacts = document.getElementById('contacts');
+                            if (footerContacts) {
+                                footerContacts.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        }}
                     >
                         Задать свой вопрос
                     </Button>
