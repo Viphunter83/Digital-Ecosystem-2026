@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle, FileText, Settings } from "lucide-react";
 import { ShimmerButton } from "@/components/ShimmerButton";
 import { useCartStore } from "@/lib/stores/useCartStore";
-import { Product, parseSpecs } from "@/lib/api";
+import { Product, parseSpecs, getImageUrl } from "@/lib/api";
 import { toast } from "sonner";
 
 interface ProductDetailProps {
@@ -55,9 +55,9 @@ export function ProductDetail({ product }: ProductDetailProps) {
                         {/* Technical Grid Overlay */}
                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] z-10 pointer-events-none" />
 
-                        {product.image_url ? (
+                        {getImageUrl(product) ? (
                             <Image
-                                src={imageError ? "/images/placeholder_machine.jpg" : product.image_url}
+                                src={imageError ? "/images/placeholder_machine.jpg" : getImageUrl(product)!}
                                 alt={cleanName}
                                 fill
                                 className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"

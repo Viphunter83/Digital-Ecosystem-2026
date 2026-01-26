@@ -145,6 +145,27 @@ export function parseSpecs(specs: Record<string, any> | string | undefined | nul
     return [];
 }
 
+/**
+ * Generates a full URL for a Directus asset
+ * @param fileId Directus file UUID
+ * @returns Full URL to the asset or undefined
+ */
+export function getAssetUrl(fileId: string | undefined | null): string | undefined {
+    if (!fileId) return undefined;
+    const baseUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://admin.td-rss.ru';
+    return `${baseUrl}/assets/${fileId}`;
+}
+
+/**
+ * Returns the best available image URL for a product or article
+ * @param item An object with image_file and/or image_url
+ * @returns Best image URL or undefined
+ */
+export function getImageUrl(item: { image_file?: string; image_url?: string } | undefined | null): string | undefined {
+    if (!item) return undefined;
+    return getAssetUrl(item.image_file) || item.image_url;
+}
+
 const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
         // Client-side: use relative path or env var

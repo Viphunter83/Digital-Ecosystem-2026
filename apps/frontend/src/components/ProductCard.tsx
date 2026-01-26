@@ -14,7 +14,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Product, parseSpecs } from "@/lib/api";
+import { Product, parseSpecs, getImageUrl } from "@/lib/api";
 import { toast } from "sonner";
 
 interface ProductCardProps {
@@ -86,9 +86,9 @@ export function ProductCard({ product }: ProductCardProps) {
                     </Badge>
                 </div>
 
-                {product.image_url ? (
+                {getImageUrl(product) ? (
                     <Image
-                        src={imageError ? "/images/placeholder_machine.jpg" : product.image_url}
+                        src={imageError ? "/images/placeholder_machine.jpg" : getImageUrl(product)!}
                         alt={displayName}
                         fill
                         className="object-cover object-center transition-transform duration-700 group-hover:scale-105 group-hover:saturate-110"
