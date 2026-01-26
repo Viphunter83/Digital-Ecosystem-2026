@@ -39,6 +39,7 @@ class Product(Base):
     meta_description = Column(Text, nullable=True)
     is_published = Column(Boolean, default=True)
     image_file = Column(UUID(as_uuid=True), nullable=True)
+    embedding = Column(Vector(1536))
 
     images = relationship("ProductImage", back_populates="product")
 
