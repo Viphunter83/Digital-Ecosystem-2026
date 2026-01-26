@@ -82,9 +82,18 @@ export function ProductDetail({ product }: ProductDetailProps) {
                         <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter mb-4 leading-none">
                             {cleanName}
                         </h1>
-                        <p className="text-xl text-gray-400 font-light leading-relaxed">
-                            {product.description || "Оригинальная запасная часть для металлообрабатывающего оборудования. Гарантия качества и совместимости."}
-                        </p>
+                        <div
+                            className="text-lg text-gray-400 font-light leading-relaxed description-content"
+                            dangerouslySetInnerHTML={{
+                                __html: product.description || "Оригинальная запасная часть для металлообрабатывающего оборудования. Гарантия качества и совместимости."
+                            }}
+                        />
+                        <style jsx>{`
+                            .description-content :global(ul) { list-style-type: disc; padding-left: 1.5rem; margin-top: 1rem; margin-bottom: 1rem; }
+                            .description-content :global(ol) { list-style-type: decimal; padding-left: 1.5rem; margin-top: 1rem; margin-bottom: 1rem; }
+                            .description-content :global(li) { margin-bottom: 0.5rem; }
+                            .description-content :global(p) { margin-bottom: 1rem; }
+                        `}</style>
                     </div>
 
                     {/* Specs Table */}

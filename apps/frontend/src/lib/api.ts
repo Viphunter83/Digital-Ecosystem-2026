@@ -107,33 +107,53 @@ export interface ParsedSpec {
 export function parseSpecs(specs: Record<string, any> | string | undefined | null): ParsedSpec[] {
     if (!specs) return [];
 
+    // If it's a string, it might be JSON or line-by-line text
     if (typeof specs === 'string') {
-        try {
-            const parsed = JSON.parse(specs);
-            if (typeof parsed === 'object' && parsed !== null) {
-                return parseSpecs(parsed);
+        const trimmed = specs.trim();
+        // Check if it's JSON
+        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+            try {
+                const parsed = JSON.parse(trimmed);
+                if (typeof parsed === 'object' && parsed !== null) {
+                    return parseSpecs(parsed);
+                }
+            } catch (e) {
+                // Not valid JSON, fall through to text parsing
             }
-        } catch (e) {
-            // Line-by-line parsing
-            return specs.split('\n')
-                .filter(line => line.trim().includes(':') || line.trim().includes('-'))
-                .map((line, idx) => {
-                    const separator = line.includes(':') ? ':' : '-';
-                    const [key, ...valParts] = line.split(separator);
-                    const value = valParts.join(separator).trim();
-                    return {
-                        originalKey: `manual-${idx}`,
-                        parameter: key.trim(),
-                        value: formatSpecValue(value)
-                    };
-                });
         }
-    } else {
-        // It's an object
+
+        // Line-by-line parsing (for non-technical users)
+        return specs.split('\n')
+            .filter(line => line.trim().length > 0)
+            .map((line, idx) => {
+                let key = '';
+                let value = '';
+
+                if (line.includes(':')) {
+                    const parts = line.split(':');
+                    key = parts[0].trim();
+                    value = parts.slice(1).join(':').trim();
+                } else if (line.includes('-')) {
+                    const parts = line.split('-');
+                    key = parts[0].trim();
+                    value = parts.slice(1).join('-').trim();
+                } else {
+                    key = 'Параметр';
+                    value = line.trim();
+                }
+
+                return {
+                    originalKey: `manual-${idx}`,
+                    parameter: key,
+                    value: formatSpecValue(value)
+                };
+            });
+    } else if (typeof specs === 'object' && specs !== null) {
+        // It's an object/dictionary
         return Object.entries(specs)
             .filter(([key, value]) => {
                 const k = key.toUpperCase();
-                return k !== 'DESCRIPTION' && value && String(value).trim() !== '';
+                return k !== 'DESCRIPTION' && value !== null && value !== undefined && String(value).trim() !== '';
             })
             .map(([key, value]) => ({
                 originalKey: key,
@@ -152,8 +172,11 @@ export function parseSpecs(specs: Record<string, any> | string | undefined | nul
  */
 export function getAssetUrl(fileId: string | undefined | null): string | undefined {
     if (!fileId) return undefined;
+    // If it's already a full URL (from backend), return it
+    if (fileId.startsWith('http')) return fileId;
+
     const baseUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://admin.td-rss.ru';
-    return `${baseUrl}/assets/${fileId}`;
+    return `${baseUrl.replace(/\/$/, '')}/assets/${fileId}`;
 }
 
 /**

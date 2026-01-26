@@ -68,6 +68,12 @@ async def search_products(
     Returns { results: [], total: int }
     """
     total_count = 0
+    
+    # Resolve category slug to name once if it exists
+    category_name = None
+    if category:
+        cat_obj = await run_in_threadpool(lambda: db.execute(select(Category).where(Category.slug == category)).scalar_one_or_none())
+        category_name = cat_obj.name if cat_obj else category
 
     # SPARE PARTS MODE
     if type == "spares":
@@ -130,8 +136,8 @@ async def search_products(
         query = select(Product).where(Product.is_published == True)
         
         # Apply category filter
-        if category:
-            query = query.where(Product.category == category)
+        if category_name:
+            query = query.where(Product.category == category_name)
         
         # Count
         count_stmt = select(func.count()).select_from(query.subquery())
@@ -154,8 +160,8 @@ async def search_products(
     kw_query = select(Product).where(Product.is_published == True)
     if q:
         kw_query = kw_query.where(Product.name.ilike(f"%{q}%"))
-    if category:
-        kw_query = kw_query.where(Product.category == category)
+    if category_name:
+        kw_query = kw_query.where(Product.category == category_name)
     
     kw_results = await run_in_threadpool(lambda: db.execute(kw_query.options(joinedload(Product.images))).unique().scalars().all())
     
@@ -176,8 +182,8 @@ async def search_products(
                 joinedload(Product.images)
             ).where(Product.is_published == True)
             
-            if category:
-                sem_stmt = sem_stmt.where(Product.category == category)
+            if category_name:
+                sem_stmt = sem_stmt.where(Product.category == category_name)
                 
             sem_stmt = sem_stmt.order_by(distance_expr).limit(limit)
             

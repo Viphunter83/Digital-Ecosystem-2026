@@ -58,7 +58,7 @@ class ProductSchema(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     manufacturer: Optional[str] = None
-    specs: Optional[Dict[str, Any]] = None
+    specs: Optional[Any] = None
     price: Optional[float] = None
     currency: Optional[str] = "RUB"
     is_published: bool = True
@@ -69,12 +69,13 @@ class ProductSchema(BaseModel):
     @property
     def image_url(self) -> Optional[str]:
         try:
+            base_url = settings.DIRECTUS_URL.rstrip('/')
             if hasattr(self, "image_file") and self.image_file:
-                return f"/assets/{self.image_file}"
+                return f"{base_url}/assets/{self.image_file}"
             if hasattr(self, "images") and self.images:
                 img = next((i for i in self.images if i.is_primary), self.images[0])
-                if img.directus_id: return f"/assets/{img.directus_id}"
-                if img.image_file: return f"/assets/{img.image_file}"
+                if img.directus_id: return f"{base_url}/assets/{img.directus_id}"
+                if img.image_file: return f"{base_url}/assets/{img.image_file}"
                 return img.url
         except Exception: pass
         return None
@@ -93,7 +94,8 @@ class ArticleSchema(BaseModel):
     @computed_field
     def image_url(self) -> Optional[str]:
         if hasattr(self, "image_file") and self.image_file:
-            return f"/assets/{self.image_file}"
+            base_url = settings.DIRECTUS_URL.rstrip('/')
+            return f"{base_url}/assets/{self.image_file}"
         return self.cover_image
 
     @computed_field
@@ -122,7 +124,7 @@ class SparePartSchema(BaseModel):
     slug: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
-    specs: Optional[Dict[str, Any]] = None
+    specs: Optional[Any] = None
     price: Optional[float] = None
     currency: Optional[str] = "RUB"
     is_published: bool = True
@@ -133,12 +135,13 @@ class SparePartSchema(BaseModel):
     @property
     def image_url(self) -> Optional[str]:
         try:
+            base_url = settings.DIRECTUS_URL.rstrip('/')
             if hasattr(self, "image_file") and self.image_file:
-                return f"/assets/{self.image_file}"
+                return f"{base_url}/assets/{self.image_file}"
             if hasattr(self, "images") and self.images:
                 img = next((i for i in self.images if i.is_primary), self.images[0])
-                if img.directus_id: return f"/assets/{img.directus_id}"
-                if img.image_file: return f"/assets/{img.image_file}"
+                if img.directus_id: return f"{base_url}/assets/{img.directus_id}"
+                if img.image_file: return f"{base_url}/assets/{img.image_file}"
                 return img.url
         except Exception: pass
         return None
