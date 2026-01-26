@@ -20,3 +20,4 @@ python-jose[cryptography]
 passlib[bcrypt]
 redis>=5.0.0
 aiohttp>=3.9.0
+Pillow>=10.2.0
