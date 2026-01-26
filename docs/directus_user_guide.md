@@ -5,7 +5,7 @@
 ---
 
 ## 1. Вход в систему
-*   **Адрес**: [directus.td-rss.ru](https://directus.td-rss.ru)
+*   **Адрес**: [admin.td-rss.ru](https://admin.td-rss.ru)
 *   **Логин**: `Info@tdrusstankosbyt.ru`
 *   **Пароль**: Ваш секретный пароль
 *   *(Рекомендуется сохранить вкладку в закладки браузера).*
