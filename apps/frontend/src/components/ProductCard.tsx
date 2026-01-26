@@ -112,13 +112,13 @@ export function ProductCard({ product }: ProductCardProps) {
 
             <CardHeader className="pt-5 pb-2 relative z-10">
                 <Link href={`/catalog/${product.slug || product.id}`}>
-                    <CardTitle className="text-lg font-bold text-white leading-tight hover:text-safety-orange transition-colors duration-300 font-manrope tracking-tight line-clamp-2 min-h-[44px]" title={displayName}>
+                    <CardTitle className="text-lg font-bold text-white leading-tight hover:text-safety-orange transition-colors duration-300 font-manrope tracking-tight min-h-[44px]" title={displayName}>
                         {displayName}
                     </CardTitle>
                 </Link>
                 <div className="card-description-wrapper">
                     <CardDescription
-                        className="text-xs text-gray-400 line-clamp-2 min-h-[32px] font-mono mt-1 leading-relaxed description-content"
+                        className="text-xs text-gray-400 font-mono mt-1 leading-relaxed description-content whitespace-pre-wrap"
                         dangerouslySetInnerHTML={{ __html: cleanDesc }}
                     />
                 </div>

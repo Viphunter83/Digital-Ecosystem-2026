@@ -83,7 +83,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
                             {cleanName}
                         </h1>
                         <div
-                            className="text-lg text-gray-400 font-light leading-relaxed description-content"
+                            className="text-lg text-gray-400 font-light leading-relaxed description-content whitespace-pre-wrap"
                             dangerouslySetInnerHTML={{
                                 __html: product.description || "Оригинальная запасная часть для металлообрабатывающего оборудования. Гарантия качества и совместимости."
                             }}

@@ -54,7 +54,7 @@ async def get_filters(db: Session = Depends(get_db)):
     return FiltersResponse(groups=groups)
 
 @router.get("/search")
-@cache(expire=300) # 5 minutes cache
+@cache(expire=60) # 1 minute cache for faster content updates
 async def search_products(
     q: Optional[str] = None,
     type: str = "machines", # "machines" or "spares"
