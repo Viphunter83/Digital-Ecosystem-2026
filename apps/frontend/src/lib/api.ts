@@ -123,7 +123,8 @@ export function parseSpecs(specs: Record<string, any> | string | undefined | nul
         }
 
         // Line-by-line parsing (for non-technical users)
-        return specs.split('\n')
+        // Split by both actual newlines and escaped \\n literal
+        return specs.split(/\n|\\n/)
             .filter(line => line.trim().length > 0)
             .map((line, idx) => {
                 let key = '';
