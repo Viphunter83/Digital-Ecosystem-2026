@@ -116,9 +116,19 @@ export function ProductCard({ product }: ProductCardProps) {
                         {displayName}
                     </CardTitle>
                 </Link>
-                <CardDescription className="text-xs text-gray-400 line-clamp-2 min-h-[32px] font-mono mt-1 leading-relaxed">
-                    {cleanDesc}
-                </CardDescription>
+                <div className="card-description-wrapper">
+                    <CardDescription
+                        className="text-xs text-gray-400 line-clamp-2 min-h-[32px] font-mono mt-1 leading-relaxed description-content"
+                        dangerouslySetInnerHTML={{ __html: cleanDesc }}
+                    />
+                </div>
+                <style jsx>{`
+                    .description-content :global(ul) { list-style-type: disc; padding-left: 1rem; margin-top: 0.25rem; margin-bottom: 0.25rem; }
+                    .description-content :global(ol) { list-style-type: decimal; padding-left: 1rem; margin-top: 0.25rem; margin-bottom: 0.25rem; }
+                    .description-content :global(li) { margin-bottom: 0.25rem; }
+                    .description-content :global(p) { margin-bottom: 0.5rem; }
+                    .card-description-wrapper { mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+                `}</style>
             </CardHeader>
 
             <CardContent className="flex-grow relative z-10">
