@@ -34,6 +34,7 @@ export interface Product {
 export interface Article {
     id: string;
     title: string;
+    slug?: string;
     summary?: string;
     content?: string;
     published_at?: string;
@@ -142,10 +143,9 @@ export const fetchCatalog = async (
     }
 };
 
-export const fetchProductById = async (id: string): Promise<Product | undefined> => {
+export const fetchProductById = async (idOrSlug: string): Promise<Product | undefined> => {
     try {
-        // Defined as @router.get("/{product_id}") -> /catalog/{id} (NO SLASH)
-        const response = await api.get(`/catalog/${id}`);
+        const response = await api.get(`/catalog/${idOrSlug}`);
         if (response.data.error) return undefined;
         return response.data;
     } catch (error) {
@@ -156,9 +156,7 @@ export const fetchProductById = async (id: string): Promise<Product | undefined>
 
 export const fetchArticles = async (): Promise<Article[]> => {
     try {
-        // Defined as @router.get("/") -> /journal/ (YES SLASH)
         const response = await api.get('/journal');
-        // The endpoint returns { articles: Article[] } based on journal.py
         return response.data.articles || [];
     } catch (error) {
         console.error('Error fetching articles:', error);
@@ -166,10 +164,9 @@ export const fetchArticles = async (): Promise<Article[]> => {
     }
 };
 
-export const fetchArticleById = async (id: string): Promise<Article | undefined> => {
+export const fetchArticleById = async (idOrSlug: string): Promise<Article | undefined> => {
     try {
-        // Defined as @router.get("/{article_id}") -> /journal/{id} (NO SLASH)
-        const response = await api.get(`/journal/${id}`);
+        const response = await api.get(`/journal/${idOrSlug}`);
         return response.data;
     } catch (error) {
         console.error('Error fetching article:', error);

@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Dynamic products
     const productRoutes = products.map((product) => ({
-        url: `${baseUrl}/catalog/${product.id}`,
+        url: `${baseUrl}/catalog/${product.slug || product.id}`,
         lastModified: new Date(),
         changeFrequency: 'weekly' as const,
         priority: 0.7,
@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     // Dynamic articles
     const articleRoutes = articles.map((article) => ({
-        url: `${baseUrl}/journal/${article.id}`,
+        url: `${baseUrl}/journal/${article.slug || article.id}`,
         lastModified: new Date(article.published_at || Date.now()),
         changeFrequency: 'monthly' as const,
         priority: 0.6,

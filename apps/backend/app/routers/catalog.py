@@ -377,27 +377,40 @@ def debug_sql_check(db: Session = Depends(get_db)):
     except Exception as e:
         return {"error": str(e)}
 
-@router.get("/{product_id}")
-def get_product(product_id: str, db: Session = Depends(get_db)):
+@router.get("/{id_or_slug}")
+def get_product(id_or_slug: str, db: Session = Depends(get_db)):
     """
-    Get a specific product by ID (UUID).
+    Get a specific product or spare part by ID (UUID) or Slug.
     """
+    import uuid
+    is_uuid = False
     try:
-        # 1. Try Machines
-        stmt = select(Product).options(joinedload(Product.images)).where(Product.id == product_id)
-        product = db.execute(stmt).unique().scalar_one_or_none()
-        if product:
-            return ProductSchema.model_validate(product)
-            
-        # 2. Try Spares
-        stmt = select(SparePart).options(joinedload(SparePart.images)).where(SparePart.id == product_id)
-        spare = db.execute(stmt).unique().scalar_one_or_none()
-        if spare:
-            return SparePartSchema.model_validate(spare)
+        uid = uuid.UUID(id_or_slug)
+        is_uuid = True
+    except ValueError:
+        pass
 
-        return {"error": "Product not found"}
-    except Exception as e:
-        return {"error": "Product not found"}
+    # 1. Try Machines
+    if is_uuid:
+        stmt = select(Product).options(joinedload(Product.images)).where(Product.id == uid)
+    else:
+        stmt = select(Product).options(joinedload(Product.images)).where(Product.slug == id_or_slug)
+    
+    product = db.execute(stmt).unique().scalar_one_or_none()
+    if product:
+        return ProductSchema.model_validate(product)
+            
+    # 2. Try Spares
+    if is_uuid:
+        stmt = select(SparePart).options(joinedload(SparePart.images)).where(SparePart.id == uid)
+    else:
+        stmt = select(SparePart).options(joinedload(SparePart.images)).where(SparePart.slug == id_or_slug)
+        
+    spare = db.execute(stmt).unique().scalar_one_or_none()
+    if spare:
+        return SparePartSchema.model_validate(spare)
+
+    return {"error": "Product not found"}
 
 @router.post("/reindex/{product_id}")
 async def reindex_product(product_id: str, db: Session = Depends(get_db)):

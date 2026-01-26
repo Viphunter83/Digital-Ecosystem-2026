@@ -6,12 +6,12 @@ import { NavBar } from '@/components/NavBar';
 import { Footer } from '@/components/Footer';
 
 type Props = {
-    params: { id: string }
+    params: { slug: string }
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { id } = params;
-    const article = await fetchArticleById(id);
+    const { slug } = params;
+    const article = await fetchArticleById(slug);
 
     if (!article) {
         return {
@@ -28,6 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         openGraph: {
             title,
             description,
+            url: `https://td-rss.ru/journal/${article.slug || article.id}`,
+            siteName: 'ТД РусСтанкоСбыт',
             type: 'article',
             publishedTime: article.published_at,
             authors: [article.author || 'Редакция'],
@@ -37,8 +39,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ArticlePage({ params }: Props) {
-    const { id } = params;
-    const article = await fetchArticleById(id);
+    const { slug } = params;
+    const article = await fetchArticleById(slug);
 
     if (!article) {
         return (

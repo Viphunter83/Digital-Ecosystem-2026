@@ -16,12 +16,12 @@ const CATEGORY_RU: Record<string, string> = {
 };
 
 type Props = {
-    params: { id: string }
+    params: { slug: string }
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { id } = params;
-    const product = await fetchProductById(id);
+    const { slug } = params;
+    const product = await fetchProductById(slug);
 
     if (!product) {
         return {
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         product.manufacturer || '',
     ].filter(Boolean).join(', ');
 
-    const productUrl = `https://td-rss.ru/catalog/${product.id}`;
+    const productUrl = `https://td-rss.ru/catalog/${product.slug || product.id}`;
     const imageUrl = product.image_url?.startsWith('http')
         ? product.image_url
         : `https://td-rss.ru${product.image_url || '/images/products/product_cnc.png'}`;
@@ -87,8 +87,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-    const { id } = params;
-    const product = await fetchProductById(id);
+    const { slug } = params;
+    const product = await fetchProductById(slug);
 
     if (!product) {
         return (
@@ -119,7 +119,7 @@ export default async function ProductPage({ params }: Props) {
         },
         offers: {
             '@type': 'Offer',
-            url: `https://td-rss.ru/catalog/${product.id}`,
+            url: `https://td-rss.ru/catalog/${product.slug || product.id}`,
             priceCurrency: 'RUB',
             price: product.price || undefined,
             priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],

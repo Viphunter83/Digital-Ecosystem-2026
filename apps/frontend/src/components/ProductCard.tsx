@@ -93,7 +93,7 @@ export function ProductCard({ product }: ProductCardProps) {
         // Clean text for cart
         const cleanName = product.name.replace(/^ТД РУССтанкоСбыт\s*-\s*/i, "");
 
-        addToCart({ ...product, name: cleanName, price: product.price || 0, slug: product.id });
+        addToCart({ ...product, name: cleanName, price: product.price || 0, slug: product.slug || product.id });
         toast.success("Добавлено в заказ", {
             description: cleanName.substring(0, 50) + (cleanName.length > 50 ? "..." : "")
         });
@@ -143,7 +143,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
             {/* Image Container */}
-            <Link href={`/catalog/${product.id}`} className="block relative w-full h-48 sm:h-56 bg-industrial-surface overflow-hidden border-b border-industrial-border group-hover:border-safety-orange/50 transition-colors shrink-0">
+            <Link href={`/catalog/${product.slug || product.id}`} className="block relative w-full h-48 sm:h-56 bg-industrial-surface overflow-hidden border-b border-industrial-border group-hover:border-safety-orange/50 transition-colors shrink-0">
                 <div className="absolute top-0 right-0 p-3 z-20 flex gap-2">
                     <Badge className="bg-industrial-surface/90 backdrop-blur text-xs font-mono text-muted-foreground border border-industrial-border rounded-none uppercase tracking-wider px-2 py-[2px] shadow-sm">
                         ID: {(product.id ? String(product.id) : "???").substring(0, 8).toUpperCase()}
@@ -175,7 +175,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </Link>
 
             <CardHeader className="pt-5 pb-2 relative z-10">
-                <Link href={`/catalog/${product.id}`}>
+                <Link href={`/catalog/${product.slug || product.id}`}>
                     <CardTitle className="text-lg font-bold text-white leading-tight hover:text-safety-orange transition-colors duration-300 font-manrope tracking-tight line-clamp-2 min-h-[44px]" title={displayName}>
                         {displayName}
                     </CardTitle>
@@ -186,7 +186,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </CardHeader>
 
             <CardContent className="flex-grow relative z-10">
-                <Link href={`/catalog/${product.id}`}>
+                <Link href={`/catalog/${product.slug || product.id}`}>
                     <div className="flex flex-col gap-[1px] bg-industrial-border border border-industrial-border my-2 overflow-hidden">
                         {specsArray.slice(0, 3).map((spec, index) => (
                             <div key={index} className="flex flex-col bg-industrial-panel px-3 py-1.5 min-w-0">
@@ -199,7 +199,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </CardContent>
 
             <CardFooter className="pt-2 pb-5 px-6 relative z-10 grid grid-cols-2 gap-2">
-                <Link href={`/catalog/${product.id}`} className="w-full">
+                <Link href={`/catalog/${product.slug || product.id}`} className="w-full">
                     <ShimmerButton className="w-full bg-transparent border border-white/20 text-white hover:bg-white/10 h-10 text-[10px]">
                         ПОДРОБНЕЕ
                     </ShimmerButton>

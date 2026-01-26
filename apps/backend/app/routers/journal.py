@@ -18,19 +18,27 @@ def get_journal(db: Session = Depends(get_db)):
     data = [ArticleSchema.model_validate(a) for a in results]
     return {"articles": data}
 
-@router.get("/{article_id}")
-def get_article(article_id: str, db: Session = Depends(get_db)):
+@router.get("/{id_or_slug}")
+def get_article(id_or_slug: str, db: Session = Depends(get_db)):
     """
-    Get article by ID.
+    Get article by ID or Slug.
     """
     import uuid
+    article = None
+    
+    # 1. Try as UUID
     try:
-        aid = uuid.UUID(article_id)
+        aid = uuid.UUID(id_or_slug)
+        query = select(Article).where(Article.id == aid)
+        article = db.execute(query).scalar_one_or_none()
     except ValueError:
-        return {"error": "Invalid ID format"}
+        # Not a UUID, move to slug lookup
+        pass
 
-    query = select(Article).where(Article.id == aid)
-    article = db.execute(query).scalar_one_or_none()
+    # 2. Try as Slug
+    if not article:
+        query = select(Article).where(Article.slug == id_or_slug)
+        article = db.execute(query).scalar_one_or_none()
     
     if not article:
         return {"error": "Article not found"}
