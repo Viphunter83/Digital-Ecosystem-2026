@@ -109,7 +109,13 @@ export function parseSpecs(specs: Record<string, any> | string | undefined | nul
 
     // If it's a string, it might be JSON or line-by-line text
     if (typeof specs === 'string') {
-        const trimmed = specs.trim();
+        let trimmed = specs.trim();
+
+        // Handle surrounding quotes (Directus JSON text field quirk)
+        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+            trimmed = trimmed.substring(1, trimmed.length - 1);
+        }
+
         // Check if it's JSON
         if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
             try {
@@ -124,7 +130,7 @@ export function parseSpecs(specs: Record<string, any> | string | undefined | nul
 
         // Line-by-line parsing (for non-technical users)
         // Split by both actual newlines and escaped \\n literal
-        return specs.split(/\n|\\n/)
+        return trimmed.split(/\r?\n|\\n/)
             .filter(line => line.trim().length > 0)
             .map((line, idx) => {
                 let key = '';
