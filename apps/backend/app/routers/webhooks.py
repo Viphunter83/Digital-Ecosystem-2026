@@ -79,7 +79,7 @@ async def watermark_webhook(payload: dict):
             return {"status": "ignored"}
 
         # 1. Fetch file metadata to check type
-        auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_ADMIN_TOKEN}"}
+        auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
         file_url = f"{settings.DIRECTUS_URL}/files/{file_id}"
         
         file_resp = requests.get(file_url, headers=auth_header)

@@ -45,7 +45,7 @@ class Settings(BaseSettings):
 
     # Directus
     DIRECTUS_URL: str = os.getenv("DIRECTUS_URL", "https://admin.td-rss.ru")
-    DIRECTUS_ADMIN_TOKEN: str = os.getenv("DIRECTUS_ADMIN_TOKEN", "")
+    DIRECTUS_TOKEN: str = os.getenv("DIRECTUS_TOKEN", "5gYuWbZScWXSsJRecefWZkU07wcqHs-0")
 
     class Config:
         case_sensitive = True
