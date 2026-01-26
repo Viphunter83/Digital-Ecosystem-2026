@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { fetchMachineInstance, MachineInstance, fetchRecommendedSpares, Product } from "@/lib/api";
+import { fetchMachineInstance, MachineInstance, fetchRecommendedSpares, Product, parseSpecs } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     CheckCircle2,
@@ -226,10 +226,10 @@ export default function MachinePassportPage() {
                                     </h2>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 relative z-10">
-                                        {instance.product?.specs ? Object.entries(instance.product.specs).slice(0, 10).map(([key, val]) => (
-                                            <div key={key} className="flex justify-between items-center border-b border-white/5 pb-3">
-                                                <span className="text-[10px] text-white/40 uppercase font-bold tracking-widest">{key}</span>
-                                                <span className="text-sm font-mono font-bold">{String(val)}</span>
+                                        {instance.product?.specs ? parseSpecs(instance.product.specs).slice(0, 10).map((spec) => (
+                                            <div key={spec.originalKey} className="flex justify-between items-center border-b border-white/5 pb-3">
+                                                <span className="text-[10px] text-white/40 uppercase font-bold tracking-widest">{spec.parameter}</span>
+                                                <span className="text-sm font-mono font-bold">{spec.value}</span>
                                             </div>
                                         )) : (
                                             <div className="col-span-2 text-white/20 font-mono text-center py-10 italic">

@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -12,73 +14,11 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Product } from "@/lib/api";
+import { Product, parseSpecs } from "@/lib/api";
 import { toast } from "sonner";
 
 interface ProductCardProps {
     product: Product;
-}
-
-const SPEC_MAP: Record<string, string> = {
-    // Standard specs (lowercase - from API)
-    'power': 'МОЩНОСТЬ',
-    'accuracy': 'ТОЧНОСТЬ',
-    'max_length': 'МАКС. ДЛИНА',
-    'max_diameter': 'МАКС. ДИАМЕТР',
-    'travel_x': 'ХОД ПО X',
-    'travel_y': 'ХОД ПО Y',
-    'travel_z': 'ХОД ПО Z',
-    'table_size': 'РАЗМЕР СТОЛА',
-    'spindle_speed': 'ОБ/МИН',
-    'force': 'УСИЛИЕ',
-    'speed': 'СКОРОСТЬ',
-    'stroke': 'ХОД ПОЛЗУНА',
-    'rpm': 'ОБ/МИН',
-    'torque': 'КРУТЯЩИЙ МОМЕНТ',
-    'axis': 'ОСИ',
-    'spindle': 'ШПИНДЕЛЬ',
-    'workspace': 'РАБ. ЗОНА',
-    'weight': 'ВЕС',
-    'diameter': 'ДИАМЕТР',
-    'main': 'ОСНОВНОЕ',
-    'model': 'МОДЕЛЬ',
-    'description': 'ОПИСАНИЕ',
-    // Uppercase variants
-    'POWER': 'МОЩНОСТЬ',
-    'ACCURACY': 'ТОЧНОСТЬ',
-    'MAX_LENGTH': 'МАКС. ДЛИНА',
-    'MAX_DIAMETER': 'МАКС. ДИАМЕТР',
-    'TRAVEL_X': 'ХОД ПО X',
-    'TABLE_SIZE': 'РАЗМЕР СТОЛА',
-    'SPINDLE_SPEED': 'ОБ/МИН',
-    'FORCE': 'УСИЛИЕ',
-    'SPEED': 'СКОРОСТЬ',
-    'STROKE': 'ХОД ПОЛЗУНА',
-    'AXIS': 'ОСИ',
-    'SPINDLE': 'ШПИНДЕЛЬ',
-    'WORKSPACE': 'РАБ. ЗОНА',
-    'WEIGHT': 'ВЕС',
-    'DIAMETER': 'ДИАМЕТР',
-    'MAIN': 'ОСНОВНОЕ',
-    'MODEL': 'МОДЕЛЬ',
-    'DESCRIPTION': 'ОПИСАНИЕ',
-};
-
-const UNIT_MAP: Record<string, string> = {
-    'mm': 'мм',
-    'mm/s': 'мм/с',
-    'rpm': 'об/мин',
-    'ton': 'т',
-    'kW': 'кВт',
-    'kg': 'кг',
-};
-
-function formatSpecValue(value: string): string {
-    let formatted = value;
-    Object.entries(UNIT_MAP).forEach(([en, ru]) => {
-        formatted = formatted.replace(new RegExp(en, 'g'), ru);
-    });
-    return formatted;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -106,25 +46,21 @@ export function ProductCard({ product }: ProductCardProps) {
     cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
     const displayName = cleanName;
 
-    // Transform specs record to array for display
-    const specsArray = product.specs
-        ? Object.entries(product.specs)
-            .filter(([key, value]) => {
-                const k = key.toUpperCase();
-                // Filter out description, main/summary and empty values for the card preview
-                // These fields are too long for a card and already exist in description or detail view.
-                const isTooLong = k.includes('DESCRIPTION') || k.includes('MAIN') || k.includes('ОСНОВН') || k.includes('SUMMARY') || k.includes('ОПИСАН');
-                return !isTooLong && value && String(value).trim() !== '';
-            })
-            .map(([key, value]) => ({
-                parameter: SPEC_MAP[key] || SPEC_MAP[key.toUpperCase()] || key,
-                value: formatSpecValue(String(value))
-            }))
-        : [];
+    // Transform specs record to array for display using common utility
+    const allSpecs = parseSpecs(product.specs);
+
+    // Filter for card preview (limit length and exclude descriptions)
+    const specsArray = allSpecs
+        .filter(spec => {
+            const k = spec.parameter.toUpperCase();
+            return !k.includes('DESCRIPTION') && !k.includes('SUMMARY') && !k.includes('ОПИСАН');
+        })
+        .slice(0, 3);
 
     // Find description in specs if not top-level
+    const specsObj = (typeof product.specs === 'object' && product.specs !== null) ? product.specs as Record<string, any> : null;
     const descriptionText = product.description
-        || (product.specs && (product.specs['DESCRIPTION'] || product.specs['description'] || product.specs['Description']))
+        || (specsObj && (specsObj['DESCRIPTION'] || specsObj['description'] || specsObj['Description']))
         || (product.category ? "ПРОМЫШЛЕННЫЙ КЛАСС // ВЫСОКАЯ ПРОИЗВОДИТЕЛЬНОСТЬ" : "ОРИГИНАЛЬНАЯ ЗАПАСНАЯ ЧАСТЬ // В НАЛИЧИИ");
 
     // Clean description text (sometimes it repeats title or company)
@@ -188,7 +124,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <CardContent className="flex-grow relative z-10">
                 <Link href={`/catalog/${product.slug || product.id}`}>
                     <div className="flex flex-col gap-[1px] bg-industrial-border border border-industrial-border my-2 overflow-hidden">
-                        {specsArray.slice(0, 3).map((spec, index) => (
+                        {specsArray.map((spec, index) => (
                             <div key={index} className="flex flex-col bg-industrial-panel px-3 py-1.5 min-w-0">
                                 <span className="text-[8px] uppercase tracking-widest text-gray-500 font-bold font-mono truncate mb-0.5" title={spec.parameter}>{spec.parameter}</span>
                                 <span className="text-[10px] font-mono text-white/90 line-clamp-2 leading-tight" title={spec.value}>{spec.value}</span>

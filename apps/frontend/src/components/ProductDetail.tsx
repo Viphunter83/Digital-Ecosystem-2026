@@ -6,50 +6,11 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle, FileText, Settings } from "lucide-react";
 import { ShimmerButton } from "@/components/ShimmerButton";
 import { useCartStore } from "@/lib/stores/useCartStore";
-import { Product } from "@/lib/api";
+import { Product, parseSpecs } from "@/lib/api";
 import { toast } from "sonner";
 
 interface ProductDetailProps {
     product: Product;
-}
-
-// Maps shared with ProductCard (could be moved to a shared constant file)
-const SPEC_MAP: Record<string, string> = {
-    'TRAVEL_X': 'ХОД ПО ОСИ X',
-    'TABLE_SIZE': 'РАЗМЕР СТОЛА',
-    'SPINDLE_SPEED': 'ОБОРОТЫ',
-    'FORCE': 'УСИЛИЕ',
-    'SPEED': 'СКОРОСТЬ',
-    'STROKE': 'ХОД ПОЛЗУНА',
-    'POWER': 'МОЩНОСТЬ',
-    'ACCURACY': 'ТОЧНОСТЬ',
-    'MAX_LENGTH': 'МАКС. ДЛИНА',
-    'MAX_DIAMETER': 'МАКС. ДИАМЕТР',
-    'DIAMETER': 'ДИАМЕТР',
-    'WEIGHT': 'ВЕС',
-    'AXIS': 'ОСИ',
-    'SPINDLE': 'ШПИНДЕЛЬ',
-    'WORKSPACE': 'РАБ. ЗОНА',
-    'MAIN': 'ОСНОВНОЕ',
-    'MODEL': 'МОДЕЛЬ',
-    'DESCRIPTION': 'ОПИСАНИЕ',
-};
-
-const UNIT_MAP: Record<string, string> = {
-    'mm': 'мм',
-    'mm/s': 'мм/с',
-    'rpm': 'об/мин',
-    'ton': 'т',
-    'kW': 'кВт',
-    'kg': 'кг',
-};
-
-function formatSpecValue(value: string): string {
-    let formatted = value;
-    Object.entries(UNIT_MAP).forEach(([en, ru]) => {
-        formatted = formatted.replace(new RegExp(en, 'g'), ru);
-    });
-    return formatted;
 }
 
 export function ProductDetail({ product }: ProductDetailProps) {
@@ -74,23 +35,12 @@ export function ProductDetail({ product }: ProductDetailProps) {
     let cleanName = product.name.replace(/^ТД РУССтанкоСбыт\s*-\s*/i, "");
     cleanName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
 
-    // Prepare specs
-    const specsArray = product.specs
-        ? Object.entries(product.specs)
-            .filter(([key, value]) => {
-                const k = key.toUpperCase();
-                return k !== 'DESCRIPTION' && value && String(value).trim() !== '';
-            })
-            .map(([key, value]) => ({
-                originalKey: key,
-                parameter: SPEC_MAP[key] || SPEC_MAP[key.toUpperCase()] || key,
-                value: formatSpecValue(String(value))
-            }))
-        : [];
+    // Prepare specs using common utility
+    const specsArray = parseSpecs(product.specs);
 
     return (
         <div className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
-            {/* ... Breadcrumb ... */}
+            {/* Breadcrumb */}
             <div className="container mx-auto px-6 mb-8">
                 <Link href="/catalog" className="inline-flex items-center text-muted-foreground hover:text-safety-orange transition-colors font-mono text-sm uppercase">
                     <ArrowLeft className="w-4 h-4 mr-2" />

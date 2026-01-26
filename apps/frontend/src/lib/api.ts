@@ -24,7 +24,7 @@ export interface Product {
     slug?: string;
     description?: string;
     category?: string;
-    specs?: Record<string, any>;
+    specs?: Record<string, any> | string;
     image_url?: string;
     image_file?: string;
     price?: number;
@@ -41,6 +41,108 @@ export interface Article {
     author?: string;
     image_url?: string;
     image_file?: string;
+}
+
+// Shared Constants for Specs
+export const SPEC_MAP: Record<string, string> = {
+    'TRAVEL_X': 'ХОД ПО ОСИ X',
+    'TABLE_SIZE': 'РАЗМЕР СТОЛА',
+    'SPINDLE_SPEED': 'ОБОРОТЫ',
+    'FORCE': 'УСИЛИЕ',
+    'SPEED': 'СКОРОСТЬ',
+    'STROKE': 'ХОД ПОЛЗУНА',
+    'POWER': 'МОЩНОСТЬ',
+    'ACCURACY': 'ТОЧНОСТЬ',
+    'MAX_LENGTH': 'МАКС. ДЛИНА',
+    'MAX_DIAMETER': 'МАКС. ДИАМЕТР',
+    'DIAMETER': 'ДИАМЕТР',
+    'WEIGHT': 'ВЕС',
+    'AXIS': 'ОСИ',
+    'SPINDLE': 'ШПИНДЕЛЬ',
+    'WORKSPACE': 'РАБ. ЗОНА',
+    'MAIN': 'ОСНОВНОЕ',
+    'MODEL': 'МОДЕЛЬ',
+    'DESCRIPTION': 'ОПИСАНИЕ',
+    'power': 'МОЩНОСТЬ',
+    'accuracy': 'ТОЧНОСТЬ',
+    'max_length': 'МАКС. ДЛИНА',
+    'max_diameter': 'МАКС. ДИАМЕТР',
+    'travel_x': 'ХОД ПО X',
+    'travel_y': 'ХОД ПО Y',
+    'travel_z': 'ХОД ПО Z',
+    'table_size': 'РАЗМЕР СТОЛА',
+    'spindle_speed': 'ОБ/МИН',
+    'force': 'УСИЛИЕ',
+    'speed': 'СКОРОСТЬ',
+    'stroke': 'ХОД ПОЛЗУНА',
+    'rpm': 'ОБ/МИН',
+    'torque': 'КРУТЯЩИЙ МОМЕНТ',
+    'weight': 'ВЕС',
+    'diameter': 'ДИАМЕТР',
+};
+
+export const UNIT_MAP: Record<string, string> = {
+    'mm': 'мм',
+    'mm/s': 'мм/с',
+    'rpm': 'об/мин',
+    'ton': 'т',
+    'kW': 'кВт',
+    'kg': 'кг',
+};
+
+export function formatSpecValue(value: string): string {
+    let formatted = value;
+    Object.entries(UNIT_MAP).forEach(([en, ru]) => {
+        formatted = formatted.replace(new RegExp(en, 'g'), ru);
+    });
+    return formatted;
+}
+
+export interface ParsedSpec {
+    originalKey: string;
+    parameter: string;
+    value: string;
+}
+
+export function parseSpecs(specs: Record<string, any> | string | undefined | null): ParsedSpec[] {
+    if (!specs) return [];
+
+    if (typeof specs === 'string') {
+        try {
+            const parsed = JSON.parse(specs);
+            if (typeof parsed === 'object' && parsed !== null) {
+                return parseSpecs(parsed);
+            }
+        } catch (e) {
+            // Line-by-line parsing
+            return specs.split('\n')
+                .filter(line => line.trim().includes(':') || line.trim().includes('-'))
+                .map((line, idx) => {
+                    const separator = line.includes(':') ? ':' : '-';
+                    const [key, ...valParts] = line.split(separator);
+                    const value = valParts.join(separator).trim();
+                    return {
+                        originalKey: `manual-${idx}`,
+                        parameter: key.trim(),
+                        value: formatSpecValue(value)
+                    };
+                });
+        }
+    } else {
+        // It's an object
+        return Object.entries(specs)
+            .filter(([key, value]) => {
+                const k = key.toUpperCase();
+                return k !== 'DESCRIPTION' && value && String(value).trim() !== '';
+            })
+            .map(([key, value]) => ({
+                originalKey: key,
+                parameter: SPEC_MAP[key] || SPEC_MAP[key.toUpperCase()] || key,
+                value: formatSpecValue(String(value))
+            }));
+    }
+
+    return [];
 }
 
 const getBaseUrl = () => {
