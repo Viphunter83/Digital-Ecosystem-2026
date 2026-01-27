@@ -430,7 +430,11 @@ async def reindex_product(product_id: str, db: Session = Depends(get_db)):
             return {"error": "Product not found"}
             
         ai_service = AIService()
-        specs_str = ", ".join([f"{k}: {v}" for k, v in (product.specs or {}).items()])
+        specs = product.specs or {}
+        if isinstance(specs, dict):
+            specs_str = ", ".join([f"{k}: {v}" for k, v in specs.items()])
+        else:
+            specs_str = str(specs)
         text_to_embed = f"{product.name} Category: {product.category}. Specs: {specs_str}. {product.description or ''}"
         
         embedding = await ai_service.get_embedding(text_to_embed)
@@ -453,8 +457,13 @@ async def reindex_spare(spare_id: str, db: Session = Depends(get_db)):
             return {"error": "Spare part not found"}
             
         ai_service = AIService()
+        specs = spare.specs or {}
+        if isinstance(specs, dict):
+            specs_str = ", ".join([f"{k}: {v}" for k, v in specs.items()])
+        else:
+            specs_str = str(specs)
         # Including description if available for better semantic matching
-        text_to_embed = f"Spare Part: {spare.name}. Description: {spare.description or ''}. Specs: {spare.specs or ''}."
+        text_to_embed = f"Spare Part: {spare.name}. Description: {spare.description or ''}. Specs: {specs_str}."
         
         embedding = await ai_service.get_embedding(text_to_embed)
         spare.embedding = embedding
