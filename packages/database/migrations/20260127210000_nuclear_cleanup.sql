@@ -46,7 +46,7 @@ BEGIN
 
     -- 3. CLEAN UP ORPHAN CATEGORIES
     DELETE FROM categories 
-    WHERE id NOT IN (SELECT DISTINCT category_id FROM products WHERE category_id IS NOT NULL)
+    WHERE name NOT IN (SELECT DISTINCT category FROM products WHERE category IS NOT NULL)
       AND name NOT ILIKE '%ЖД%'
       AND name NOT ILIKE '%Railway%';
 
