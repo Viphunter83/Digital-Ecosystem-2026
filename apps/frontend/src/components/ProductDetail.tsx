@@ -3,8 +3,14 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, FileText, Settings } from "lucide-react";
+import { ArrowLeft, CheckCircle, FileText, Settings, Maximize2, X } from "lucide-react";
 import { ShimmerButton } from "@/components/ShimmerButton";
+import {
+    Dialog,
+    DialogContent,
+    DialogTrigger,
+    DialogClose,
+} from "@/components/ui/dialog";
 import { useCartStore } from "@/lib/stores/useCartStore";
 import { Product, parseSpecs, getImageUrl } from "@/lib/api";
 import { toast } from "sonner";
@@ -55,29 +61,60 @@ export function ProductDetail({ product }: ProductDetailProps) {
             <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12">
                 {/* Visual Section */}
                 <div className="space-y-6">
-                    <div className="relative aspect-video lg:aspect-square bg-industrial-panel border border-industrial-border rounded-lg overflow-hidden group">
-                        {/* Technical Grid Overlay */}
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] z-10 pointer-events-none" />
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <div className="relative aspect-video lg:aspect-square bg-industrial-panel border border-industrial-border rounded-lg overflow-hidden group cursor-zoom-in">
+                                {/* Technical Grid Overlay */}
+                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] z-10 pointer-events-none" />
 
-                        {getImageUrl(product) ? (
-                            <Image
-                                src={imageError ? "/images/placeholder_machine.jpg" : getImageUrl(product)!}
-                                alt={cleanName}
-                                fill
-                                className="object-contain p-8 group-hover:scale-105 transition-transform duration-500"
-                                onError={() => setImageError(true)}
-                                priority
-                            />
-                        ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">
-                                <span className="text-4xl font-black text-white/5 select-none font-mono">НЕТ ФОТО</span>
+                                {getImageUrl(product) ? (
+                                    <>
+                                        <Image
+                                            src={imageError ? "/images/placeholder_machine.jpg" : getImageUrl(product)!}
+                                            alt={cleanName}
+                                            fill
+                                            className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                                            onError={() => setImageError(true)}
+                                            priority
+                                        />
+                                        {/* Zoom Indicator */}
+                                        <div className="absolute bottom-4 right-4 z-20 bg-safety-orange/20 backdrop-blur-sm border border-safety-orange/30 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <Maximize2 className="w-5 h-5 text-safety-orange" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">
+                                        <span className="text-4xl font-black text-white/5 select-none font-mono">НЕТ ФОТО</span>
+                                    </div>
+                                )}
+
+                                <div className="absolute top-4 left-4 z-20 bg-black/50 backdrop-blur border border-white/10 px-3 py-1 text-[10px] font-mono text-safety-orange">
+                                    ID: {product.id.substring(0, 8)}
+                                </div>
                             </div>
-                        )}
+                        </DialogTrigger>
+                        <DialogContent className="max-w-[95vw] w-full max-h-[95vh] h-full p-0 bg-transparent border-none shadow-none flex items-center justify-center">
+                            <div className="relative w-full h-full flex items-center justify-center p-4">
+                                <DialogClose className="absolute top-6 right-6 z-50 p-2 bg-black/50 hover:bg-black/80 rounded-full border border-white/10 text-white transition-colors outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                                    <X className="h-6 w-6" />
+                                    <span className="sr-only">Закрыть</span>
+                                </DialogClose>
 
-                        <div className="absolute top-4 left-4 z-20 bg-black/50 backdrop-blur border border-white/10 px-3 py-1 text-[10px] font-mono text-safety-orange">
-                            ID: {product.id.substring(0, 8)}
-                        </div>
-                    </div>
+                                <div className="relative w-full h-full max-w-7xl">
+                                    {getImageUrl(product) && (
+                                        <Image
+                                            src={getImageUrl(product)!}
+                                            alt={cleanName}
+                                            fill
+                                            className="object-contain"
+                                            priority
+                                            sizes="95vw"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
                 {/* Info Section */}
