@@ -431,7 +431,9 @@ async def reindex_product(product_id: str, db: Session = Depends(get_db)):
             
         ai_service = AIService()
         specs = product.specs or {}
-        if isinstance(specs, dict):
+        if isinstance(specs, str):
+            specs_str = specs
+        elif isinstance(specs, dict):
             specs_str = ", ".join([f"{k}: {v}" for k, v in specs.items()])
         else:
             specs_str = str(specs)
@@ -458,7 +460,9 @@ async def reindex_spare(spare_id: str, db: Session = Depends(get_db)):
             
         ai_service = AIService()
         specs = spare.specs or {}
-        if isinstance(specs, dict):
+        if isinstance(specs, str):
+            specs_str = specs
+        elif isinstance(specs, dict):
             specs_str = ", ".join([f"{k}: {v}" for k, v in specs.items()])
         else:
             specs_str = str(specs)

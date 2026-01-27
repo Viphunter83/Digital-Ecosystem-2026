@@ -24,7 +24,7 @@ export interface Product {
     slug?: string;
     description?: string;
     category?: string;
-    specs?: Record<string, any> | string;
+    specs?: Record<string, any>;
     image_url?: string;
     image_file?: string;
     price?: number;
@@ -104,59 +104,11 @@ export interface ParsedSpec {
     value: string;
 }
 
-export function parseSpecs(specs: Record<string, any> | string | undefined | null): ParsedSpec[] {
+export function parseSpecs(specs: any | undefined | null): ParsedSpec[] {
     if (!specs) return [];
 
-    // If it's a string, it might be JSON or line-by-line text
-    if (typeof specs === 'string') {
-        let trimmed = specs.trim();
-
-        // Handle surrounding quotes (Directus JSON text field quirk)
-        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-            trimmed = trimmed.substring(1, trimmed.length - 1);
-        }
-
-        // Check if it's JSON
-        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-            try {
-                const parsed = JSON.parse(trimmed);
-                if (typeof parsed === 'object' && parsed !== null) {
-                    return parseSpecs(parsed);
-                }
-            } catch (e) {
-                // Not valid JSON, fall through to text parsing
-            }
-        }
-
-        // Line-by-line parsing (for non-technical users)
-        // Split by both actual newlines and escaped \\n literal
-        return trimmed.split(/\r?\n|\\n/)
-            .filter(line => line.trim().length > 0)
-            .map((line, idx) => {
-                let key = '';
-                let value = '';
-
-                if (line.includes(':')) {
-                    const parts = line.split(':');
-                    key = parts[0].trim();
-                    value = parts.slice(1).join(':').trim();
-                } else if (line.includes('-')) {
-                    const parts = line.split('-');
-                    key = parts[0].trim();
-                    value = parts.slice(1).join('-').trim();
-                } else {
-                    key = 'Параметр';
-                    value = line.trim();
-                }
-
-                return {
-                    originalKey: `manual-${idx}`,
-                    parameter: key,
-                    value: formatSpecValue(value)
-                };
-            });
-    } else if (typeof specs === 'object' && specs !== null) {
-        // It's an object/dictionary
+    // Case 1: Structured Object (New Format)
+    if (typeof specs === 'object' && !Array.isArray(specs)) {
         return Object.entries(specs)
             .filter(([key, value]) => {
                 const k = key.toUpperCase();
@@ -167,6 +119,41 @@ export function parseSpecs(specs: Record<string, any> | string | undefined | nul
                 parameter: SPEC_MAP[key] || SPEC_MAP[key.toUpperCase()] || key,
                 value: formatSpecValue(String(value))
             }));
+    }
+
+    // Case 2: String (Legacy Format or JSON string)
+    if (typeof specs === 'string' && specs.trim() !== '') {
+        // Try to parse as JSON first (Directus cast-json might return stringified JSON)
+        try {
+            const parsed = JSON.parse(specs);
+            if (typeof parsed === 'object' && parsed !== null) {
+                return parseSpecs(parsed);
+            }
+        } catch (e) {
+            // Not valid JSON, process as legacy text
+        }
+
+        // Process line by line: "Key: Value" or "Value"
+        return specs.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .map((line, index) => {
+                const colonIndex = line.indexOf(':');
+                if (colonIndex > -1) {
+                    const key = line.substring(0, colonIndex).trim();
+                    const value = line.substring(colonIndex + 1).trim();
+                    return {
+                        originalKey: `legacy_${index}`,
+                        parameter: SPEC_MAP[key] || SPEC_MAP[key.toUpperCase()] || key,
+                        value: formatSpecValue(value)
+                    };
+                }
+                return {
+                    originalKey: `legacy_${index}`,
+                    parameter: 'Характеристика',
+                    value: formatSpecValue(line)
+                };
+            });
     }
 
     return [];

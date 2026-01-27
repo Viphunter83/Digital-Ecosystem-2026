@@ -1,4 +1,4 @@
-from pydantic import BaseModel, computed_field, Field, ConfigDict
+from pydantic import BaseModel, computed_field, Field, ConfigDict, field_validator
 from typing import Optional, Dict, Any, List
 from uuid import UUID
 from datetime import datetime
@@ -65,6 +65,17 @@ class ProductSchema(BaseModel):
     image_file: Optional[UUID] = Field(default=None, exclude=True)
     images: List[ProductImageSchema] = Field(default=[], exclude=True)
     
+    @field_validator("specs", mode="before")
+    @classmethod
+    def parse_specs_product(cls, v: Any) -> Any:
+        if isinstance(v, str) and v.strip():
+            try:
+                import json
+                return json.loads(v)
+            except Exception:
+                return {"raw": v}
+        return v or {}
+
     @computed_field
     @property
     def image_url(self) -> Optional[str]:
@@ -131,6 +142,18 @@ class SparePartSchema(BaseModel):
     image_file: Optional[UUID] = Field(default=None, exclude=True)
     images: List[SparePartImageSchema] = Field(default=[], exclude=True)
     
+    @field_validator("specs", mode="before")
+    @classmethod
+    def parse_specs_spare(cls, v: Any) -> Any:
+        if isinstance(v, str) and v.strip():
+            try:
+                import json
+                return json.loads(v)
+            except Exception:
+                # Same fallback for spare parts
+                return {"raw": v}
+        return v or {}
+
     @computed_field
     @property
     def image_url(self) -> Optional[str]:
