@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, FileText, Settings, Maximize2, X } from "lucide-react";
+import { ArrowLeft, CheckCircle, FileText, Settings, Maximize2, X, ShoppingBag } from "lucide-react";
 import { ShimmerButton } from "@/components/ShimmerButton";
 import {
     Dialog,
@@ -176,10 +176,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
                     </div>
 
                     {/* Actions */}
-                    <div className="pt-6 border-t border-industrial-border flex flex-col md:flex-row gap-4">
-                        <Link href="/contacts" className="w-full md:w-auto">
+                    <div className="pt-6 border-t border-industrial-border grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Link href="/contacts" className="w-full">
                             <ShimmerButton
-                                className="bg-safety-orange text-white px-8 py-4 font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 hover:bg-safety-orange-vivid w-full"
+                                glow
+                                className="bg-safety-orange text-white h-14 font-bold uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-2 hover:bg-safety-orange-vivid w-full transition-all duration-500 hover:scale-[1.02]"
                             >
                                 <FileText className="w-4 h-4" />
                                 ЗАПРОСИТЬ КП
@@ -187,11 +188,23 @@ export function ProductDetail({ product }: ProductDetailProps) {
                         </Link>
                         <button
                             onClick={handleAddToCart}
-                            className={`px-8 py-4 flex items-center justify-center border font-mono uppercase text-sm transition-colors w-full md:w-auto
-                                ${added ? 'bg-green-500 text-white border-green-500' : 'border-white/20 text-white hover:bg-white/5'}
+                            className={`h-14 flex items-center justify-center gap-2 border font-mono uppercase text-sm transition-all duration-500 w-full group/btn
+                                ${added
+                                    ? 'bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.2)]'
+                                    : 'bg-white/5 backdrop-blur-md border-white/10 text-white hover:bg-white/10 hover:border-white/20 hover:scale-[1.02]'}
                             `}
                         >
-                            {added ? 'В КОРЗИНЕ' : 'В ЗАКАЗ'}
+                            {added ? (
+                                <>
+                                    <CheckCircle className="w-4 h-4" />
+                                    В КОРЗИНЕ
+                                </>
+                            ) : (
+                                <>
+                                    <ShoppingBag className="w-4 h-4 group-hover/btn:translate-y-[-2px] transition-transform" />
+                                    В ЗАКАЗ
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
