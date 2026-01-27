@@ -62,7 +62,7 @@ class ProductSchema(BaseModel):
     price: Optional[float] = None
     currency: Optional[str] = "RUB"
     is_published: bool = True
-    image_file: Optional[UUID] = Field(default=None, exclude=True)
+    image_file: Optional[UUID] = None
     images: List[ProductImageSchema] = Field(default=[], exclude=True)
     
     @field_validator("specs", mode="before")
@@ -100,7 +100,7 @@ class ArticleSchema(BaseModel):
     cover_image: Optional[str] = None
     tags: Optional[List[str]] = None
     created_at: Optional[datetime] = None
-    image_file: Optional[UUID] = Field(default=None, exclude=True)
+    image_file: Optional[UUID] = None
     
     @computed_field
     def image_url(self) -> Optional[str]:
@@ -139,7 +139,7 @@ class SparePartSchema(BaseModel):
     price: Optional[float] = None
     currency: Optional[str] = "RUB"
     is_published: bool = True
-    image_file: Optional[UUID] = Field(default=None, exclude=True)
+    image_file: Optional[UUID] = None
     images: List[SparePartImageSchema] = Field(default=[], exclude=True)
     
     @field_validator("specs", mode="before")
