@@ -81,6 +81,8 @@ async def search_products(
         kw_query = select(SparePart).where(SparePart.is_published == True)
         if q:
             kw_query = kw_query.where(SparePart.name.ilike(f"%{q}%"))
+        if category_name:
+            kw_query = kw_query.where(SparePart.category.ilike(category_name))
         
         kw_results = await run_in_threadpool(lambda: db.execute(kw_query.options(joinedload(SparePart.images))).unique().scalars().all())
         
@@ -99,6 +101,9 @@ async def search_products(
                 sem_stmt = select(SparePart, distance_expr).options(
                     joinedload(SparePart.images)
                 ).where(SparePart.is_published == True)
+                
+                if category_name:
+                    sem_stmt = sem_stmt.where(SparePart.category.ilike(category_name))
                 
                 sem_stmt = sem_stmt.order_by(distance_expr).limit(limit)
                 sem_raw = await run_in_threadpool(lambda: db.execute(sem_stmt).unique().all())
@@ -137,7 +142,7 @@ async def search_products(
         
         # Apply category filter
         if category_name:
-            query = query.where(Product.category == category_name)
+            query = query.where(Product.category.ilike(category_name))
         
         # Count
         count_stmt = select(func.count()).select_from(query.subquery())
@@ -161,7 +166,7 @@ async def search_products(
     if q:
         kw_query = kw_query.where(Product.name.ilike(f"%{q}%"))
     if category_name:
-        kw_query = kw_query.where(Product.category == category_name)
+        kw_query = kw_query.where(Product.category.ilike(category_name))
     
     kw_results = await run_in_threadpool(lambda: db.execute(kw_query.options(joinedload(Product.images))).unique().scalars().all())
     
@@ -183,7 +188,7 @@ async def search_products(
             ).where(Product.is_published == True)
             
             if category_name:
-                sem_stmt = sem_stmt.where(Product.category == category_name)
+                sem_stmt = sem_stmt.where(Product.category.ilike(category_name))
                 
             sem_stmt = sem_stmt.order_by(distance_expr).limit(limit)
             
