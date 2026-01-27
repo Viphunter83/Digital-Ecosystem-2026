@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, FileText, Settings, Maximize2, X, ShoppingBag } from "lucide-react";
@@ -12,7 +12,7 @@ import {
     DialogClose,
 } from "@/components/ui/dialog";
 import { useCartStore } from "@/lib/stores/useCartStore";
-import { Product, parseSpecs, getImageUrl } from "@/lib/api";
+import { Product, parseSpecs, getImageUrl, fetchSiteContent } from "@/lib/api";
 import { toast } from "sonner";
 
 interface ProductDetailProps {
@@ -23,6 +23,15 @@ export function ProductDetail({ product }: ProductDetailProps) {
     const addToCart = useCartStore((state) => state.addItem);
     const [added, setAdded] = useState(false);
     const [imageError, setImageError] = useState(false);
+    const [siteContent, setSiteContent] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        const loadContent = async () => {
+            const content = await fetchSiteContent();
+            setSiteContent(content);
+        };
+        loadContent();
+    }, []);
 
     const handleAddToCart = () => {
         // Clean name for cart
@@ -159,19 +168,19 @@ export function ProductDetail({ product }: ProductDetailProps) {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">Гарантия 24 месяца</span>
+                            <span className="text-sm text-gray-300">{siteContent.usp_warranty || "Гарантия 24 месяца"}</span>
                         </div>
                         <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">ПНР и Обучение</span>
+                            <span className="text-sm text-gray-300">{siteContent.usp_training || "ПНР и Обучение"}</span>
                         </div>
                         <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">Лизинг от 0%</span>
+                            <span className="text-sm text-gray-300">{siteContent.usp_leasing || "Лизинг от 0%"}</span>
                         </div>
                         <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">Сервис 24/7</span>
+                            <span className="text-sm text-gray-300">{siteContent.usp_service || "Сервис 24/7"}</span>
                         </div>
                     </div>
 

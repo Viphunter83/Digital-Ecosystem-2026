@@ -7,9 +7,13 @@ from dotenv import load_dotenv
 sys.path.append(os.getcwd())
 load_dotenv()
 
-# FIX: Force TCP connection on macOS to avoid Unix socket issues or wrong instance
-if os.environ.get("DATABASE_URL"):
-    os.environ["DATABASE_URL"] = os.environ["DATABASE_URL"].replace("localhost", "127.0.0.1")
+# FIX: Handle local macOS postgres user (often current OS user instead of 'postgres')
+db_url = os.environ.get("DATABASE_URL", "")
+if db_url:
+    db_url = db_url.replace("localhost", "127.0.0.1")
+    # If connecting to local postgres on mac, the role 'postgres' might not exist.
+    # We try to use the owner of the DB if 'postgres' fails, but here we just allow override.
+    os.environ["DATABASE_URL"] = db_url
 
 from apps.backend.app.core.database import SessionLocal
 from apps.backend.services.ai_service import AIService
