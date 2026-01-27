@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from typing import Optional, List
 
 from apps.backend.app.core.database import get_db
-from apps.backend.app.core.cache import cache
+from apps.backend.app.core.cache import cache, redis_client
 from packages.database.models import Product, ProductImage, SparePart, SparePartImage, MachineInstance
 from apps.backend.app.schemas import ProductSchema, SparePartSchema, MachineInstanceSchema
 
@@ -448,6 +448,15 @@ async def reindex_product(product_id: str, db: Session = Depends(get_db)):
         product.embedding = embedding
         
         await run_in_threadpool(lambda: db.commit())
+        
+        # Clear search cache to reflect changes immediately
+        try:
+            keys = await redis_client.keys("search_products:*")
+            if keys:
+                await redis_client.delete(*keys)
+        except Exception as cache_err:
+            print(f"Failed to clear cache during product reindex: {cache_err}")
+
         return {"status": "success", "message": f"Product {product_id} reindexed"}
     except Exception as e:
         return {"error": str(e)}
@@ -478,6 +487,15 @@ async def reindex_spare(spare_id: str, db: Session = Depends(get_db)):
         spare.embedding = embedding
         
         await run_in_threadpool(lambda: db.commit())
+
+        # Clear search cache to reflect changes immediately
+        try:
+            keys = await redis_client.keys("search_products:*")
+            if keys:
+                await redis_client.delete(*keys)
+        except Exception as cache_err:
+            print(f"Failed to clear cache during spare reindex: {cache_err}")
+
         return {"status": "success", "message": f"Spare part {spare_id} reindexed"}
     except Exception as e:
         return {"error": str(e)}

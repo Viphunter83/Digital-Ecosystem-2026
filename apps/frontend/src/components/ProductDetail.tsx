@@ -44,7 +44,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
             <div className="container mx-auto px-6 mb-8">
                 <Link href="/catalog" className="inline-flex items-center text-muted-foreground hover:text-safety-orange transition-colors font-mono text-sm uppercase">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Каталог {product.category ? `/ ${product.category}` : '/ Запчасти'}
+                    Каталог {product.category && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(product.category)
+                        ? `/ ${product.category}`
+                        : product.category
+                            ? '/ Оборудование'
+                            : '/ Запчасти'}
                 </Link>
             </div>
 
