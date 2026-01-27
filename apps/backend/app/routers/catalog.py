@@ -72,7 +72,7 @@ async def search_products(
     # Resolve category slug to name once if it exists
     category_name = None
     if category:
-        cat_obj = await run_in_threadpool(lambda: db.execute(select(Category).where(Category.slug == category)).scalar_one_or_none())
+        cat_obj = await run_in_threadpool(lambda: db.execute(select(Category).where(func.lower(Category.slug) == category.lower())).scalar_one_or_none())
         category_name = cat_obj.name if cat_obj else category
 
     # SPARE PARTS MODE
