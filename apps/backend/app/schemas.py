@@ -54,7 +54,7 @@ class ProductImageSchema(BaseModel):
 class ProductSchema(BaseModel):
     id: UUID
     name: str
-    slug: str
+    slug: Optional[str] = None
     description: Optional[str] = None
     category: Optional[str] = None
     manufacturer: Optional[str] = None
@@ -173,8 +173,8 @@ class SparePartSchema(BaseModel):
 
 class CategorySchema(BaseModel):
     name: str
-    slug: str
-    filter_group: str
+    slug: Optional[str] = None
+    filter_group: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
 class FilterGroupSchema(BaseModel):
