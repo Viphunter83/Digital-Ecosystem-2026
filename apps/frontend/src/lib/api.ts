@@ -107,8 +107,19 @@ export interface ParsedSpec {
 export function parseSpecs(specs: any | undefined | null): ParsedSpec[] {
     if (!specs) return [];
 
-    // Case 1: Structured Object (New Format)
-    if (typeof specs === 'object' && !Array.isArray(specs)) {
+    // Case 1: Array of Objects (Directus input-repeater format)
+    if (Array.isArray(specs)) {
+        return specs
+            .filter(item => item && typeof item === 'object' && item.key && item.value)
+            .map(item => ({
+                originalKey: item.key,
+                parameter: SPEC_MAP[item.key] || SPEC_MAP[item.key.toUpperCase()] || item.key,
+                value: formatSpecValue(String(item.value))
+            }));
+    }
+
+    // Case 2: Structured Object (Old Format)
+    if (typeof specs === 'object' && specs !== null) {
         return Object.entries(specs)
             .filter(([key, value]) => {
                 const k = key.toUpperCase();
