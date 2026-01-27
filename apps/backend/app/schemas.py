@@ -65,6 +65,11 @@ class ProductSchema(BaseModel):
     image_file: Optional[UUID] = None
     images: List[ProductImageSchema] = Field(default=[], exclude=True)
     
+    @computed_field
+    @property
+    def product_type(self) -> str:
+        return "machine"
+    
     @field_validator("specs", mode="before")
     @classmethod
     def parse_specs_product(cls, v: Any) -> Any:
@@ -141,6 +146,11 @@ class SparePartSchema(BaseModel):
     is_published: bool = True
     image_file: Optional[UUID] = None
     images: List[SparePartImageSchema] = Field(default=[], exclude=True)
+    
+    @computed_field
+    @property
+    def product_type(self) -> str:
+        return "spare"
     
     @field_validator("specs", mode="before")
     @classmethod

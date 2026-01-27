@@ -168,7 +168,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">{siteContent.usp_warranty || "Гарантия 24 месяца"}</span>
+                            <span className="text-sm text-gray-300">
+                                {product.product_type === 'spare'
+                                    ? (siteContent.usp_warranty_spare || siteContent.usp_warranty || "Гарантия от 6 месяцев")
+                                    : (siteContent.usp_warranty || "Гарантия 24 месяца")}
+                            </span>
                         </div>
                         <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
@@ -180,7 +184,11 @@ export function ProductDetail({ product }: ProductDetailProps) {
                         </div>
                         <div className="flex items-start gap-3">
                             <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">{siteContent.usp_service || "Сервис 24/7"}</span>
+                            <span className="text-sm text-gray-300">
+                                {product.product_type === 'spare'
+                                    ? (siteContent.usp_service_spare || siteContent.usp_service || "Тех. консультация 24/7")
+                                    : (siteContent.usp_service || "Сервис 24/7")}
+                            </span>
                         </div>
                     </div>
 

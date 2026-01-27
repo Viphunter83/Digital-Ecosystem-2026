@@ -29,6 +29,7 @@ export interface Product {
     image_file?: string;
     price?: number;
     manufacturer?: string;
+    product_type?: 'machine' | 'spare';
 }
 
 export interface Article {
