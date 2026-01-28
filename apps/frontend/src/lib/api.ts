@@ -30,6 +30,8 @@ export interface Product {
     price?: number;
     manufacturer?: string;
     product_type?: 'machine' | 'spare';
+    compatible_parts?: Product[];
+    compatible_products?: Product[];
 }
 
 export interface Article {

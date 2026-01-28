@@ -164,68 +164,145 @@ export function ProductDetail({ product }: ProductDetailProps) {
                         </div>
                     )}
 
-                    {/* Advantages */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">
-                                {product.product_type === 'spare'
-                                    ? (siteContent.usp_warranty_spare || siteContent.usp_warranty || "Гарантия от 6 месяцев")
-                                    : (siteContent.usp_warranty || "Гарантия 24 месяца")}
-                            </span>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">{siteContent.usp_training || "ПНР и Обучение"}</span>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">{siteContent.usp_leasing || "Лизинг от 0%"}</span>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
-                            <span className="text-sm text-gray-300">
-                                {product.product_type === 'spare'
-                                    ? (siteContent.usp_service_spare || siteContent.usp_service || "Тех. консультация 24/7")
-                                    : (siteContent.usp_service || "Сервис 24/7")}
-                            </span>
-                        </div>
-                    </div>
+                </div>
 
-                    {/* Actions */}
-                    <div className="pt-6 border-t border-industrial-border grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Link href="/contacts" className="w-full">
-                            <ShimmerButton
-                                glow
-                                className="bg-safety-orange text-white h-14 font-bold uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-2 hover:bg-safety-orange-vivid w-full transition-all duration-500 hover:scale-[1.02]"
-                            >
-                                <FileText className="w-4 h-4" />
-                                ЗАПРОСИТЬ КП
-                            </ShimmerButton>
-                        </Link>
-                        <button
-                            onClick={handleAddToCart}
-                            className={`h-14 flex items-center justify-center gap-2 border font-mono uppercase text-sm transition-all duration-500 w-full group/btn
-                                ${added
-                                    ? 'bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.2)]'
-                                    : 'bg-white/5 backdrop-blur-md border-white/10 text-white hover:bg-white/10 hover:border-white/20 hover:scale-[1.02]'}
-                            `}
-                        >
-                            {added ? (
-                                <>
-                                    <CheckCircle className="w-4 h-4" />
-                                    В КОРЗИНЕ
-                                </>
-                            ) : (
-                                <>
-                                    <ShoppingBag className="w-4 h-4 group-hover/btn:translate-y-[-2px] transition-transform" />
-                                    В ЗАКАЗ
-                                </>
-                            )}
-                        </button>
+                {/* Related items for Machines */}
+                {product.compatible_parts && product.compatible_parts.length > 0 && (
+                    <div className="pt-8 border-t border-white/10">
+                        <h3 className="text-sm font-bold uppercase text-white mb-6 flex items-center gap-2">
+                            <Settings className="w-4 h-4 text-safety-orange" />
+                            Комплектующие и расходники
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {product.compatible_parts.map((part) => (
+                                <Link
+                                    key={part.id}
+                                    href={`/catalog/${part.slug || part.id}`}
+                                    className="flex items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-lg hover:border-safety-orange/50 transition-all group hover:bg-white/10"
+                                >
+                                    <div className="relative w-16 h-16 bg-black/20 rounded-md overflow-hidden border border-white/5 shrink-0">
+                                        <Image
+                                            src={getImageUrl(part) || "/images/placeholder_machine.jpg"}
+                                            alt={part.name}
+                                            fill
+                                            className="object-contain p-2"
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-[10px] text-muted-foreground uppercase font-mono truncate mb-1">Запчасть</div>
+                                        <div className="text-sm font-bold text-white truncate group-hover:text-safety-orange transition-colors">
+                                            {part.name.replace(/^ТД РУССтанкоСбыт\s*-\s*/i, "")}
+                                        </div>
+                                        {part.price && (
+                                            <div className="text-xs text-safety-orange font-mono mt-1">
+                                                {part.price.toLocaleString('ru-RU')} ₽
+                                            </div>
+                                        )}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
                     </div>
+                )}
+
+                {/* Related items for Spare Parts */}
+                {product.compatible_products && product.compatible_products.length > 0 && (
+                    <div className="pt-8 border-t border-white/10">
+                        <h3 className="text-sm font-bold uppercase text-white mb-6 flex items-center gap-2">
+                            <Settings className="w-4 h-4 text-safety-orange" />
+                            Подходит для оборудования
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {product.compatible_products.map((prod) => (
+                                <Link
+                                    key={prod.id}
+                                    href={`/catalog/${prod.slug || prod.id}`}
+                                    className="flex items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-lg hover:border-safety-orange/50 transition-all group hover:bg-white/10"
+                                >
+                                    <div className="relative w-16 h-16 bg-black/20 rounded-md overflow-hidden border border-white/5 shrink-0">
+                                        <Image
+                                            src={getImageUrl(prod) || "/images/placeholder_machine.jpg"}
+                                            alt={prod.name}
+                                            fill
+                                            className="object-contain p-2"
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-[10px] text-muted-foreground uppercase font-mono truncate mb-1">
+                                            {prod.category || 'Оборудование'}
+                                        </div>
+                                        <div className="text-sm font-bold text-white truncate group-hover:text-safety-orange transition-colors">
+                                            {prod.name.replace(/^ТД РУССтанкоСбыт\s*-\s*/i, "")}
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Advantages */}
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-industrial-border">
+                    <div className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-300">
+                            {product.product_type === 'spare'
+                                ? (siteContent.usp_warranty_spare || siteContent.usp_warranty || "Гарантия от 6 месяцев")
+                                : (siteContent.usp_warranty || "Гарантия 24 месяца")}
+                        </span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-300">{siteContent.usp_training || "ПНР и Обучение"}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-300">{siteContent.usp_leasing || "Лизинг от 0%"}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <CheckCircle className="w-5 h-5 text-safety-orange shrink-0 mt-0.5" />
+                        <span className="text-sm text-gray-300">
+                            {product.product_type === 'spare'
+                                ? (siteContent.usp_service_spare || siteContent.usp_service || "Тех. консультация 24/7")
+                                : (siteContent.usp_service || "Сервис 24/7")}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="pt-6 border-t border-industrial-border grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Link href="/contacts" className="w-full">
+                        <ShimmerButton
+                            glow
+                            className="bg-safety-orange text-white h-14 font-bold uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-2 hover:bg-safety-orange-vivid w-full transition-all duration-500 hover:scale-[1.02]"
+                        >
+                            <FileText className="w-4 h-4" />
+                            ЗАПРОСИТЬ КП
+                        </ShimmerButton>
+                    </Link>
+                    <button
+                        onClick={handleAddToCart}
+                        className={`h-14 flex items-center justify-center gap-2 border font-mono uppercase text-sm transition-all duration-500 w-full group/btn
+                                ${added
+                                ? 'bg-green-500/20 text-green-400 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.2)]'
+                                : 'bg-white/5 backdrop-blur-md border-white/10 text-white hover:bg-white/10 hover:border-white/20 hover:scale-[1.02]'}
+                            `}
+                    >
+                        {added ? (
+                            <>
+                                <CheckCircle className="w-4 h-4" />
+                                В КОРЗИНЕ
+                            </>
+                        ) : (
+                            <>
+                                <ShoppingBag className="w-4 h-4 group-hover/btn:translate-y-[-2px] transition-transform" />
+                                В ЗАКАЗ
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>
+        </div >
     );
 }

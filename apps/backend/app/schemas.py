@@ -51,6 +51,40 @@ class ProductImageSchema(BaseModel):
     order: Optional[int] = 0
     model_config = ConfigDict(from_attributes=True)
 
+class ProductMiniSchema(BaseModel):
+    id: UUID
+    name: str
+    slug: Optional[str] = None
+    category: Optional[str] = None
+    image_file: Optional[UUID] = None
+    
+    @computed_field
+    @property
+    def image_url(self) -> Optional[str]:
+        if hasattr(self, "image_file") and self.image_file:
+            base_url = settings.DIRECTUS_URL.rstrip('/')
+            return f"{base_url}/assets/{self.image_file}"
+        return None
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class SparePartMiniSchema(BaseModel):
+    id: UUID
+    name: str
+    slug: Optional[str] = None
+    price: Optional[float] = None
+    image_file: Optional[UUID] = None
+    
+    @computed_field
+    @property
+    def image_url(self) -> Optional[str]:
+        if hasattr(self, "image_file") and self.image_file:
+            base_url = settings.DIRECTUS_URL.rstrip('/')
+            return f"{base_url}/assets/{self.image_file}"
+        return None
+    
+    model_config = ConfigDict(from_attributes=True)
+
 class ProductSchema(BaseModel):
     id: UUID
     name: str
@@ -64,6 +98,7 @@ class ProductSchema(BaseModel):
     is_published: bool = True
     image_file: Optional[UUID] = None
     images: List[ProductImageSchema] = Field(default=[], exclude=True)
+    compatible_parts: List["SparePartMiniSchema"] = []
     
     @computed_field
     @property
@@ -146,6 +181,7 @@ class SparePartSchema(BaseModel):
     is_published: bool = True
     image_file: Optional[UUID] = None
     images: List[SparePartImageSchema] = Field(default=[], exclude=True)
+    compatible_products: List[ProductMiniSchema] = []
     
     @computed_field
     @property

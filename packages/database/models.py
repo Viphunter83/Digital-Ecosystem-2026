@@ -21,6 +21,13 @@ class LeadSource(str, enum.Enum):
     diagnostics_widget = "diagnostics_widget"
     cart_order = "cart_order"
 
+class ProductCompatiblePart(Base):
+    __tablename__ = "product_compatible_parts"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False, index=True)
+    spare_part_id = Column(UUID(as_uuid=True), ForeignKey("spare_parts.id"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class Product(Base):
     __tablename__ = "products"
 
@@ -42,6 +49,7 @@ class Product(Base):
     embedding = Column(Vector(1536))
 
     images = relationship("ProductImage", back_populates="product")
+    compatible_parts = relationship("SparePart", secondary="product_compatible_parts", back_populates="compatible_products")
 
 class ProductImage(Base):
     __tablename__ = "product_images"
@@ -70,6 +78,7 @@ class SparePart(Base):
     embedding = Column(Vector(1536))
 
     images = relationship("SparePartImage", back_populates="spare_part")
+    compatible_products = relationship("Product", secondary="product_compatible_parts", back_populates="compatible_parts")
 
 class SparePartImage(Base):
     __tablename__ = "spare_part_images"

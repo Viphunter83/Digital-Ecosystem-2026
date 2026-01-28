@@ -403,9 +403,15 @@ def get_product(id_or_slug: str, db: Session = Depends(get_db)):
 
     # 1. Try Machines
     if is_uuid:
-        stmt = select(Product).options(joinedload(Product.images)).where(Product.id == uid)
+        stmt = select(Product).options(
+            joinedload(Product.images),
+            joinedload(Product.compatible_parts)
+        ).where(Product.id == uid)
     else:
-        stmt = select(Product).options(joinedload(Product.images)).where(Product.slug == id_or_slug)
+        stmt = select(Product).options(
+            joinedload(Product.images),
+            joinedload(Product.compatible_parts)
+        ).where(Product.slug == id_or_slug)
     
     product = db.execute(stmt).unique().scalar_one_or_none()
     if product:
@@ -413,9 +419,15 @@ def get_product(id_or_slug: str, db: Session = Depends(get_db)):
             
     # 2. Try Spares
     if is_uuid:
-        stmt = select(SparePart).options(joinedload(SparePart.images)).where(SparePart.id == uid)
+        stmt = select(SparePart).options(
+            joinedload(SparePart.images),
+            joinedload(SparePart.compatible_products)
+        ).where(SparePart.id == uid)
     else:
-        stmt = select(SparePart).options(joinedload(SparePart.images)).where(SparePart.slug == id_or_slug)
+        stmt = select(SparePart).options(
+            joinedload(SparePart.images),
+            joinedload(SparePart.compatible_products)
+        ).where(SparePart.slug == id_or_slug)
         
     spare = db.execute(stmt).unique().scalar_one_or_none()
     if spare:
