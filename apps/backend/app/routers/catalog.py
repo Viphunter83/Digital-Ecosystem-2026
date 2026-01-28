@@ -24,31 +24,31 @@ async def get_filters(db: Session = Depends(get_db)):
     # Fetch all categories ordered by sort_order
     categories = await run_in_threadpool(lambda: db.execute(select(Category).order_by(Category.sort_order)).scalars().all())
     
-    # Group by filter_group
+    # Group by filter_group and track minimum sort_order for each group
     groups_map = {}
+    group_min_sort = {}
+    
     for cat in categories:
-        if cat.filter_group not in groups_map:
-            groups_map[cat.filter_group] = []
-        groups_map[cat.filter_group].append(CategorySchema(
+        g_name = cat.filter_group
+        if g_name not in groups_map:
+            groups_map[g_name] = []
+            group_min_sort[g_name] = cat.sort_order if cat.sort_order is not None else 999
+        
+        # Update min sort order if current category has smaller one
+        if cat.sort_order is not None and cat.sort_order < group_min_sort[g_name]:
+            group_min_sort[g_name] = cat.sort_order
+            
+        groups_map[g_name].append(CategorySchema(
             name=cat.name,
             slug=cat.slug,
             filter_group=cat.filter_group
         ))
     
-    # Format response
+    # Sort groups by their minimum sort_order, then alphabetically as backup
+    sorted_group_names = sorted(groups_map.keys(), key=lambda g: (group_min_sort[g], g))
+    
     groups = []
-    
-    # Define primary group order, others will follow alphabetically
-    primary_order = ["МЕХАНООБРАБОТКА", "ПРОИЗВОДСТВО", "ОБОРУДОВАНИЕ"]
-    
-    # Get all unique groups present in the data
-    all_groups = sorted(list(groups_map.keys()))
-    
-    # Reorder groups based on primary_order
-    sorted_groups = [g for g in primary_order if g in groups_map]
-    sorted_groups += [g for g in all_groups if g not in sorted_groups]
-    
-    for g_name in sorted_groups:
+    for g_name in sorted_group_names:
         groups.append(FilterGroupSchema(group=g_name, categories=groups_map[g_name]))
             
     return FiltersResponse(groups=groups)
