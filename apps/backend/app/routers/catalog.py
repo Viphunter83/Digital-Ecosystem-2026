@@ -405,12 +405,12 @@ def get_product(id_or_slug: str, db: Session = Depends(get_db)):
     if is_uuid:
         stmt = select(Product).options(
             joinedload(Product.images),
-            joinedload(Product.compatible_parts)
+            joinedload(Product.compatible_parts).joinedload(SparePart.images)
         ).where(Product.id == uid)
     else:
         stmt = select(Product).options(
             joinedload(Product.images),
-            joinedload(Product.compatible_parts)
+            joinedload(Product.compatible_parts).joinedload(SparePart.images)
         ).where(Product.slug == id_or_slug)
     
     product = db.execute(stmt).unique().scalar_one_or_none()
@@ -421,12 +421,12 @@ def get_product(id_or_slug: str, db: Session = Depends(get_db)):
     if is_uuid:
         stmt = select(SparePart).options(
             joinedload(SparePart.images),
-            joinedload(SparePart.compatible_products)
+            joinedload(SparePart.compatible_products).joinedload(Product.images)
         ).where(SparePart.id == uid)
     else:
         stmt = select(SparePart).options(
             joinedload(SparePart.images),
-            joinedload(SparePart.compatible_products)
+            joinedload(SparePart.compatible_products).joinedload(Product.images)
         ).where(SparePart.slug == id_or_slug)
         
     spare = db.execute(stmt).unique().scalar_one_or_none()

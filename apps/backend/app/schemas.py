@@ -57,13 +57,21 @@ class ProductMiniSchema(BaseModel):
     slug: Optional[str] = None
     category: Optional[str] = None
     image_file: Optional[UUID] = None
+    images: List[ProductImageSchema] = Field(default=[], exclude=True)
     
     @computed_field
     @property
     def image_url(self) -> Optional[str]:
-        if hasattr(self, "image_file") and self.image_file:
+        try:
             base_url = settings.DIRECTUS_URL.rstrip('/')
-            return f"{base_url}/assets/{self.image_file}"
+            if hasattr(self, "image_file") and self.image_file:
+                return f"{base_url}/assets/{self.image_file}"
+            if hasattr(self, "images") and self.images:
+                img = next((i for i in self.images if i.is_primary), self.images[0])
+                if img.directus_id: return f"{base_url}/assets/{img.directus_id}"
+                if img.image_file: return f"{base_url}/assets/{img.image_file}"
+                return img.url
+        except Exception: pass
         return None
     
     model_config = ConfigDict(from_attributes=True)
@@ -74,13 +82,21 @@ class SparePartMiniSchema(BaseModel):
     slug: Optional[str] = None
     price: Optional[float] = None
     image_file: Optional[UUID] = None
+    images: List[SparePartImageSchema] = Field(default=[], exclude=True)
     
     @computed_field
     @property
     def image_url(self) -> Optional[str]:
-        if hasattr(self, "image_file") and self.image_file:
+        try:
             base_url = settings.DIRECTUS_URL.rstrip('/')
-            return f"{base_url}/assets/{self.image_file}"
+            if hasattr(self, "image_file") and self.image_file:
+                return f"{base_url}/assets/{self.image_file}"
+            if hasattr(self, "images") and self.images:
+                img = next((i for i in self.images if i.is_primary), self.images[0])
+                if img.directus_id: return f"{base_url}/assets/{img.directus_id}"
+                if img.image_file: return f"{base_url}/assets/{img.image_file}"
+                return img.url
+        except Exception: pass
         return None
     
     model_config = ConfigDict(from_attributes=True)
