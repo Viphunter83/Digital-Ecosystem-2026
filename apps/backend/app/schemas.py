@@ -51,6 +51,14 @@ class ProductImageSchema(BaseModel):
     order: Optional[int] = 0
     model_config = ConfigDict(from_attributes=True)
 
+class SparePartImageSchema(BaseModel):
+    url: str
+    directus_id: Optional[UUID] = None
+    image_file: Optional[UUID] = None
+    is_primary: bool = False
+    order: Optional[int] = 0
+    model_config = ConfigDict(from_attributes=True)
+
 class ProductMiniSchema(BaseModel):
     id: UUID
     name: str
@@ -177,13 +185,6 @@ class ArticleSchema(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class SparePartImageSchema(BaseModel):
-    url: str
-    directus_id: Optional[UUID] = None
-    image_file: Optional[UUID] = None
-    is_primary: bool = False
-    order: Optional[int] = 0
-    model_config = ConfigDict(from_attributes=True)
 
 class SparePartSchema(BaseModel):
     id: UUID
