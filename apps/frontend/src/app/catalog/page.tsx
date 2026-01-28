@@ -261,12 +261,17 @@ export default function CatalogPage() {
                                 {filterGroups.length > 0 ? (
                                     filterGroups.map((group, gIdx) => (
                                         <div key={gIdx} className="space-y-3">
-                                            <h4 className="text-[9px] font-mono text-white/20 uppercase tracking-widest pl-1">{group.group}</h4>
+                                            <div className="flex items-center gap-2 pl-1 mb-1">
+                                                <div className="w-1 h-3 bg-safety-orange" />
+                                                <h4 className="text-[10px] font-mono font-bold text-white/50 uppercase tracking-[0.2em]">{group.group}</h4>
+                                            </div>
                                             <div className="flex flex-wrap gap-2">
                                                 {gIdx === 0 && (
                                                     <button
                                                         onClick={() => handleCategoryClick(null)}
-                                                        className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider rounded-none ${activeCategory === null ? "bg-white text-black border-white" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                                        className={`text-[10px] font-bold px-5 py-2.5 border transition-all uppercase tracking-wider rounded-none backdrop-blur-md ${activeCategory === null
+                                                            ? "bg-gradient-to-br from-safety-orange to-orange-700 text-white border-safety-orange shadow-[0_0_20px_rgba(255,61,0,0.3)]"
+                                                            : "bg-white/5 text-white/40 border-white/5 hover:border-safety-orange/50 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,61,0,0.15)]"}`}
                                                     >
                                                         Все типы
                                                     </button>
@@ -275,7 +280,9 @@ export default function CatalogPage() {
                                                     <button
                                                         key={cIdx}
                                                         onClick={() => handleCategoryClick(cat.slug)}
-                                                        className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider rounded-none ${activeCategory === cat.slug ? "bg-safety-orange text-white border-safety-orange" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                                        className={`text-[10px] font-bold px-5 py-2.5 border transition-all uppercase tracking-wider rounded-none backdrop-blur-md ${activeCategory === cat.slug
+                                                            ? "bg-gradient-to-br from-safety-orange to-orange-700 text-white border-safety-orange shadow-[0_0_20px_rgba(255,61,0,0.3)]"
+                                                            : "bg-white/5 text-white/40 border-white/5 hover:border-safety-orange/50 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,61,0,0.15)]"}`}
                                                     >
                                                         {cat.name}
                                                     </button>
@@ -287,7 +294,9 @@ export default function CatalogPage() {
                                     <div className="flex flex-wrap gap-2">
                                         <button
                                             onClick={() => handleCategoryClick(null)}
-                                            className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider ${activeCategory === null ? "bg-white text-black border-white" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                            className={`text-[10px] font-bold px-5 py-2.5 border transition-all uppercase tracking-wider rounded-none backdrop-blur-md ${activeCategory === null
+                                                ? "bg-gradient-to-br from-safety-orange to-orange-700 text-white border-safety-orange shadow-[0_0_20px_rgba(255,61,0,0.3)]"
+                                                : "bg-white/5 text-white/40 border-white/5 hover:border-safety-orange/50 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,61,0,0.14)]"}`}
                                         >
                                             Все типы
                                         </button>
@@ -296,7 +305,9 @@ export default function CatalogPage() {
                                             <button
                                                 key={slug}
                                                 onClick={() => handleCategoryClick(slug)}
-                                                className={`text-[10px] font-bold px-4 py-2 border transition-all uppercase tracking-wider ${activeCategory === slug ? "bg-safety-orange text-white border-safety-orange" : "text-white/40 border-white/5 hover:border-white/20 hover:text-white"}`}
+                                                className={`text-[10px] font-bold px-5 py-2.5 border transition-all uppercase tracking-wider rounded-none backdrop-blur-md ${activeCategory === slug
+                                                    ? "bg-gradient-to-br from-safety-orange to-orange-700 text-white border-safety-orange shadow-[0_0_20px_rgba(255,61,0,0.3)]"
+                                                    : "bg-white/5 text-white/40 border-white/5 hover:border-safety-orange/50 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,61,0,0.15)]"}`}
                                             >
                                                 {slug === 'Turning' ? 'ТОКАРНЫЕ СТАНКИ' :
                                                     slug === 'Milling' ? 'ФРЕЗЕРНЫЕ СТАНКИ' :
