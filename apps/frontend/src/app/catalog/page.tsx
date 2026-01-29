@@ -254,24 +254,24 @@ export default function CatalogPage() {
                         <div className="p-6 bg-black/10">
                             <div className="flex items-center gap-3 mb-4">
                                 <SlidersHorizontal size={14} className="text-safety-orange" />
-                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Категории оборудования</span>
+                                <span className="text-[11px] font-black text-white uppercase tracking-[0.4em]">Система фильтрации</span>
                             </div>
 
                             <div className="space-y-6">
                                 {filterGroups.length > 0 ? (
                                     filterGroups.map((group, gIdx) => (
                                         <div key={gIdx} className="space-y-3">
-                                            <div className="flex items-center gap-2 pl-1 mb-1">
-                                                <div className="w-1 h-3 bg-safety-orange" />
-                                                <h4 className="text-[10px] font-mono font-bold text-white/50 uppercase tracking-[0.2em]">{group.group}</h4>
+                                            <div className="flex items-center gap-3 pl-1 mb-2">
+                                                <div className="w-[2px] h-4 bg-safety-orange shadow-[0_0_8px_rgba(255,61,0,0.6)]" />
+                                                <h4 className="text-[11px] font-mono font-black text-white uppercase tracking-[0.25em]">{group.group}</h4>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
                                                 {gIdx === 0 && (
                                                     <button
                                                         onClick={() => handleCategoryClick(null)}
-                                                        className={`text-[10px] font-bold px-5 py-2.5 border transition-all uppercase tracking-wider rounded-none backdrop-blur-md ${activeCategory === null
-                                                            ? "bg-gradient-to-br from-safety-orange to-orange-700 text-white border-safety-orange shadow-[0_0_20px_rgba(255,61,0,0.3)]"
-                                                            : "bg-white/5 text-white/40 border-white/5 hover:border-safety-orange/50 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,61,0,0.15)]"}`}
+                                                        className={`text-[10px] font-bold px-6 py-3 border transition-all duration-300 uppercase tracking-widest rounded-none ${activeCategory === null
+                                                            ? "!bg-safety-orange !text-white border-safety-orange shadow-[0_0_25px_rgba(255,61,0,0.4)] z-10"
+                                                            : "bg-white/5 text-white/60 border-white/10 hover:border-safety-orange/50 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,61,0,0.2)]"}`}
                                                     >
                                                         Все типы
                                                     </button>
@@ -280,9 +280,9 @@ export default function CatalogPage() {
                                                     <button
                                                         key={cIdx}
                                                         onClick={() => handleCategoryClick(cat.slug)}
-                                                        className={`text-[10px] font-bold px-5 py-2.5 border transition-all uppercase tracking-wider rounded-none backdrop-blur-md ${activeCategory === cat.slug
-                                                            ? "bg-gradient-to-br from-safety-orange to-orange-700 text-white border-safety-orange shadow-[0_0_20px_rgba(255,61,0,0.3)]"
-                                                            : "bg-white/5 text-white/40 border-white/5 hover:border-safety-orange/50 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,61,0,0.15)]"}`}
+                                                        className={`text-[10px] font-bold px-6 py-3 border transition-all duration-300 uppercase tracking-widest rounded-none ${activeCategory === cat.slug
+                                                            ? "!bg-safety-orange !text-white border-safety-orange shadow-[0_0_25px_rgba(255,61,0,0.4)] z-10"
+                                                            : "bg-white/5 text-white/60 border-white/10 hover:border-safety-orange/50 hover:text-white hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,61,0,0.2)]"}`}
                                                     >
                                                         {cat.name}
                                                     </button>
