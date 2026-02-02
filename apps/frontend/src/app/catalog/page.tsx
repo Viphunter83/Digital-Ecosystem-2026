@@ -222,11 +222,11 @@ export default function CatalogPage() {
                         {/* SEARCH INPUT */}
                         <div className="flex-1 flex flex-col sm:flex-row items-center px-4 md:px-6 py-3 lg:py-0 relative gap-3 sm:gap-0">
                             <div className="relative w-full flex-1">
-                                <Search className="text-white/20 absolute left-4 sm:left-2 pointer-events-none" size={18} />
+                                <Search className="text-white/50 absolute left-4 sm:left-2 pointer-events-none" size={18} />
                                 <input
                                     type="text"
                                     placeholder="ПОИСК ПО НАИМЕНОВАНИЮ, МОДЕЛИ..."
-                                    className="w-full bg-transparent border-none text-white text-[10px] md:text-xs font-mono pl-10 pr-10 py-4 sm:py-5 focus:outline-none placeholder:text-white/10 uppercase tracking-widest"
+                                    className="w-full bg-transparent border-none text-white text-[10px] md:text-xs font-mono pl-10 pr-10 py-4 sm:py-5 focus:outline-none placeholder:text-white/40 uppercase tracking-widest"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
