@@ -78,11 +78,21 @@ async def watermark_webhook(payload: dict):
             logger.warning("No file ID in watermark payload")
             return {"status": "ignored"}
 
+        # 0. Wait for consistency (File system lag / eventual consistency)
+        import time
+        import asyncio
+        # We are in async function, using sync time.sleep is bad for performance but safe for logic here.
+        # Ideally await asyncio.sleep(5)
+        await asyncio.sleep(5)
+
         # 1. Fetch file metadata to check type
-        auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
+        # Add no-cache headers
+        no_cache_headers = auth_header.copy()
+        no_cache_headers.update({'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
+
         file_url = f"{settings.DIRECTUS_URL}/files/{file_id}"
         
-        file_resp = requests.get(file_url, headers=auth_header)
+        file_resp = requests.get(file_url, headers=no_cache_headers)
         file_resp.raise_for_status()
         file_data = file_resp.json().get("data", {})
 
@@ -92,13 +102,15 @@ async def watermark_webhook(payload: dict):
             return {"status": "skipped"}
 
         # 2. Get original content
-        import time
-        # Add cache buster to ensure we get the NEW content, not the old cached version
-        asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}?t={int(time.time())}"
-        asset_resp = requests.get(asset_url, headers=auth_header)
+        # Add cache buster AND headers
+        asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}?key=original&t={int(time.time())}"
+        asset_resp = requests.get(asset_url, headers=no_cache_headers)
         asset_resp.raise_for_status()
         
         original_content = asset_resp.content
+        import hashlib
+        current_md5 = hashlib.md5(original_content).hexdigest()
+        logger.info(f"File {file_id}: Downloaded {len(original_content)} bytes. MD5: {current_md5}")
         import hashlib
         current_md5 = hashlib.md5(original_content).hexdigest()
 
