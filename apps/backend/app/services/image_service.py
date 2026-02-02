@@ -9,20 +9,23 @@ logger = logging.getLogger(__name__)
 class ImageService:
     def __init__(self):
         self.watermark_text = "ТД РУССТАНКОСБЫТ"
-        # Standard linux font paths, adjust if needed
+        # Font paths
         self.font_paths = [
+            "apps/backend/app/static/fonts/Roboto-Bold.ttf", # Priority 1: Local project font
+            "/app/app/static/fonts/Roboto-Bold.ttf",         # Docker path
             "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-            "/system/library/fonts/supplemental/arial bold.ttf", # Mac fallback
-            "arial.ttf" # Windows/generic fallback
+            "arial.ttf"
         ]
 
     def _get_font(self, size):
         for path in self.font_paths:
             try:
+                # Try to load font
                 return ImageFont.truetype(path, size)
             except Exception:
                 continue
+        
+        logger.warning(f"Could not load any custom font. Using default.")
         return ImageFont.load_default()
 
     async def add_watermark(self, image_bytes: bytes) -> bytes:
