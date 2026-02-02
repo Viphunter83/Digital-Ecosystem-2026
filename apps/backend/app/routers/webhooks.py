@@ -86,24 +86,6 @@ async def watermark_webhook(payload: dict):
         file_resp.raise_for_status()
         file_data = file_resp.json().get("data", {})
 
-        # --- Loop Protection 1: Check if WE modified it (Self-Recursion) ---
-        # Fetch our own user ID (cache this in production ideally)
-        try:
-            me_resp = requests.get(f"{settings.DIRECTUS_URL}/users/me", headers=auth_header)
-            if me_resp.status_code == 200:
-                my_id = me_resp.json().get("data", {}).get("id")
-                modified_by = file_data.get("modified_by")
-                
-                # Handle cases where modified_by is an object or just an ID
-                modified_by_id = modified_by.get("id") if isinstance(modified_by, dict) else modified_by
-
-                if my_id and modified_by_id == my_id:
-                    logger.info(f"File {file_id} was last modified by THIS bot ({my_id}). Skipping to prevent loop.")
-                    return {"status": "skipped", "reason": "self_recursion"}
-        except Exception as e_user:
-            logger.warning(f"Could not check user for loop protection: {e_user}")
-
-
         mime_type = file_data.get("type", "")
         if not mime_type.startswith("image/"):
             logger.info(f"Skipping non-image file: {mime_type}")
