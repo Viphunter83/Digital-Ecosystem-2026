@@ -91,18 +91,33 @@ async def watermark_webhook(payload: dict):
             logger.info(f"Skipping non-image file: {mime_type}")
             return {"status": "skipped"}
 
-        # 2. Get original content
+        # 2. Check if already watermarked (Loop protection)
+        current_tags = file_data.get("tags") or []
+        if isinstance(current_tags, list) and "watermarked" in current_tags:
+            logger.info(f"File {file_id} already watermarked. Skipping.")
+            return {"status": "skipped", "reason": "already_watermarked"}
+
+        # 3. Get original content
         asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}"
         asset_resp = requests.get(asset_url, headers=auth_header)
         asset_resp.raise_for_status()
 
-        # 3. Add watermark
+        # 4. Add watermark
         processed_image = await image_service.add_watermark(asset_resp.content)
 
-        # 4. Upload back to Directus
+        # 5. Upload back + Add Tag to prevent loop
+        new_tags = current_tags if isinstance(current_tags, list) else []
+        if "watermarked" not in new_tags:
+            new_tags.append("watermarked")
+
         # Directus PATCH /files/:id accepts binary content if Content-Type is set
+        # We also send 'tags' as a separate field. NOTE: Directus API for files might require separate calls or specific formatting
+        # For 'multipart/form-data', we can send fields like this:
         files = {'file': ('image.jpg', processed_image, 'image/jpeg')}
-        update_resp = requests.patch(file_url, headers=auth_header, files=files)
+        data = {'tags': new_tags} 
+        
+        # Requests can send both files and data (form fields)
+        update_resp = requests.patch(file_url, headers=auth_header, files=files, data=data)
         update_resp.raise_for_status()
 
         logger.info(f"Successfully watermarked file: {file_id}")
