@@ -92,7 +92,9 @@ async def watermark_webhook(payload: dict):
             return {"status": "skipped"}
 
         # 2. Get original content
-        asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}"
+        import time
+        # Add cache buster to ensure we get the NEW content, not the old cached version
+        asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}?t={int(time.time())}"
         asset_resp = requests.get(asset_url, headers=auth_header)
         asset_resp.raise_for_status()
         
