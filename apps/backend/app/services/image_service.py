@@ -39,25 +39,26 @@ class ImageService:
             draw = ImageDraw.Draw(txt)
 
             # Calculate font size based on image width (e.g., 5% of width)
-            font_size = max(20, int(img.width * 0.04))
+            font_size = max(24, int(img.width * 0.05))
             font = self._get_font(font_size)
 
             # Position: bottom right with padding
             # We use textbbox for newer Pillow versions
             try:
-                bbox = draw.textbbox((0, 0), self.watermark_text, font=font)
+                bbox = draw.textbbox((0, 0), self.watermark_text, font=font, stroke_width=2)
                 textwidth = bbox[2] - bbox[0]
                 textheight = bbox[3] - bbox[1]
             except AttributeError:
                 # Fallback for older Pillow
                 textwidth, textheight = draw.textsize(self.watermark_text, font)
 
-            margin = 20
+            margin = int(img.width * 0.02) # Responsive margin
             x = img.width - textwidth - margin
             y = img.height - textheight - margin
 
-            # Draw white text with low alpha (semi-transparent)
-            draw.text((x, y), self.watermark_text, font=font, fill=(255, 255, 255, 80))
+            # Draw text with stroke for maximum contrast
+            # Stroke (Black Outline)
+            draw.text((x, y), self.watermark_text, font=font, fill=(255, 255, 255, 240), stroke_width=2, stroke_fill=(0, 0, 0, 255))
 
             # Composite
             watermarked = Image.alpha_composite(img, txt)
