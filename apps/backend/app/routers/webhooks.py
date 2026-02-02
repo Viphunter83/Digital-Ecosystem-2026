@@ -119,19 +119,21 @@ async def watermark_webhook(payload: dict):
         new_tags = [t for t in current_tags if not t.startswith("watermarked_")] if isinstance(current_tags, list) else []
         new_tags.append(f"watermarked_{new_md5}")
 
-        # 6. Upload back + Update Tags
-        # Send tags as JSON string in 'data' or separate fields. 
-        # Directus API often handles 'tags' as a CSV or array. 
-        # Safest is to try sending it as a JSON string if simple array fails, 
-        # but let's try standard list serialization first, or send comma-separated if Directus supports it.
-        # However, for robustness, since we know 'watermarked' tag persisted, simple list works in some form.
-        # We will try sending 'tags' as multiple fields (requests default for list).
-        
+        # 6. Two-Step Update Strategy
+        # Step A: Update Tags (JSON) - This prepares the "lock"
+        # We do this FIRST so when Step B triggers the webhook again, the tag is already there.
+        tags_payload = {"tags": new_tags}
+        logger.info(f"Updating tags for {file_id} to: {new_tags}")
+        tags_resp = requests.patch(file_url, headers=auth_header, json=tags_payload)
+        tags_resp.raise_for_status()
+
+        # Step B: Update Content (Multipart)
+        # This will trigger the recursive webhook, but it should hit the tag check and exit.
         files = {'file': ('image.jpg', processed_image, 'image/jpeg')}
-        # Note: requests data={'tags': ['a', 'b']} sends multiple parts. Directus usually accepts this.
-        data = {'tags': new_tags} 
+        logger.info(f"Uploading watermarked content for {file_id}")
         
-        update_resp = requests.patch(file_url, headers=auth_header, files=files, data=data)
+        # Note: We don't send data/tags here, just the file
+        update_resp = requests.patch(file_url, headers=auth_header, files=files)
         update_resp.raise_for_status()
 
         logger.info(f"Successfully watermarked file: {file_id}. Hash: {new_md5}")
@@ -139,4 +141,7 @@ async def watermark_webhook(payload: dict):
 
     except Exception as e:
         logger.error(f"Watermarking error: {e}")
+        # Try to log response text if available
+        if hasattr(e, 'response') and e.response is not None:
+             logger.error(f"API Response: {e.response.text}")
         return {"status": "error", "message": str(e)}
