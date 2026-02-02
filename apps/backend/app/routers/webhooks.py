@@ -91,36 +91,48 @@ async def watermark_webhook(payload: dict):
             logger.info(f"Skipping non-image file: {mime_type}")
             return {"status": "skipped"}
 
-        # 2. Check if already watermarked (Loop protection)
-        current_tags = file_data.get("tags") or []
-        if isinstance(current_tags, list) and "watermarked" in current_tags:
-            logger.info(f"File {file_id} already watermarked. Skipping.")
-            return {"status": "skipped", "reason": "already_watermarked"}
-
-        # 3. Get original content
+        # 2. Get original content
         asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}"
         asset_resp = requests.get(asset_url, headers=auth_header)
         asset_resp.raise_for_status()
+        
+        original_content = asset_resp.content
+        import hashlib
+        current_md5 = hashlib.md5(original_content).hexdigest()
 
+        # 3. Check loop protection (MD5 tag)
+        current_tags = file_data.get("tags") or []
+        if isinstance(current_tags, list):
+             expected_tag = f"watermarked_{current_md5}"
+             if expected_tag in current_tags:
+                 logger.info(f"File {file_id} already has tag {expected_tag}. Skipping (Loop Protection).")
+                 return {"status": "skipped", "reason": "already_watermarked"}
+        
         # 4. Add watermark
-        processed_image = await image_service.add_watermark(asset_resp.content)
+        processed_image = await image_service.add_watermark(original_content)
+        new_md5 = hashlib.md5(processed_image).hexdigest()
 
-        # 5. Upload back + Add Tag to prevent loop
-        new_tags = current_tags if isinstance(current_tags, list) else []
-        if "watermarked" not in new_tags:
-            new_tags.append("watermarked")
+        # 5. Prepare new tags
+        # Remove old watermark tags and add new one
+        new_tags = [t for t in current_tags if not t.startswith("watermarked_")] if isinstance(current_tags, list) else []
+        new_tags.append(f"watermarked_{new_md5}")
 
-        # Directus PATCH /files/:id accepts binary content if Content-Type is set
-        # We also send 'tags' as a separate field. NOTE: Directus API for files might require separate calls or specific formatting
-        # For 'multipart/form-data', we can send fields like this:
+        # 6. Upload back + Update Tags
+        # Send tags as JSON string in 'data' or separate fields. 
+        # Directus API often handles 'tags' as a CSV or array. 
+        # Safest is to try sending it as a JSON string if simple array fails, 
+        # but let's try standard list serialization first, or send comma-separated if Directus supports it.
+        # However, for robustness, since we know 'watermarked' tag persisted, simple list works in some form.
+        # We will try sending 'tags' as multiple fields (requests default for list).
+        
         files = {'file': ('image.jpg', processed_image, 'image/jpeg')}
+        # Note: requests data={'tags': ['a', 'b']} sends multiple parts. Directus usually accepts this.
         data = {'tags': new_tags} 
         
-        # Requests can send both files and data (form fields)
         update_resp = requests.patch(file_url, headers=auth_header, files=files, data=data)
         update_resp.raise_for_status()
 
-        logger.info(f"Successfully watermarked file: {file_id}")
+        logger.info(f"Successfully watermarked file: {file_id}. Hash: {new_md5}")
         return {"status": "ok", "file_id": file_id}
 
     except Exception as e:
