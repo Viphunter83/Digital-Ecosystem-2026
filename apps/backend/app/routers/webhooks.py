@@ -78,6 +78,9 @@ async def watermark_webhook(payload: dict):
             logger.warning("No file ID in watermark payload")
             return {"status": "ignored"}
 
+        # Define auth header for Directus requests
+        auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
+
         # 0. Wait for consistency (File system lag / eventual consistency)
         import time
         import asyncio
@@ -103,50 +106,53 @@ async def watermark_webhook(payload: dict):
 
         # 2. Get original content
         # Add cache buster AND headers
-        asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}?key=original&t={int(time.time())}"
+        asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}?t={int(time.time())}"
         asset_resp = requests.get(asset_url, headers=no_cache_headers)
         asset_resp.raise_for_status()
         
         original_content = asset_resp.content
-        import hashlib
-        current_md5 = hashlib.md5(original_content).hexdigest()
-        logger.info(f"File {file_id}: Downloaded {len(original_content)} bytes. MD5: {current_md5}")
-        import hashlib
-        current_md5 = hashlib.md5(original_content).hexdigest()
-
-        # 3. Check loop protection (MD5 tag)
+        # 3. Check loop protection
         current_tags = file_data.get("tags") or []
-        if isinstance(current_tags, list):
-             expected_tag = f"watermarked_{current_md5}"
-             if expected_tag in current_tags:
-                 logger.info(f"File {file_id} already has tag {expected_tag}. Skipping (Loop Protection).")
-                 return {"status": "skipped", "reason": "already_watermarked"}
+        if not isinstance(current_tags, list):
+            current_tags = []
+
+        if f"watermarked_{current_md5}" in current_tags:
+            logger.info(f"File {file_id} already has tag for current content. Skipping.")
+            return {"status": "skipped", "reason": "already_watermarked"}
+
+        if "watermark_processing" in current_tags:
+            logger.info(f"File {file_id} is already being processed. Skipping.")
+            return {"status": "skipped", "reason": "processing_lock"}
         
-        # 4. Add watermark
+        # 4. Add Watermark
+        logger.info(f"Adding watermark to file {file_id}...")
         processed_image = await image_service.add_watermark(original_content)
         new_md5 = hashlib.md5(processed_image).hexdigest()
 
         # 5. Prepare new tags
-        # Remove old watermark tags and add new one
-        new_tags = [t for t in current_tags if not t.startswith("watermarked_")] if isinstance(current_tags, list) else []
+        # Add lock and clean old watermarked tags
+        new_tags = [t for t in current_tags if not t.startswith("watermarked_")]
+        new_tags.append("watermark_processing")
         new_tags.append(f"watermarked_{new_md5}")
 
-        # 6. Two-Step Update Strategy
-        # Step A: Update Tags (JSON) - This prepares the "lock"
-        # We do this FIRST so when Step B triggers the webhook again, the tag is already there.
-        tags_payload = {"tags": new_tags}
-        logger.info(f"Updating tags for {file_id} to: {new_tags}")
-        tags_resp = requests.patch(file_url, headers=auth_header, json=tags_payload)
-        tags_resp.raise_for_status()
+        # 6. Apply Lock and Hash (Pre-update)
+        logger.info(f"Applying lock and new hash tag to {file_id}")
+        lock_resp = requests.patch(file_url, headers=auth_header, json={"tags": new_tags})
+        lock_resp.raise_for_status()
 
-        # Step B: Update Content (Multipart)
-        # This will trigger the recursive webhook, but it should hit the tag check and exit.
+        # 7. Update Content
         files = {'file': ('image.jpg', processed_image, 'image/jpeg')}
         logger.info(f"Uploading watermarked content for {file_id}")
-        
-        # Note: We don't send data/tags here, just the file
-        update_resp = requests.patch(file_url, headers=auth_header, files=files)
-        update_resp.raise_for_status()
+        content_resp = requests.patch(file_url, headers=auth_header, files=files)
+        content_resp.raise_for_status()
+
+        # 8. Release Lock
+        final_tags = [t for t in new_tags if t != "watermark_processing"]
+        logger.info(f"Releasing lock for {file_id}")
+        requests.patch(file_url, headers=auth_header, json={"tags": final_tags})
+
+        logger.info(f"Successfully watermarked file: {file_id}. Final Hash: {new_md5}")
+        return {"status": "ok", "file_id": file_id}
 
         logger.info(f"Successfully watermarked file: {file_id}. Hash: {new_md5}")
         return {"status": "ok", "file_id": file_id}
