@@ -18,6 +18,14 @@ export interface Project {
     isOffice?: boolean; // New flag for offices
 }
 
+export interface ProductImage {
+    url: string;
+    directus_id?: string;
+    image_file?: string;
+    is_primary?: boolean;
+    order?: number;
+}
+
 export interface Product {
     id: string; // Changed to string for UUID support
     name: string;
@@ -27,6 +35,7 @@ export interface Product {
     specs?: Record<string, any>;
     image_url?: string;
     image_file?: string;
+    images?: ProductImage[]; // Added for gallery support
     price?: number;
     manufacturer?: string;
     product_type?: 'machine' | 'spare';
@@ -192,9 +201,47 @@ export function getAssetUrl(fileId: string | undefined | null): string | undefin
  * @param item An object with image_file and/or image_url
  * @returns Best image URL or undefined
  */
-export function getImageUrl(item: { image_file?: string; image_url?: string } | undefined | null): string | undefined {
-    if (!item) return undefined;
-    return getAssetUrl(item.image_file) || item.image_url;
+export function getImageUrl(item: Product | Project | Article | ProductImage | undefined | null): string | null {
+    if (!item) return null;
+
+    const baseUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://admin.td-rss.ru';
+    const cleanedBaseUrl = baseUrl.replace(/\/$/, '');
+
+    // Explicitly handle ProductImage / SparePartImage object
+    if ('image_file' in item || 'directus_id' in item) {
+        if ('image_file' in item && item.image_file) return `${cleanedBaseUrl}/assets/${item.image_file}`;
+        if ('directus_id' in item && item.directus_id) return `${cleanedBaseUrl}/assets/${item.directus_id}`;
+    }
+
+    // Handle legacy 'url' property if present
+    if ('url' in item && item.url) {
+        if (item.url.startsWith('http')) return item.url;
+        // If it's a UUID string in the url field
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.url)) {
+            return `${cleanedBaseUrl}/assets/${item.url}`;
+        }
+        return item.url;
+    }
+
+    // Handle other types (Product, Project, Article)
+    // Prioritize image_url if it's a full URL
+    if ('image_url' in item && item.image_url && item.image_url.startsWith('http')) return item.image_url;
+
+    // Then check for image_file (Directus asset ID)
+    if ('image_file' in item && item.image_file) {
+        return `${cleanedBaseUrl}/assets/${item.image_file}`;
+    }
+
+    // Finally, check for image_url if it's not a full URL (might be a relative path or Directus ID)
+    if ('image_url' in item && item.image_url) {
+        // If image_url is not a full URL, treat it as a Directus asset ID
+        if (!item.image_url.startsWith('http')) {
+            return `${cleanedBaseUrl}/assets/${item.image_url}`;
+        }
+        return item.image_url; // Should have been caught by the first check, but as a fallback
+    }
+
+    return null;
 }
 
 const getBaseUrl = () => {
