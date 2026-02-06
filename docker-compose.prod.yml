@@ -37,34 +37,6 @@ services:
       - traefik.enable=true
     networks:
       - dokploy-network
-  traefik:
-    image: traefik:v2.11
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /etc/dokploy/traefik_dynamic.yml:/etc/traefik/dynamic.yml
-      - traefik_certificates:/etc/traefik/acme
-    environment:
-      - DOCKER_API_VERSION=1.44
-      - TRAEFIK_PROVIDERS_DOCKER_APIVERSION=1.44
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.email=admin@td-rss.ru"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--providers.file.filename=/etc/traefik/dynamic.yml"
-    restart: always
-    networks:
-      - dokploy-network
 
   bot:
     build:
@@ -191,7 +163,6 @@ volumes:
   db_data:
   redis_data:
   directus_uploads:
-  traefik_certificates:
 
 
 networks:
