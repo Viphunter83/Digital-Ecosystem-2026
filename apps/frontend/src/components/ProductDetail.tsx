@@ -3,14 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, FileText, Settings, Maximize2, X, ShoppingBag } from "lucide-react";
+import { ArrowLeft, CheckCircle, FileText, Settings, Maximize2, ShoppingBag } from "lucide-react";
 import { ShimmerButton } from "@/components/ShimmerButton";
-import {
-    Dialog,
-    DialogContent,
-    DialogTrigger,
-    DialogClose,
-} from "@/components/ui/dialog";
+import { ImageZoom } from "@/components/ImageZoom";
 import { useCartStore } from "@/lib/stores/useCartStore";
 import { Product, parseSpecs, getImageUrl, fetchSiteContent } from "@/lib/api";
 import { toast } from "sonner";
@@ -24,6 +19,19 @@ export function ProductDetail({ product }: ProductDetailProps) {
     const [added, setAdded] = useState(false);
     const [imageError, setImageError] = useState(false);
     const [siteContent, setSiteContent] = useState<Record<string, string>>({});
+    const [activeImage, setActiveImage] = useState<string | null>(null);
+
+    const images = product.images || [];
+    const allImages = [
+        ...(getImageUrl(product) ? [{ url: getImageUrl(product)!, is_primary: true }] : []),
+        ...images.filter(img => !img.is_primary).map(img => ({ url: getImageUrl(img)! }))
+    ].filter(img => img.url);
+
+    useEffect(() => {
+        if (allImages.length > 0 && !activeImage) {
+            setActiveImage(allImages[0].url);
+        }
+    }, [product, allImages, activeImage]);
 
     useEffect(() => {
         const loadContent = async () => {
@@ -70,60 +78,60 @@ export function ProductDetail({ product }: ProductDetailProps) {
             <div className="container mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12">
                 {/* Visual Section */}
                 <div className="space-y-6">
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <div className="relative aspect-video lg:aspect-square bg-industrial-panel border border-industrial-border rounded-lg overflow-hidden group cursor-zoom-in">
-                                {/* Technical Grid Overlay */}
-                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] z-10 pointer-events-none" />
+                    <ImageZoom src={activeImage || "/images/placeholder_machine.jpg"} alt={cleanName}>
+                        <div className="relative aspect-video lg:aspect-square bg-industrial-panel border border-industrial-border rounded-lg overflow-hidden group cursor-zoom-in">
+                            {/* Technical Grid Overlay */}
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:30px_30px] z-10 pointer-events-none" />
 
-                                {getImageUrl(product) ? (
-                                    <>
-                                        <Image
-                                            src={imageError ? "/images/placeholder_machine.jpg" : getImageUrl(product)!}
-                                            alt={cleanName}
-                                            fill
-                                            className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
-                                            onError={() => setImageError(true)}
-                                            priority
-                                        />
-                                        {/* Zoom Indicator */}
-                                        <div className="absolute bottom-4 right-4 z-20 bg-safety-orange/20 backdrop-blur-sm border border-safety-orange/30 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            <Maximize2 className="w-5 h-5 text-safety-orange" />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">
-                                        <span className="text-4xl font-black text-white/5 select-none font-mono">НЕТ ФОТО</span>
+                            {activeImage ? (
+                                <>
+                                    <Image
+                                        src={imageError ? "/images/placeholder_machine.jpg" : activeImage}
+                                        alt={cleanName}
+                                        fill
+                                        className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                                        onError={() => setImageError(true)}
+                                        priority
+                                    />
+                                    {/* Zoom Indicator */}
+                                    <div className="absolute bottom-4 right-4 z-20 bg-safety-orange/20 backdrop-blur-sm border border-safety-orange/30 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <Maximize2 className="w-5 h-5 text-safety-orange" />
                                     </div>
-                                )}
-
-                                <div className="absolute top-4 left-4 z-20 bg-black/50 backdrop-blur border border-white/10 px-3 py-1 text-[10px] font-mono text-safety-orange">
-                                    ID: {product.id.substring(0, 8)}
+                                </>
+                            ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a]">
+                                    <span className="text-4xl font-black text-white/5 select-none font-mono">НЕТ ФОТО</span>
                                 </div>
-                            </div>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-[95vw] w-full max-h-[95vh] h-full p-0 bg-transparent border-none shadow-none flex items-center justify-center">
-                            <div className="relative w-full h-full flex items-center justify-center p-4">
-                                <DialogClose className="absolute top-6 right-6 z-50 p-2 bg-black/50 hover:bg-black/80 rounded-full border border-white/10 text-white transition-colors outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                                    <X className="h-6 w-6" />
-                                    <span className="sr-only">Закрыть</span>
-                                </DialogClose>
+                            )}
 
-                                <div className="relative w-full h-full max-w-7xl">
-                                    {getImageUrl(product) && (
-                                        <Image
-                                            src={getImageUrl(product)!}
-                                            alt={cleanName}
-                                            fill
-                                            className="object-contain"
-                                            priority
-                                            sizes="95vw"
-                                        />
-                                    )}
-                                </div>
+                            <div className="absolute top-4 left-4 z-20 bg-black/50 backdrop-blur border border-white/10 px-3 py-1 text-[10px] font-mono text-safety-orange">
+                                ID: {product.id.substring(0, 8)}
                             </div>
-                        </DialogContent>
-                    </Dialog>
+                        </div>
+                    </ImageZoom>
+
+                    {/* Thumbnails Gallery */}
+                    {allImages.length > 1 && (
+                        <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                            {allImages.map((img, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setActiveImage(img.url)}
+                                    className={`relative aspect-square rounded-md overflow-hidden border-2 transition-all ${activeImage === img.url
+                                        ? 'border-safety-orange bg-safety-orange/10'
+                                        : 'border-industrial-border bg-industrial-panel hover:border-white/30'
+                                        }`}
+                                >
+                                    <Image
+                                        src={img.url}
+                                        alt={`${cleanName} - фото ${idx + 1}`}
+                                        fill
+                                        className="object-contain p-1"
+                                    />
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Info Section */}
