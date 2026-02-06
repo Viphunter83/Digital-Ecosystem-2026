@@ -129,8 +129,11 @@ services:
     environment:
       KEY: "${DIRECTUS_KEY}"
       SECRET: "${DIRECTUS_SECRET}"
-      ADMIN_EMAIL: "${ADMIN_EMAIL}"
-      ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+      # ADMIN_EMAIL: "${ADMIN_EMAIL}"
+      # ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+      PUBLIC_URL: "https://admin.td-rss.ru"
+      REFRESH_TOKEN_COOKIE_SECURE: "true"
+      REFRESH_TOKEN_COOKIE_SAME_SITE: "None"
       DB_CLIENT: "pg"
       DB_HOST: "db"
       DB_PORT: "5432"
