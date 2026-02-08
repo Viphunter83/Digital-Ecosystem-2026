@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from apps.backend.app.core.database import get_db
 from packages.database.models import Lead, LeadSource
 from pydantic import BaseModel, EmailStr, field_validator
 import re
+import os
+import logging
 from typing import Optional, Dict, Any
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 class LeadCreate(BaseModel):
     source: str # bot, site
@@ -27,64 +30,8 @@ class LeadCreate(BaseModel):
             raise ValueError("Некорректный формат номера телефона. Используйте +7 (999) 123-45-67")
         return clean_phone
 
-import os
-import requests
-import logging
-
-# ... imports ...
-
-logger = logging.getLogger(__name__)
-
-TELEGRAM_ADMIN_CHAT_ID = os.getenv("TELEGRAM_ADMIN_CHAT_ID")
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-
 from apps.backend.app.services.notification import notification_service
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-# ...
-@router.post("/leads")
-async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    """
-    Ingest a new lead from any source (Site/Bot).
-    """
-    try:
-        new_lead = Lead(
-            source=LeadSource(lead_in.source),
-            name=lead_in.name,
-            phone=lead_in.phone,
-            email=lead_in.email,
-            message=lead_in.message,
-            metadata_=lead_in.meta,
-            status="new"
-        )
-        
-        # Async DB Execution
-        from fastapi.concurrency import run_in_threadpool
-        
-        def save_lead():
-            db.add(new_lead)
-            db.commit()
-            db.refresh(new_lead)
-            
-        await run_in_threadpool(save_lead)
-        
-        # --- Notification Logic ---
-        try:
-            await notification_service.notify_new_lead({
-                "id": str(new_lead.id),
-                "name": new_lead.name,
-                "phone": new_lead.phone,
-                "email": new_lead.email,
-                "message": new_lead.message,
-                "source": new_lead.source.value,
-                "meta": new_lead.metadata_
-            })
-        except Exception as notify_err:
-            logger.error(f"Failed to send notification: {notify_err}")
-        # --------------------------
-
-        # --- AmoCRM Sync ---
-        try:
 async def sync_task(lead_id: str):
     """Background task to sync lead with AmoCRM."""
     from apps.backend.app.integrations.amocrm import amocrm_client
@@ -259,7 +206,7 @@ async def test_crm_connection():
     from apps.backend.app.integrations.amocrm import amocrm_client
     try:
         lead = await amocrm_client.create_lead(
-            name="TEST: Система отладки v2",
+            name="TEST: Система отладки v3",
             price=1,
             custom_fields={}
         )
