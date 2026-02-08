@@ -109,7 +109,7 @@ async def search_products(
                 sem_raw = await run_in_threadpool(lambda: db.execute(sem_stmt).unique().all())
                 
                 for spare, dist in sem_raw:
-                    if dist < 0.75: # Softened threshold
+                    if dist is not None and dist < 0.75: # Softened threshold
                         semantic_results.append(spare)
             except Exception as e:
                 print(f"Semantic search for spares failed: {e}")
@@ -196,7 +196,7 @@ async def search_products(
             
             # Threshold for semantic relevance
             for product, dist in sem_raw:
-                if dist < 0.75: # Softened threshold
+                if dist is not None and dist < 0.75: # Softened threshold
                     semantic_results.append(product)
                     
         except Exception as e:
