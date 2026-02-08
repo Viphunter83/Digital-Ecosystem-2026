@@ -65,7 +65,7 @@ async def sync_task(lead_id: str):
         price = 0
         if lead.metadata_ and "total" in lead.metadata_:
             try:
-                price = float(lead.metadata_["total"])
+                price = int(float(lead.metadata_["total"]))
             except (ValueError, TypeError):
                 price = 0
         
