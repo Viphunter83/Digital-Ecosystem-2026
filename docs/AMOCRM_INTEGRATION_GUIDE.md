@@ -61,6 +61,10 @@ AMOCRM_SUBDOMAIN=russtanko               # Ваш поддомен в AmoCRM
 AMOCRM_ACCESS_TOKEN=xxx                  # Long-lived Access Token
 AMOCRM_PIPELINE_ID=1234567               # ID воронки продаж
 AMOCRM_RESPONSIBLE_USER_ID=987654        # ID ответственного менеджера
+AMOCRM_STATUS_SUCCESS=142                # ID статуса "Успешно реализовано"
+AMOCRM_FIELD_SERIAL_ID=111111            # ID поля "Серийный номер"
+AMOCRM_FIELD_MODEL_ID=222222             # ID поля "Модель/Slug"
+AMOCRM_FIELD_TELEGRAM_ID=333333          # ID поля "ID Telegram"
 ```
 
 ### 2. Настройка Custom Fields (Дополнительные поля)

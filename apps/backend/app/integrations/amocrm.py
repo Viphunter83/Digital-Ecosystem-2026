@@ -348,13 +348,18 @@ async def create_lead_from_ticket(
     else:
         name = f"ТО/Ремонт: {serial_number} ({ticket_number})"
     
+    custom_fields = {}
+    serial_field_id = os.getenv("AMOCRM_FIELD_SERIAL_ID")
+    tg_field_id = os.getenv("AMOCRM_FIELD_TELEGRAM_ID")
+    
+    if serial_field_id:
+        custom_fields[serial_field_id] = serial_number
+    if tg_field_id:
+        custom_fields[tg_field_id] = str(telegram_user_id)
+        
     lead = await amocrm_client.create_lead(
         name=name,
-        custom_fields={
-            # Add your custom field IDs here after setting up AmoCRM
-            # "123456": serial_number,
-            # "123457": str(telegram_user_id),
-        }
+        custom_fields=custom_fields
     )
     
     return lead.get("id") if lead else None

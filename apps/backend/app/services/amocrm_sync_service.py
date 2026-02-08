@@ -1,4 +1,5 @@
 import logging
+import os
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from packages.database.models import Client, MachineInstance, Product, TelegramUser
@@ -8,12 +9,13 @@ from typing import Dict, Any, Optional
 logger = logging.getLogger(__name__)
 
 # ID статуса "Успешно реализовано" в AmoCRM (обычно 142)
-AMO_STATUS_SUCCESS = 142
+AMO_STATUS_SUCCESS = int(os.getenv("AMOCRM_STATUS_SUCCESS", "142"))
 
-# Карта ID дополнительных полей в AmoCRM (уточняется в .env или по вебхуку)
-# В продакшене лучше вынести в конфиг
-AMO_FIELD_SERIAL = "CF_SERIAL" 
-AMO_FIELD_MODEL = "CF_MODEL"
+# Карта ID дополнительных полей в AmoCRM
+# Получаются из .env (заполняются после настройки AmoCRM заказчиком)
+AMO_FIELD_SERIAL = os.getenv("AMOCRM_FIELD_SERIAL_ID") # Напр. 123456
+AMO_FIELD_MODEL = os.getenv("AMOCRM_FIELD_MODEL_ID")   # Напр. 123457
+AMO_FIELD_TELEGRAM = os.getenv("AMOCRM_FIELD_TELEGRAM_ID") # Напр. 123458
 
 class AmoCRMSyncService:
     async def process_webhook(self, data: Dict[str, Any], db: Session):
