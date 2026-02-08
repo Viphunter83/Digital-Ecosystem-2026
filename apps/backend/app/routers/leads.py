@@ -125,8 +125,17 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                         c_fields[model_id] = new_lead.metadata_["machine_type"]
 
                 # Create Lead
+                source_labels = {
+                    "site": "Сайт (Обратная связь)",
+                    "bot": "Telegram Бот",
+                    "cart_order": "Заказ запчастей",
+                    "diagnostics_widget": "Диагностика",
+                    "diagnostics": "Сервисная заявка"
+                }
+                label = source_labels.get(new_lead.source.value, new_lead.source.value)
+                
                 amo_lead = await amocrm_client.create_lead(
-                    name=f"Заявка: {new_lead.source.value} ({new_lead.name})",
+                    name=f"{label}: {new_lead.name or 'Без имени'}",
                     price=price,
                     contact_id=contact.get("id") if contact else None,
                     custom_fields=c_fields
@@ -142,16 +151,20 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                     try:
                         amo_lead_id = int(amo_lead.get("id"))
                         
-                        # 1. Cart Items Note
+                        # 1. Universal User Message Note
+                        if new_lead.message:
+                            await amocrm_client.add_note("leads", amo_lead_id, f"💬 СООБЩЕНИЕ ПОЛЬЗОВАТЕЛЯ:\n{new_lead.message}")
+                        
+                        # 2. Cart Items Note
                         if new_lead.source.value == "cart_order" and new_lead.metadata_ and "items" in new_lead.metadata_:
                             items = new_lead.metadata_["items"]
-                            note_text = "🛒 СОСТАВ ЗАКАЗА:\n"
+                            note_text = "🛒 СОСТАВ ЗАКАЗА (ЗАПЧАСТИ):\n"
                             for item in items:
-                                note_text += f"- {item.get('name')} (x{item.get('quantity')}) — {item.get('price'):,.0f} ₽\n"
+                                note_text += f"- {item.get('name')} (x{item.get('quantity')}) — {item.get('price', 0):,.0f} ₽\n"
                             note_text += f"\nИТОГО: {new_lead.metadata_.get('total', 0):,.0f} ₽"
                             await amocrm_client.add_note("leads", amo_lead_id, note_text)
                         
-                        # 2. Diagnostics Result Note
+                        # 3. Diagnostics Result Note
                         if new_lead.source.value == "diagnostics_widget" and new_lead.metadata_ and "analysis_result" in new_lead.metadata_:
                             res = new_lead.metadata_["analysis_result"]
                             note_text = "🔬 РЕЗУЛЬТАТ ДИАГНОСТИКИ:\n"
