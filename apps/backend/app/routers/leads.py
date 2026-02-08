@@ -85,7 +85,7 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
 
         # --- AmoCRM Sync ---
         try:
-            from apps.backend.app.db.session import SessionLocal
+            from apps.backend.app.core.database import SessionLocal
 
             async def sync_task(lead_id: str):
                 # Create a fresh session for the background task

@@ -31,22 +31,31 @@ class NotificationService:
             logger.warning("Telegram notification skipped: Missing BOT_TOKEN or ADMIN_CHAT_ID")
             return
 
+        def escape_html(text) -> str:
+            if not text: return ""
+            return str(text).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+        name = escape_html(lead_data.get('name') or 'Не указано')
+        phone = escape_html(lead_data.get('phone') or 'Не указан')
+        email = escape_html(lead_data.get('email') or 'Не указан')
+        source = escape_html(lead_data.get('source'))
+
         message = (
-            f"🚀 **НОВЫЙ ЛИД!**\n\n"
-            f"👤 Имя: {lead_data.get('name') or 'Не указано'}\n"
-            f"📞 Тел: {lead_data.get('phone') or 'Не указан'}\n"
-            f"📧 Email: {lead_data.get('email') or 'Не указан'}\n"
-            f"🔗 Источник: {lead_data.get('source')}\n"
+            f"🚀 <b>НОВЫЙ ЛИД!</b>\n\n"
+            f"👤 Имя: {name}\n"
+            f"📞 Тел: {phone}\n"
+            f"📧 Email: {email}\n"
+            f"🔗 Источник: {source}\n"
         )
         
         if lead_data.get('message'):
-            message += f"\n💬 Сообщение: {lead_data.get('message')}"
+            message += f"\n💬 Сообщение: {escape_html(lead_data.get('message'))}"
 
         url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
         payload = {
             "chat_id": settings.TELEGRAM_ADMIN_CHAT_ID,
             "text": message,
-            "parse_mode": "Markdown"
+            "parse_mode": "HTML"
         }
 
         try:
