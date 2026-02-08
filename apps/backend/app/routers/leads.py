@@ -105,15 +105,31 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                     except (ValueError, TypeError):
                         price = 0
                 
+                # Prepare custom fields mapping
+                c_fields = {}
+                serial_id = os.getenv("AMOCRM_FIELD_SERIAL_ID")
+                tg_id = os.getenv("AMOCRM_FIELD_TELEGRAM_ID")
+                model_id = os.getenv("AMOCRM_FIELD_MODEL_ID")
+
+                if serial_id and new_lead.metadata_ and "serial_number" in new_lead.metadata_:
+                    c_fields[serial_id] = new_lead.metadata_["serial_number"]
+                
+                if tg_id and new_lead.metadata_ and "tg_user_id" in new_lead.metadata_:
+                    c_fields[tg_id] = str(new_lead.metadata_["tg_user_id"])
+                
+                # If it's a cart order, we can set model field to 'Spare Parts'
+                if model_id:
+                    if new_lead.source.value == "cart_order":
+                        c_fields[model_id] = "Запчасти (Корзина)"
+                    elif new_lead.metadata_ and "machine_type" in new_lead.metadata_:
+                        c_fields[model_id] = new_lead.metadata_["machine_type"]
+
                 # Create Lead
                 amo_lead = await amocrm_client.create_lead(
                     name=f"Заявка: {new_lead.source.value} ({new_lead.name})",
                     price=price,
                     contact_id=contact.get("id") if contact else None,
-                    custom_fields={
-                        # Map your internal lead ID or other metadata
-                        # "FIELD_ID": str(new_lead.id)
-                    }
+                    custom_fields=c_fields
                 )
                 
                 if amo_lead:
