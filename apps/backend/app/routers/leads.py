@@ -88,6 +88,8 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
             from apps.backend.app.core.database import SessionLocal
 
             async def sync_task(lead_id: str):
+                # Import amocrm_client inside the task
+                from apps.backend.app.integrations.amocrm import amocrm_client
                 # Create a fresh session for the background task
                 background_db = SessionLocal()
                 try:
