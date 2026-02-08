@@ -147,7 +147,7 @@ async def sync_task(lead_id: str):
     finally:
         background_db.close()
 
-@router.post("/")
+@router.post("/leads")
 async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """
     Ingest a new lead from any source (Site/Bot).
