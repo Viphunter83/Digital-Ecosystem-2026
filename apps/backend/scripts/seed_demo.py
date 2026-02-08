@@ -1,5 +1,6 @@
 import logging
 import uuid
+import os
 import json
 from sqlalchemy import select
 from apps.backend.app.core.database import SessionLocal, engine
