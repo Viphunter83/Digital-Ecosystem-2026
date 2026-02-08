@@ -70,20 +70,27 @@ async def amocrm_webhook(request: Request, db: Session = Depends(get_db)):
 
 async def process_watermark_task(file_id: str):
     """
-    Background task to process watermark for a file.
+    Background task to process watermark for a file with Redis locking.
     """
+    lock_key = f"processing_watermark:{file_id}"
     try:
+        # 1. Check if already processing by another task
+        if r.get(lock_key):
+            logger.info(f"Background: File {file_id} is already being processed by another task. Skipping.")
+            return
+
+        # 2. Set lock with 60s expiration
+        r.setex(lock_key, 60, "true")
+        
         logger.info(f"Background: Starting watermark processing for {file_id}")
-        # Define auth header for Directus requests
         auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
 
-        # 0. Wait for consistency (File system lag / eventual consistency)
-        await asyncio.sleep(5)
+        # 0. Wait for consistency
+        await asyncio.sleep(2)
 
-        # 1. Fetch file metadata to check type
+        # 1. Fetch file metadata
         no_cache_headers = auth_header.copy()
         no_cache_headers.update({'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
-
         file_url = f"{settings.DIRECTUS_URL}/files/{file_id}"
         
         file_resp = requests.get(file_url, headers=no_cache_headers)
@@ -93,6 +100,7 @@ async def process_watermark_task(file_id: str):
         mime_type = file_data.get("type", "")
         if not mime_type or not mime_type.startswith("image/"):
             logger.info(f"Background: Skipping non-image file: {mime_type}")
+            r.delete(lock_key)
             return
 
         # 2. Get original content
@@ -103,19 +111,13 @@ async def process_watermark_task(file_id: str):
         original_content = asset_resp.content
         current_md5 = hashlib.md5(original_content).hexdigest()
         
-        # 3. Check loop protection
+        # 3. Check loop protection tags
         current_tags = file_data.get("tags") or []
-        if not isinstance(current_tags, list):
-            current_tags = []
-
         if f"watermarked_{current_md5}" in current_tags:
             logger.info(f"Background: File {file_id} already has tag for current content. Skipping.")
+            r.delete(lock_key)
             return
 
-        if "watermark_processing" in current_tags:
-            logger.info(f"Background: File {file_id} is already being processed. Skipping.")
-            return
-        
         # 4. Add Watermark
         logger.info(f"Background: Adding watermark to file {file_id}...")
         processed_image = await image_service.add_watermark(original_content)
@@ -123,32 +125,26 @@ async def process_watermark_task(file_id: str):
 
         # 5. Prepare new tags
         new_tags = [t for t in current_tags if not t.startswith("watermarked_")]
-        new_tags.append("watermark_processing")
         new_tags.append(f"watermarked_{new_md5}")
 
-        # 6. Apply Lock and Hash (Pre-update)
-        logger.info(f"Background: Applying lock and new hash tag to {file_id}")
+        # 6. Apply Hash Tag
+        logger.info(f"Background: Applying new hash tag to {file_id}")
         requests.patch(file_url, headers=auth_header, json={"tags": new_tags})
 
         # 7. Update Content
-        # Use binary body for reliable content update in Directus
         binary_headers = auth_header.copy()
         binary_headers['Content-Type'] = 'image/jpeg'
         logger.info(f"Background: Uploading watermarked content (binary) for {file_id}")
         content_resp = requests.patch(file_url, headers=binary_headers, data=processed_image)
         content_resp.raise_for_status()
 
-        # 8. Release Lock
-        final_tags = [t for t in new_tags if t != "watermark_processing"]
-        logger.info(f"Background: Releasing lock for {file_id}")
-        requests.patch(file_url, headers=auth_header, json={"tags": final_tags})
-
         logger.info(f"Background: Successfully watermarked file: {file_id}. Final Hash: {new_md5}")
 
     except Exception as e:
         logger.error(f"Background: Watermarking error for {file_id}: {e}")
-        if hasattr(e, 'response') and e.response is not None:
-             logger.error(f"Background: API Response: {e.response.text}")
+    finally:
+        # Always release the lock
+        r.delete(lock_key)
 
 @router.post("/watermark")
 async def watermark_webhook(payload: dict, background_tasks: BackgroundTasks):
@@ -164,6 +160,10 @@ async def watermark_webhook(payload: dict, background_tasks: BackgroundTasks):
         if not file_id:
             logger.warning(f"No file ID in watermark payload: {payload}")
             return {"status": "error_no_id", "message": "No file ID provided"}
+
+        if r.get(f"processing_watermark:{file_id}"):
+            logger.info(f"Watermark Webhook: File {file_id} is already being processed. Skipping webhook trigger.")
+            return {"status": "skipped", "message": "Already processing"}
 
         logger.info(f"Watermark Webhook: Initiating background task for file_id: {file_id}")
         background_tasks.add_task(process_watermark_task, file_id)
