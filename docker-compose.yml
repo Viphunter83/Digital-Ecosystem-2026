@@ -5,18 +5,27 @@ services:
     build:
       context: .
       dockerfile: infra/Dockerfile.backend
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     env_file:
       - .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       - PYTHONPATH=/app
-    # Production: Run migrations using a specialized command or entrypoint script if needed.
-    # Here we run seed demo and checks. In real prod, migrate via specific job.
     command: sh -c "python apps/backend/scripts/apply_migrations.py && python apps/backend/scripts/seed_demo.py && uvicorn apps.backend.app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
     depends_on:
       - db
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.middlewares.strip-api-prefix.stripprefix.prefixes=/api
+      - traefik.http.routers.backend-secure.rule=Host(`api.td-rss.ru`)
+      - traefik.http.routers.backend-secure.entrypoints=websecure
+      - traefik.http.routers.backend-secure.tls.certresolver=letsencrypt
+      - traefik.http.services.backend.loadbalancer.server.port=8000
+    networks:
+      - dokploy-network
 
   bot:
     build:
@@ -30,6 +39,9 @@ services:
       - PYTHONPATH=/app
     depends_on:
       - backend
+    restart: always
+    networks:
+      - dokploy-network
 
   frontend:
     build:
@@ -37,34 +49,46 @@ services:
       dockerfile: infra/Dockerfile.frontend
       args:
         NEXT_PUBLIC_API_URL: /api
-    ports:
-      - "3000:3000"
+        NEXT_PUBLIC_YANDEX_MAPS_API_KEY: ${NEXT_PUBLIC_YANDEX_MAPS_API_KEY}
+    expose:
+      - "3000"
     environment:
       - NEXT_PUBLIC_API_URL=/api
       - BACKEND_URL=http://backend:8000
       - PORT=3000
-
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --protocol http2 --url http://frontend:3000
-    depends_on:
-      - frontend
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.frontend-secure.rule=Host(`td-rss.ru`)
+      - traefik.http.routers.frontend-secure.entrypoints=websecure
+      - traefik.http.routers.frontend-secure.tls.certresolver=letsencrypt
+      - traefik.http.services.frontend.loadbalancer.server.port=3000
+      # Route /api to backend
+      - traefik.http.routers.frontend-api.rule=Host(`td-rss.ru`) && PathPrefix(`/api`)
+      - traefik.http.routers.frontend-api.entrypoints=websecure
+      - traefik.http.routers.frontend-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.frontend-api.middlewares=strip-api-prefix
+      - traefik.http.routers.frontend-api.service=backend
+    networks:
+      - dokploy-network
 
   db:
     image: ankane/pgvector
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - db_data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    restart: always
+    networks:
+      - dokploy-network
 
   redis:
     image: redis:alpine
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -72,15 +96,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
+    networks:
+      - dokploy-network
 
   directus:
     image: directus/directus:latest
-    ports:
-      - "8055:8055"
+    expose:
+      - "8055"
     volumes:
       - directus_uploads:/directus/uploads
     depends_on:
       - db
+      - redis
     env_file:
       - .env
     environment:
@@ -95,9 +123,52 @@ services:
       DB_USER: "${POSTGRES_USER}"
       DB_PASSWORD: "${POSTGRES_PASSWORD}"
       CORS_ENABLED: "true"
-      CORS_ORIGIN: "true"
+      CACHE_ENABLED: "false"
+      WEBSOCKETS_ENABLED: "false"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+    restart: always
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.directus-secure.rule=Host(`admin.td-rss.ru`)
+      - traefik.http.routers.directus-secure.entrypoints=websecure
+      - traefik.http.routers.directus-secure.tls.certresolver=letsencrypt
+      - traefik.http.services.directus.loadbalancer.server.port=8055
+    networks:
+      - dokploy-network
+
+  traefik:
+    image: traefik:v2.11
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@td-rss.ru"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt_data:/letsencrypt"
+    restart: always
+    networks:
+      - dokploy-network
 
 volumes:
   db_data:
   redis_data:
   directus_uploads:
+  letsencrypt_data:
+
+
+networks:
+  dokploy-network:
+    external: true

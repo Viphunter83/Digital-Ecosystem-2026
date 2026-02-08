@@ -1,0 +1,160 @@
+from fastapi import APIRouter, BackgroundTasks, Request, Depends
+from typing import List, Optional
+import logging
+import asyncio
+import requests
+import hashlib
+import time
+from app.core.config import settings
+from app.services import image_service
+
+router = APIRouter()
+logger = logging.getLogger(__name__)
+
+async def process_watermark_task(file_id: str, force: bool = False):
+    """
+    Background task to process watermark for a file.
+    Includes robust loop protection by checking 'modified_by'.
+    """
+    try:
+        logger.info(f"Background: Starting watermark processing for {file_id}")
+        auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
+        
+        # Admin User ID who performs watermarking (to prevent loops)
+        BACKEND_USER_ID = "27e1841b-95ba-4f37-a0b4-755c199d38c1"
+        
+        # 0. Wait for consistency
+        await asyncio.sleep(2)
+
+        # 1. Fetch file metadata
+        file_url = f"{settings.DIRECTUS_URL}/files/{file_id}"
+        file_resp = requests.get(file_url, headers=auth_header)
+        file_resp.raise_for_status()
+        file_data = file_resp.json().get("data", {})
+
+        # 2. Check Loop Protection: If last modified by US, skip unless forced
+        modified_by = file_data.get("modified_by")
+        if not force and modified_by == BACKEND_USER_ID:
+            logger.info(f"Background: File {file_id} was recently modified by backend. Skipping loop.")
+            return
+
+        mime_type = file_data.get("type", "")
+        if not mime_type or not mime_type.startswith("image/"):
+            logger.info(f"Background: Skipping non-image file: {mime_type}")
+            return
+
+        # 3. Get content
+        asset_url = f"{settings.DIRECTUS_URL}/assets/{file_id}"
+        asset_resp = requests.get(asset_url, headers=auth_header)
+        asset_resp.raise_for_status()
+        original_content = asset_resp.content
+
+        # 4. Add Watermark
+        logger.info(f"Background: Adding watermark to file {file_id}...")
+        processed_image = await image_service.add_watermark(original_content)
+        new_md5 = hashlib.md5(processed_image).hexdigest()
+
+        # 5. Check if we already have a tag for this exact result
+        current_tags = file_data.get("tags") or []
+        if f"watermarked_{new_md5}" in current_tags and not force:
+            logger.info(f"Background: File {file_id} already has a tag for this watermark. Skipping.")
+            return
+
+        # 6. Apply Lock and Hash
+        new_tags = [t for t in current_tags if not t.startswith("watermarked_")]
+        new_tags.append("watermark_processing")
+        new_tags.append(f"watermarked_{new_md5}")
+        requests.patch(file_url, headers=auth_header, json={"tags": new_tags})
+
+        # 7. Update Content (Binary PATCH)
+        binary_headers = auth_header.copy()
+        binary_headers['Content-Type'] = 'image/jpeg'
+        logger.info(f"Background: Uploading watermarked content (binary) for {file_id}")
+        content_resp = requests.patch(file_url, headers=binary_headers, data=processed_image)
+        content_resp.raise_for_status()
+
+        # 8. Release Lock
+        final_tags = [t for t in new_tags if t != "watermark_processing"]
+        requests.patch(file_url, headers=auth_header, json={"tags": final_tags})
+
+        logger.info(f"Background: Successfully watermarked file: {file_id}. Final Hash: {new_md5}")
+
+    except Exception as e:
+        logger.error(f"Background: Watermarking error for {file_id}: {e}")
+
+@router.post("/watermark")
+async def watermark_webhook(payload: dict, background_tasks: BackgroundTasks):
+    """
+    Triggered by Directus Flow after file upload.
+    """
+    try:
+        file_id = payload.get("key") or payload.get("id")
+        if not file_id and payload.get("keys") and isinstance(payload.get("keys"), list):
+            file_id = payload.get("keys")[0]
+
+        if not file_id:
+            return {"status": "error_no_id"}
+
+        # Check if it is a manual force request
+        force = payload.get("force", False)
+        background_tasks.add_task(process_watermark_task, file_id, force)
+        
+        return {"status": "accepted", "file_id": file_id}
+
+    except Exception as e:
+        logger.error(f"Webhook entry error: {e}")
+        return {"status": "error", "message": str(e)}
+
+@router.post("/gallery-watermark")
+async def gallery_watermark_webhook(payload: dict, background_tasks: BackgroundTasks):
+    try:
+        collection = payload.get("collection")
+        key = payload.get("key") or payload.get("keys", [None])[0]
+        
+        if not collection or not key or collection not in ["product_images", "spare_part_images"]:
+            return {"status": "skipped"}
+        
+        auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
+        item_url = f"{settings.DIRECTUS_URL}/items/{collection}/{key}?fields=image_file"
+        
+        item_resp = requests.get(item_url, headers=auth_header)
+        if item_resp.status_code != 200:
+            return {"status": "error"}
+        
+        file_id = item_resp.json().get("data", {}).get("image_file")
+        if not file_id:
+            return {"status": "skipped"}
+        
+        background_tasks.add_task(process_watermark_task, file_id)
+        return {"status": "accepted", "file_id": file_id}
+
+    except Exception as e:
+        logger.error(f"Gallery Watermark Error: {e}")
+        return {"status": "error"}
+
+@router.post("/item-watermark")
+async def item_watermark_webhook(payload: dict, background_tasks: BackgroundTasks):
+    try:
+        collection = payload.get("collection")
+        key = payload.get("key") or payload.get("keys", [None])[0]
+        
+        if not collection or not key:
+            return {"status": "skipped"}
+
+        auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
+        item_url = f"{settings.DIRECTUS_URL}/items/{collection}/{key}?fields=image_file"
+        
+        item_resp = requests.get(item_url, headers=auth_header)
+        if item_resp.status_code != 200:
+            return {"status": "error"}
+        
+        file_id = item_resp.json().get("data", {}).get("image_file")
+        if not file_id:
+            return {"status": "skipped"}
+        
+        background_tasks.add_task(process_watermark_task, file_id)
+        return {"status": "accepted", "file_id": file_id}
+
+    except Exception as e:
+        logger.error(f"Item Watermark Error: {e}")
+        return {"status": "error"}

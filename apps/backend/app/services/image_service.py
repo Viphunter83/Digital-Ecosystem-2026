@@ -9,12 +9,14 @@ logger = logging.getLogger(__name__)
 
 class ImageService:
     def __init__(self):
-        self.logo_path = "apps/backend/app/static/images/logo.png"
-        self.fallback_logo_path = "/app/app/static/images/logo.png"
+        # Use absolute paths relative to this file
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.logo_path = os.path.join(base_dir, "static/images/logo.png")
+        self.fallback_logo_path = "/app/apps/backend/app/static/images/logo.png" # Safe container path
         self.watermark_text = "ТД РУССТАНКОСБЫТ" # Fallback
         self.font_paths = [
-            "apps/backend/app/static/fonts/Roboto-Bold.ttf",
-            "/app/app/static/fonts/Roboto-Bold.ttf",
+            os.path.join(base_dir, "static/fonts/Roboto-Bold.ttf"),
+            "/app/apps/backend/app/static/fonts/Roboto-Bold.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
             "arial.ttf"
         ]
@@ -50,24 +52,43 @@ class ImageService:
                 if logo.mode != "RGBA":
                     logo = logo.convert("RGBA")
                 
-                # Resize logo: 20% of image width
-                logo_width = int(img.width * 0.20)
+                # Resize logo: 25% of image width
+                target_logo_width = int(img.width * 0.25)
                 aspect_ratio = logo.height / logo.width
-                logo_height = int(logo_width * aspect_ratio)
-                logo = logo.resize((logo_width, logo_height), Image.Resampling.LANCZOS)
+                target_logo_height = int(target_logo_width * aspect_ratio)
+                logo = logo.resize((target_logo_width, target_logo_height), Image.Resampling.LANCZOS)
                 
-                # Adjust transparency (half-transparent)
-                alpha = logo.split()[3]
-                alpha = alpha.point(lambda p: p * 0.6) # 60% of original alpha
-                logo.putalpha(alpha)
-
                 # Create watermark layer
                 watermark_layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
-                margin = int(img.width * 0.03)
-                x = img.width - logo_width - margin
-                y = img.height - logo_height - margin
+                draw = ImageDraw.Draw(watermark_layer)
+
+                # Layout calculations
+                padding_x = int(target_logo_width * 0.15)
+                padding_y = int(target_logo_height * 0.25)
+                box_width = target_logo_width + 2 * padding_x
+                box_height = target_logo_height + 2 * padding_y
+                line_height = max(2, int(img.height * 0.006))
                 
-                watermark_layer.paste(logo, (x, y))
+                margin = int(img.width * 0.03)
+                box_x = img.width - box_width - margin
+                box_y = img.height - box_height - margin
+
+                # 1. Draw dark background box (semi-transparent black)
+                draw.rectangle(
+                    [box_x, box_y, box_x + box_width, box_y + box_height],
+                    fill=(0, 0, 0, 180) # Darker for better visibility
+                )
+
+                # 2. Add brand orange line (#FF3D00) across the ENTIRE WIDTH at the bottom
+                # We align the bottom of the line with the bottom of the image plus a small padding or exactly at the bottom
+                draw.rectangle(
+                    [0, img.height - line_height, img.width, img.height],
+                    fill=(255, 61, 0, 255)
+                )
+
+                # 3. Paste logo on top of the box
+                watermark_layer.paste(logo, (box_x + padding_x, box_y + padding_y), logo)
+                
                 watermarked = Image.alpha_composite(img, watermark_layer)
             else:
                 # Fallback to text if logo not found
@@ -85,6 +106,14 @@ class ImageService:
                 draw.text((img.width - textwidth - margin, img.height - textheight - margin), 
                           self.watermark_text, font=font, fill=(255, 255, 255, 128), 
                           stroke_width=2, stroke_fill=(0, 0, 0, 128))
+                
+                # Add full-width line even for text fallback for consistency
+                line_height = max(2, int(img.height * 0.006))
+                draw.rectangle(
+                    [0, img.height - line_height, img.width, img.height],
+                    fill=(255, 61, 0, 255)
+                )
+
                 watermarked = Image.alpha_composite(img, txt_layer)
 
             # Convert back to RGB for JPEG

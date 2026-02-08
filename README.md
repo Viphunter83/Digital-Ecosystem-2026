@@ -1,26 +1,39 @@
 # Digital Ecosystem 2026
 
-## Overview
-A PWA platform for **"RusStankoSbyt"** designed to be the "Super Weapon" for sales. 
-> **Latest Context**: [ARCHITECTURE_HANDOFF.md](./ARCHITECTURE_HANDOFF.md)
-The platform serves as a digital catalog and reference system for high-value industrial machinery (e.g., Skoda W200, Lathes, Mills).
+## 🚀 Overview
+PWA-платформа для **ТД «РусСтанкоСбыт»**, предназначенная для автоматизации продаж промышленного оборудования, ведения цифровых паспортов станков и управления сервисным обслуживанием.
 
-## Business Context
-- **Core Entity**: ООО «ТД «РусСтанкоСбыт» (RusStankoSbyt).
-- **Activity**: Supply of machine tools, spare parts, and metalworking services.
-- **Key Metrics**: Annual turnover ~85M RUB (2024). Small, highly efficient team.
-- **Key Clients**: Experience with major players (e.g., Zvezdochka, Unipromtech).
-- **Goal**: Automate Technical Proposal (TP) generation and visualize the extensive track record.
+## 🏗 Architecture
+Проект построен на современном стеке:
+- **Frontend**: Next.js 14/15, TailwindCSS, Shadcn/UI.
+- **Backend**: FastAPI (Python 3.10+), PostgreSQL + pgvector.
+- **CMS**: Directus 11+ для управления контентом и медиа.
+- **Bot**: Telegram Bot (Aiogram 3) для взаимодействия с инженерами и клиентами.
 
-## Usage
-1. **Start Infrastructure**:
-   ```bash
-   docker-compose up -d --build
-   ```
-2. **Frontend**: Access at `http://localhost:3000`
-3. **Backend API**: Access at `http://localhost:8000/docs`
+Подробная документация:
+- 📑 [Общая архитектура](docs/ARCHITECTURE.md)
+- 💾 [Схема базы данных](docs/DATABASE.md)
+- 🛠 [Руководство по Directus](docs/directus_user_guide.md)
+- 📊 [План импорта данных](docs/DATA_INGESTION.md)
+- 🔍 [SEO стратегия](docs/SEO_STRATEGY_2026.md)
 
-## Development
-- **Frontend**: `apps/frontend`
-- **Backend**: `apps/backend`
-- **Data**: Place raw files in `_input_materials`
+## 🛠 Development & Deployment
+
+### Локальный запуск
+```bash
+docker-compose up -d --build
+```
+- **Сайт**: `http://localhost:3000`
+- **Backend API**: `http://localhost:8000/docs`
+- **Directus**: `http://localhost:8055`
+
+### Деплой
+Проект настроен для деплоя через **Dokploy**. Автоматический деплой настроен из ветки `main`.
+
+## 📁 Project Structure
+- `apps/frontend`: Приложение на Next.js.
+- `apps/backend`: Основной API сервис.
+- `apps/bot`: Телеграм-бот и сервисы уведомлений.
+- `packages/database`: Общие модели SQLAlchemy и миграции.
+- `docs/`: Техническая и системная документация.
+- `_input_materials/`: Исходные данные и материалы для парсинга.

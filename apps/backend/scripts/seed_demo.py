@@ -10,6 +10,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def seed_data():
+    if os.getenv("ENV") == "production":
+        logger.warning("Skipping demo seeding in PRODUCTION environment.")
+        return
     db = SessionLocal()
     try:
         # Create Tables if not exist

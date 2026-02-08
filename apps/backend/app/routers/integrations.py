@@ -49,7 +49,7 @@ async def handle_amocrm_webhook(request: Request, db: Session = Depends(get_db))
         
         if not status_id:
             logger.warning("AmoCRM webhook received without status_id")
-            return {"status": "ignored", "reason": "no_status_found"}
+            return {"status": "ignored_by_amocrm", "reason": "no_status_found"}
 
         # 2. Extract Custom Fields and Contact Info
         serial_number = None

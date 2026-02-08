@@ -44,19 +44,33 @@ class ProjectSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class ProductImageSchema(BaseModel):
-    url: str
-    directus_id: Optional[UUID] = None
     image_file: Optional[UUID] = None
     is_primary: bool = False
     order: Optional[int] = 0
+
+    @computed_field
+    @property
+    def url(self) -> Optional[str]:
+        if self.image_file:
+            base_url = settings.DIRECTUS_URL
+            return f"{base_url}/assets/{self.image_file}"
+        return None
+
     model_config = ConfigDict(from_attributes=True)
 
 class SparePartImageSchema(BaseModel):
-    url: str
-    directus_id: Optional[UUID] = None
     image_file: Optional[UUID] = None
     is_primary: bool = False
     order: Optional[int] = 0
+
+    @computed_field
+    @property
+    def url(self) -> Optional[str]:
+        if self.image_file:
+            base_url = settings.DIRECTUS_URL
+            return f"{base_url}/assets/{self.image_file}"
+        return None
+
     model_config = ConfigDict(from_attributes=True)
 
 class ProductMiniSchema(BaseModel):
@@ -65,7 +79,7 @@ class ProductMiniSchema(BaseModel):
     slug: Optional[str] = None
     category: Optional[str] = None
     image_file: Optional[UUID] = None
-    images: List[ProductImageSchema] = Field(default=[], exclude=True)
+    images: List[ProductImageSchema] = Field(default=[])
     
     @computed_field
     @property
@@ -76,9 +90,7 @@ class ProductMiniSchema(BaseModel):
                 return f"{base_url}/assets/{self.image_file}"
             if hasattr(self, "images") and self.images:
                 img = next((i for i in self.images if i.is_primary), self.images[0])
-                if img.directus_id: return f"{base_url}/assets/{img.directus_id}"
                 if img.image_file: return f"{base_url}/assets/{img.image_file}"
-                return img.url
         except Exception: pass
         return None
     
@@ -90,7 +102,7 @@ class SparePartMiniSchema(BaseModel):
     slug: Optional[str] = None
     price: Optional[float] = None
     image_file: Optional[UUID] = None
-    images: List[SparePartImageSchema] = Field(default=[], exclude=True)
+    images: List[SparePartImageSchema] = Field(default=[])
     
     @computed_field
     @property
@@ -101,9 +113,7 @@ class SparePartMiniSchema(BaseModel):
                 return f"{base_url}/assets/{self.image_file}"
             if hasattr(self, "images") and self.images:
                 img = next((i for i in self.images if i.is_primary), self.images[0])
-                if img.directus_id: return f"{base_url}/assets/{img.directus_id}"
                 if img.image_file: return f"{base_url}/assets/{img.image_file}"
-                return img.url
         except Exception: pass
         return None
     
@@ -121,7 +131,7 @@ class ProductSchema(BaseModel):
     currency: Optional[str] = "RUB"
     is_published: bool = True
     image_file: Optional[UUID] = None
-    images: List[ProductImageSchema] = Field(default=[], exclude=True)
+    images: List[ProductImageSchema] = Field(default=[])
     compatible_parts: List["SparePartMiniSchema"] = []
     
     @computed_field
@@ -149,9 +159,7 @@ class ProductSchema(BaseModel):
                 return f"{base_url}/assets/{self.image_file}"
             if hasattr(self, "images") and self.images:
                 img = next((i for i in self.images if i.is_primary), self.images[0])
-                if img.directus_id: return f"{base_url}/assets/{img.directus_id}"
                 if img.image_file: return f"{base_url}/assets/{img.image_file}"
-                return img.url
         except Exception: pass
         return None
 
@@ -197,7 +205,7 @@ class SparePartSchema(BaseModel):
     currency: Optional[str] = "RUB"
     is_published: bool = True
     image_file: Optional[UUID] = None
-    images: List[SparePartImageSchema] = Field(default=[], exclude=True)
+    images: List[SparePartImageSchema] = Field(default=[])
     compatible_products: List[ProductMiniSchema] = []
     
     @computed_field
@@ -226,9 +234,7 @@ class SparePartSchema(BaseModel):
                 return f"{base_url}/assets/{self.image_file}"
             if hasattr(self, "images") and self.images:
                 img = next((i for i in self.images if i.is_primary), self.images[0])
-                if img.directus_id: return f"{base_url}/assets/{img.directus_id}"
                 if img.image_file: return f"{base_url}/assets/{img.image_file}"
-                return img.url
         except Exception: pass
         return None
 

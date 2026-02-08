@@ -16,10 +16,24 @@ export default function MapComponent({ projects }: MapComponentProps) {
 
     // Domain verification for debugging
     if (typeof window !== 'undefined' && isKeyValid) {
+        console.log(`[YandexMaps] Key: ${apiKey.substring(0, 5)}...`);
+        console.log(`[YandexMaps] Projects count: ${projects.length}`);
         if (window.location.hostname === 'td-rss.ru' || window.location.hostname.endsWith('.ru')) {
             console.log(`[YandexMaps] Initializing for .ru domain: ${window.location.hostname}`);
         }
     }
+
+    // If no projects, add a default one (e.g. Moscow Office) so the map isn't empty
+    const displayProjects = projects.length > 0 ? projects : [
+        {
+            id: 'fallback',
+            title: 'ЦЕНТРАЛЬНЫЙ ОФИС',
+            region: 'МОСКВА',
+            latitude: 55.790484,
+            longitude: 37.467581,
+            isOffice: true
+        }
+    ];
 
     const defaultState = {
         center: [55.751574, 37.573856],
@@ -68,7 +82,7 @@ export default function MapComponent({ projects }: MapComponentProps) {
                         {/* Custom Zoom Control */}
                         <ZoomControl options={{ position: { right: 10, top: 100 } }} />
 
-                        {projects.map((project, idx) => {
+                        {displayProjects.map((project, idx) => {
                             if (!project.latitude || !project.longitude) return null;
                             return (
                                 <Placemark
