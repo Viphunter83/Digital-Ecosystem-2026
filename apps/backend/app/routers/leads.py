@@ -200,7 +200,7 @@ async def sync_task(lead_id: str):
     finally:
         background_db.close()
 
-@router.post("/leads")
+@router.post("/")
 async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """
     Ingest a new lead from any source (Site/Bot).
@@ -253,7 +253,7 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/ingest/test-crm")
+@router.get("/test-crm")
 async def test_crm_connection():
     """Manual trigger to test AmoCRM connection."""
     from apps.backend.app.integrations.amocrm import amocrm_client
