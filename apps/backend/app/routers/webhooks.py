@@ -85,8 +85,8 @@ async def process_watermark_task(file_id: str):
         logger.info(f"Background: Starting watermark processing for {file_id}")
         auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
 
-        # 0. Wait for consistency
-        await asyncio.sleep(2)
+        # 0. Wait for consistency (File system lag / eventual consistency)
+        await asyncio.sleep(5)
 
         # 1. Fetch file metadata
         no_cache_headers = auth_header.copy()
@@ -161,7 +161,9 @@ async def watermark_webhook(payload: dict, background_tasks: BackgroundTasks):
             logger.warning(f"No file ID in watermark payload: {payload}")
             return {"status": "error_no_id", "message": "No file ID provided"}
 
-        if r.get(f"processing_watermark:{file_id}"):
+        lock_key = f"processing_watermark:{file_id}"
+        # Atomic lock using NX (set if not exists)
+        if not r.set(lock_key, "true", nx=True, ex=60):
             logger.info(f"Watermark Webhook: File {file_id} is already being processed. Skipping webhook trigger.")
             return {"status": "skipped", "message": "Already processing"}
 

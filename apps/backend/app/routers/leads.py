@@ -100,9 +100,12 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                         logger.error(f"Sync task failed: Lead {lead_id} not found")
                         return
 
+                    logger.info(f"Starting AmoCRM sync for lead {lead_id}...")
+                    
                     # Find/Create contact first
                     contact = await amocrm_client.find_contact_by_phone(lead.phone)
                     if not contact:
+                        logger.info(f"Creating new contact for lead {lead_id}...")
                         contact = await amocrm_client.create_contact(
                             name=lead.name or "Новый клиент",
                             phone=lead.phone,
@@ -134,7 +137,7 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                             c_fields[model_id] = "Запчасти (Корзина)"
                         elif lead.metadata_ and "machine_type" in lead.metadata_:
                             c_fields[model_id] = lead.metadata_["machine_type"]
-
+                    
                     # Create Lead
                     source_labels = {
                         "site": "Сайт (Обратная связь)",
@@ -145,6 +148,7 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                     }
                     label = source_labels.get(lead.source.value, lead.source.value)
                     
+                    logger.info(f"Sending lead to AmoCRM: {label} - {lead.name}")
                     amo_lead = await amocrm_client.create_lead(
                         name=f"{label}: {lead.name or 'Без имени'}",
                         price=price,
@@ -154,6 +158,7 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
                     
                     if amo_lead:
                         amo_lead_id = int(amo_lead.get("id"))
+                        logger.info(f"Successfully created AmoCRM lead {amo_lead_id} for local lead {lead_id}")
                         # Update local lead with Amo ID
                         lead.amocrm_id = str(amo_lead_id)
                         background_db.commit()

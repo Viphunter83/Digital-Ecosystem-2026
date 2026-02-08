@@ -74,8 +74,8 @@ class AmoCRMClient:
             
         if custom_fields:
             payload[0]["custom_fields_values"] = [
-                {"field_id": k, "values": [{"value": v}]}
-                for k, v in custom_fields.items()
+                {"field_id": int(k), "values": [{"value": v}]}
+                for k, v in custom_fields.items() if k
             ]
             
         if contact_id:
@@ -96,8 +96,8 @@ class AmoCRMClient:
                         logger.info(f"Created AmoCRM lead: {lead.get('id')}")
                         return lead
                     else:
-                        error = await resp.text()
-                        logger.error(f"AmoCRM create_lead error: {resp.status} - {error}")
+                        error_text = await resp.text()
+                        logger.error(f"AmoCRM create_lead error: {resp.status} - {error_text}")
                         return None
         except Exception as e:
             logger.error(f"AmoCRM connection error: {e}")
