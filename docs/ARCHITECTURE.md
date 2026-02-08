@@ -2,11 +2,11 @@
 
 This document summarizes the current state of the **Digital Ecosystem 2026** project to facilitate a seamless transition for the next development iteration.
 
-## 1. Project Status (as of 2026-01-18)
+## 1. Project Status (as of 2026-02-08)
 
 ### ✅ Completed
-- **Infrastructure**: Monorepo with Docker Compose. Fixed **Mixed Content** issues via Nginx/Uvicorn proxy headers.
-- **Backend API**: FastAPI running on port 8000.
+- **Infrastructure**: Production-ready setup with **Dokploy** and **Traefik**. Automatic SSL via LetsEncrypt.
+- **Backend API**: FastAPI (Python 3.10+) running on port 8000. Full support for pgvector hybrid search.
     - Endpoints: `/projects` (List/Detail), `/journal`, `/catalog/search` (Hybrid Search), `/ingest/leads`.
     - Middleware: Request logging and Proxy Headers support.
     - Database: PostgreSQL with `pgvector` and UUIDs.
