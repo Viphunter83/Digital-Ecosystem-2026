@@ -115,7 +115,7 @@ function HeroSectionContent({ onOpenDiagnostics, siteContent }: { onOpenDiagnost
                             {content.cta}
                         </ShimmerButton>
                         <a
-                            href={siteContent?.catalog_url || "/catalog_2026.pdf"}
+                            href={siteContent?.catalog_url || "/catalog_td-rss.pdf"}
                             target="_blank"
                             rel="noopener noreferrer"
                             download={!siteContent?.catalog_url}
