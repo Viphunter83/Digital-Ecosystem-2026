@@ -36,8 +36,8 @@ export default function MapComponent({ projects }: MapComponentProps) {
     ];
 
     const defaultState = {
-        center: [55.751574, 37.573856],
-        zoom: 3,
+        center: [55.790484, 37.467581],
+        zoom: 12,
         controls: [],
         behaviors: isInteractive ? ["default", "scrollZoom"] : ["default", "-drag", "-scrollZoom", "-multiTouch"]
     };

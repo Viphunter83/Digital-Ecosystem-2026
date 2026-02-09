@@ -90,16 +90,16 @@ export function Footer() {
                                     {t('contact_phone', '+7 (499) 390-85-04')}
                                 </a>
                             </p>
-                            <p>
-                                <strong className="text-white block mb-1">Email</strong>
+                            <div className="flex flex-col">
+                                <span className="text-xs text-white/40 uppercase mb-1">{t('footer_contact_email', 'E-mail')}</span>
                                 <a href={`mailto:${t('contact_email', 'zakaz@tdrusstankosbyt.ru')}`} className="hover:text-safety-orange transition-colors">
                                     {t('contact_email', 'zakaz@tdrusstankosbyt.ru')}
                                 </a>
-                            </p>
+                            </div>
                             <p>
                                 <strong className="text-white block mb-1">Telegram</strong>
-                                <a href={t('social_telegram', 'https://t.me/tdrusstankosbyt')} target="_blank" rel="noopener noreferrer" className="hover:text-safety-orange transition-colors">
-                                    @tdrusstankosbyt
+                                <a href={t('social_telegram', 'https://t.me/Russtanko2026_bot')} target="_blank" rel="noopener noreferrer" className="hover:text-safety-orange transition-colors">
+                                    @Russtanko2026_bot
                                 </a>
                             </p>
                             <RequestCallModal>
@@ -114,7 +114,7 @@ export function Footer() {
                 </div>
 
                 <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-muted-foreground font-mono uppercase tracking-wide">
-                    <p>&copy; 2026 ТД РУССТАНКОСБЫТ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</p>
+                    <p>&copy; 2026 ТД РУССТАНКО 2026. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</p>
                     <div className="flex gap-6 mt-4 md:mt-0">
                         <Link href="/privacy" className="hover:text-white transition-colors">Политика конфиденциальности</Link>
                         <Link href="#" className="hover:text-white">Условия использования</Link>

@@ -16,10 +16,10 @@ const MapComponent = dynamic(
 const officeToMapProject = (office: Office) => ({
     id: office.id,
     title: office.name.toUpperCase(),
-    client: { name: "ТД РУССтанкоСбыт", industry: "Engineering", region: office.address || office.region },
+    client: { name: "ТД РУССтанко 2026", industry: "Engineering", region: office.address || office.region },
     region: office.address || office.region || "МОСКВА, РОССИЯ",
-    latitude: office.latitude || 55.790484,
-    longitude: office.longitude || 37.467581,
+    latitude: Number(office.latitude) || 55.790484,
+    longitude: Number(office.longitude) || 37.467581,
     status: "ACTIVE",
     kpi: 100,
     description: office.description || "",
@@ -100,10 +100,12 @@ export default function ContactsPage() {
 
                         <div className="bg-industrial-panel p-6 border border-industrial-border group hover:border-safety-orange transition-colors duration-300">
                             <Mail className="w-6 h-6 text-safety-orange mb-4" />
-                            <h3 className="font-mono text-xs text-muted-foreground uppercase mb-1">Электронная Почта</h3>
-                            <a href="mailto:zakaz@tdrusstankosbyt.ru" className="text-lg font-bold hover:text-safety-orange transition-colors block break-all">
-                                zakaz@tdrusstankosbyt.ru
-                            </a>
+                            <div className="flex flex-col">
+                                <h3 className="font-mono text-xs text-muted-foreground uppercase mb-1">E-mail</h3>
+                                <a href="mailto:zakaz@tdrusstankosbyt.ru" className="text-lg font-bold hover:text-safety-orange transition-colors block break-all">
+                                    zakaz@tdrusstankosbyt.ru
+                                </a>
+                            </div>
                             <p className="text-sm text-gray-500 mt-1">Для заявок и КП</p>
                         </div>
 
@@ -117,8 +119,8 @@ export default function ContactsPage() {
                                 <path d="M12 0C5.37097 0 0 5.37097 0 12C0 18.629 5.37097 24 12 24C18.629 24 24 18.629 24 12C24 5.37097 18.629 0 12 0ZM17.6532 9.06452C17.4919 10.7742 16.7339 14.8629 16.3468 16.9274C16.1855 17.8145 15.8629 18.1048 15.5565 18.1371C14.879 18.1935 14.3629 17.6935 13.7097 17.2661C12.6935 16.5968 12.1129 16.1774 11.129 15.5323C10.0000 14.7823 10.7258 14.371 11.371 13.7016C11.5403 13.5242 14.4597 10.8629 14.5161 10.621C14.5242 10.5887 14.5323 10.4677 14.4597 10.4032C14.3871 10.3387 14.2823 10.3629 14.1935 10.379C14.0726 10.4113 12.129 11.6694 8.3629 14.2177C7.81452 14.6129 7.31452 14.8065 6.87097 14.7984C6.37903 14.7903 5.43548 14.5242 4.73387 14.2984C3.87903 14.0161 3.19355 13.8629 3.25 13.3871C3.28226 13.1371 3.62097 12.879 4.29032 12.6129C8.48387 10.6855 11.2823 9.48387 12.6855 8.90323C16.6855 7.24194 17.5161 6.95161 18.0565 6.95161C18.1774 6.95161 18.4435 6.98387 18.6129 7.12097C18.75 7.23387 18.7903 7.37903 18.7984 7.48387C18.8065 7.55645 18.8145 7.82258 17.6532 9.06452Z" />
                             </svg>
                             <h3 className="font-mono text-xs text-muted-foreground uppercase mb-1">Telegram Канал</h3>
-                            <a href="https://t.me/tdrusstankosbyt" target="_blank" rel="noopener noreferrer" className="text-lg font-bold hover:text-safety-orange transition-colors block">
-                                @tdrusstankosbyt
+                            <a href="https://t.me/Russtanko2026_bot" target="_blank" rel="noopener noreferrer" className="text-lg font-bold hover:text-safety-orange transition-colors block">
+                                @Russtanko2026_bot
                             </a>
                             <p className="text-sm text-gray-500 mt-1">Новости и спецпредложения</p>
                         </div>
@@ -236,7 +238,7 @@ export default function ContactsPage() {
                     {/* Reuse MapComponent but point it to the office */}
                     <div className="absolute inset-0 grayscale group-hover:grayscale-0 transition-all duration-700">
                         {/* @ts-ignore - Mocking project type for reuse */}
-                        <MapComponent projects={offices.length > 0 ? offices.map(officeToMapProject) : [officeToMapProject({ id: "default", name: "Офис", latitude: 55.751244, longitude: 37.618423, is_headquarters: true })]} />
+                        <MapComponent projects={offices.length > 0 ? offices.map(officeToMapProject) : [officeToMapProject({ id: "default", name: "Офис", latitude: 55.790484, longitude: 37.467581, is_headquarters: true })]} />
                     </div>
                 </div>
 

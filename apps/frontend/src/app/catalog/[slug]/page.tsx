@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!product) {
         return {
-            title: 'Товар не найден | ТД РусСтанкоСбыт',
+            title: 'Товар не найден | ТД РусСтанко 2026',
             description: 'Запрашиваемый товар не найден в каталоге.',
         };
     }
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const categoryRu = CATEGORY_RU[product.category || ''] || 'оборудование';
     const manufacturer = product.manufacturer || 'отечественного производства';
 
-    const title = `${product.name} - купить ${categoryRu} | ТД РусСтанкоСбыт`;
+    const title = `${product.name} - купить ${categoryRu} | ТД РусСтанко 2026`;
     const cleanDesc = (product.description || "").replace(/\s+/g, ' ').substring(0, 150);
     const description = cleanDesc || `Купить ${product.name}. ${categoryRu.charAt(0).toUpperCase() + categoryRu.slice(1)} ${manufacturer}. Гарантия качества. Доставка по России.`;
 
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         'купить станок',
         'промышленное оборудование',
         'станки б/у',
-        'ТД РусСтанкоСбыт',
+        'ТД РусСтанко 2026',
         product.manufacturer || '',
     ].filter(Boolean).join(', ');
 
@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             type: 'website',
             locale: 'ru_RU',
             url: productUrl,
-            siteName: 'ТД РусСтанкоСбыт',
+            siteName: 'ТД РусСтанко 2026',
             title,
             description,
             images: [{
@@ -115,7 +115,7 @@ export default async function ProductPage({ params }: Props) {
         sku: product.id,
         brand: {
             '@type': 'Brand',
-            name: product.manufacturer || 'ТД РусСтанкоСбыт'
+            name: product.manufacturer || 'ТД РусСтанко 2026'
         },
         offers: {
             '@type': 'Offer',
@@ -127,7 +127,7 @@ export default async function ProductPage({ params }: Props) {
             itemCondition: 'https://schema.org/NewCondition',
             seller: {
                 '@type': 'Organization',
-                name: 'ТД РусСтанкоСбыт',
+                name: 'ТД РусСтанко 2026',
                 url: 'https://td-rss.ru'
             }
         }

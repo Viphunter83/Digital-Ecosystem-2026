@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!article) {
         return {
-            title: 'Материал не найден | ТД РусСтанкоСбыт',
+            title: 'Материал не найден | ТД РусСтанко 2026',
         };
     }
 
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             title,
             description,
             url: `https://td-rss.ru/journal/${article.slug || article.id}`,
-            siteName: 'ТД РусСтанкоСбыт',
+            siteName: 'ТД РусСтанко 2026',
             type: 'article',
             publishedTime: article.published_at,
             authors: [article.author || 'Редакция'],

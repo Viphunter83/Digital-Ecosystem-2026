@@ -94,7 +94,7 @@ export default function MachinePassportPage() {
         );
     }
 
-    const productNames = instance.product?.name.replace(/^ТД РУССтанкоСбыт\s*-\s*/i, "") || "Оборудование";
+    const productNames = instance.product?.name.replace(/^ТД РУССтанко(Сбыт| 2026)\s*-\s*/i, "") || "Оборудование";
 
     return (
         <div className="min-h-screen bg-black text-white selection:bg-safety-orange/30">

@@ -33,7 +33,7 @@ export default function CompanyPage() {
     const title = content.company_title || "Инженерный Центр";
     const subtitle = content.company_subtitle || "Комплексное техническое перевооружение промышленных предприятий России";
     const aboutTitle = content.company_about_title || "О Нас";
-    const aboutText = content.company_about_text || "Торговый Дом «РУССтанкоСбыт» — это современный инженерный центр, специализирующийся на подборе и поставке металлообрабатывающего оборудования.";
+    const aboutText = content.company_about_text || "Торговый Дом «РУССтанко 2026» — это современный инженерный центр, специализирующийся на подборе и поставке металлообрабатывающего оборудования.";
     const aboutText2 = content.company_about_text2 || "Мы не просто продаем станки — мы внедряем технологии, которые повышают эффективность вашего производства.";
 
     // Stats with fallbacks
