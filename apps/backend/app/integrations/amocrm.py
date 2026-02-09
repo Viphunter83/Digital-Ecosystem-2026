@@ -23,8 +23,9 @@ class AmoCRMClient:
     def __init__(self):
         self.subdomain = os.getenv("AMOCRM_SUBDOMAIN", "")
         self.access_token = os.getenv("AMOCRM_ACCESS_TOKEN", "")
-        self.pipeline_id = os.getenv("AMOCRM_PIPELINE_ID", "")
-        self.responsible_user_id = os.getenv("AMOCRM_RESPONSIBLE_USER_ID", "")
+        self.pipeline_id = os.getenv("AMOCRM_PIPELINE_ID")
+        self.status_id = os.getenv("AMOCRM_STATUS_ID")
+        self.responsible_user_id = os.getenv("AMOCRM_RESPONSIBLE_USER_ID")
         
         self.base_url = f"https://{self.subdomain}.amocrm.ru/api/v4"
         self.enabled = bool(self.subdomain and self.access_token)
@@ -41,7 +42,8 @@ class AmoCRMClient:
         name: str,
         price: int = 0,
         custom_fields: Optional[Dict[str, Any]] = None,
-        contact_id: Optional[int] = None
+        contact_id: Optional[int] = None,
+        status_id: Optional[int] = None
     ) -> Optional[Dict[str, Any]]:
         """
         Create a new lead in AmoCRM.
@@ -51,6 +53,7 @@ class AmoCRMClient:
             price: Expected deal value
             custom_fields: Additional custom field values
             contact_id: ID of associated contact
+            status_id: ID of the lead status
             
         Returns:
             Created lead data or None on error
@@ -69,6 +72,11 @@ class AmoCRMClient:
         if self.pipeline_id:
             payload[0]["pipeline_id"] = int(self.pipeline_id)
             
+        if status_id:
+            payload[0]["status_id"] = int(status_id)
+        elif os.getenv("AMOCRM_STATUS_ID"):
+            payload[0]["status_id"] = int(os.getenv("AMOCRM_STATUS_ID"))
+
         if self.responsible_user_id:
             payload[0]["responsible_user_id"] = int(self.responsible_user_id)
             
