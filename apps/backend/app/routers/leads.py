@@ -169,7 +169,9 @@ async def create_lead(lead_in: LeadCreate, background_tasks: BackgroundTasks, db
         def save_lead():
             db.add(new_lead)
             db.commit()
-            db.refresh(new_lead)
+            # Explicitly expire to force reload on next access if needed, 
+            # but we won't refresh here to avoid thread-safety issues with the session
+            # db.refresh(new_lead) 
             
         await run_in_threadpool(save_lead)
         

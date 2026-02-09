@@ -59,6 +59,7 @@ class ProductImage(Base):
     image_file = Column(UUID(as_uuid=True), ForeignKey("directus_files.id"), nullable=True)
     is_primary = Column(Boolean, default=False)
     order = Column(Integer, default=0)
+    directus_id = Column(UUID(as_uuid=True), nullable=True)
 
     product = relationship("Product", back_populates="images")
 
@@ -87,6 +88,7 @@ class SparePartImage(Base):
     image_file = Column(UUID(as_uuid=True), ForeignKey("directus_files.id"), nullable=True)
     is_primary = Column(Boolean, default=False)
     order = Column(Integer, default=0)
+    directus_id = Column(UUID(as_uuid=True), nullable=True)
 
     spare_part = relationship("SparePart", back_populates="images")
 
