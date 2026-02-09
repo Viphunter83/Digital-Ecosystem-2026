@@ -12,7 +12,7 @@ const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains-mono" });
 
 export const metadata: Metadata = {
-  title: "ТД РУССТАНКО 2026 | Цифровая Экосистема",
+  title: "ТД РУССТАНКОСБЫТ | Цифровая Экосистема",
   description: "Ведущий поставщик передовых промышленных инженерных решений и систем автоматизации.",
 };
 

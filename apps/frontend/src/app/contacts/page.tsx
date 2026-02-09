@@ -16,7 +16,7 @@ const MapComponent = dynamic(
 const officeToMapProject = (office: Office) => ({
     id: office.id,
     title: office.name.toUpperCase(),
-    client: { name: "ТД РУССтанко 2026", industry: "Engineering", region: office.address || office.region },
+    client: { name: "ТД РУССТАНКОСБЫТ", industry: "Engineering", region: office.address || office.region },
     region: office.address || office.region || "МОСКВА, РОССИЯ",
     latitude: Number(office.latitude) || 55.790484,
     longitude: Number(office.longitude) || 37.467581,

@@ -15,11 +15,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (!article) {
         return {
-            title: 'Материал не найден | ТД РусСтанко 2026',
+            title: 'Материал не найден | ТД РусСтанкоСбыт',
         };
     }
 
-    const title = `${article.title} | Инженерный журнал 2026`;
+    const title = `${article.title} | Инженерный журнал`;
     const description = article.summary || article.content?.substring(0, 160) || 'Читайте аналитические материалы о промышленном оборудовании и автоматизации.';
 
     return {
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             title,
             description,
             url: `https://td-rss.ru/journal/${article.slug || article.id}`,
-            siteName: 'ТД РусСтанко 2026',
+            siteName: 'ТД РусСтанкоСбыт',
             type: 'article',
             publishedTime: article.published_at,
             authors: [article.author || 'Редакция'],
