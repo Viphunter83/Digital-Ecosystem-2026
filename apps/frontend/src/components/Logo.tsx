@@ -41,7 +41,7 @@ export function Logo({ className, showSubtitle = true, variant = "light" }: Logo
                 <div className={cn("font-black tracking-tighter uppercase text-xl flex items-center gap-1 whitespace-nowrap", textColor)}>
                     <span>ТД</span>
                     <span className="text-safety-orange">РУС</span>
-                    <span>Станко 2026</span>
+                    <span>СтанкоСбыт</span>
                 </div>
                 {showSubtitle && (
                     <div className={cn("text-[8px] font-mono uppercase tracking-[0.3em] pl-[2px] pt-1 font-bold", subColor)}>
