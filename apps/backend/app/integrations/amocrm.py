@@ -55,7 +55,7 @@ class AmoCRMClient:
                 payload = parts[1]
                 # Add padding
                 payload += '=' * (4 - len(payload) % 4)
-                data = json.loads(base64.b64decode(payload).decode())
+                data = json.loads(base64.urlsafe_b64decode(payload).decode())
                 if 'exp' in data:
                     return datetime.fromtimestamp(data['exp'], tz=timezone.utc)
         except Exception as e:
