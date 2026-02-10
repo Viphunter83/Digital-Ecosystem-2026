@@ -82,7 +82,7 @@ export default async function ServicePage() {
                 </div>
             </section>
 
-            <ServiceClient initialService={service} initialMachine={featuredMachine} />
+            <ServiceClient initialService={service || null} initialMachine={featuredMachine || null} />
 
             <Footer />
         </main>
