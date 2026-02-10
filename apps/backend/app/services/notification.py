@@ -95,7 +95,7 @@ class NotificationService:
 
         msg = MIMEMultipart()
         msg['From'] = settings.SMTP_FROM
-        msg['To'] = settings.SMTP_FROM # Sending to self/zakaz email
+        msg['To'] = settings.NOTIFICATION_RECIPIENT_EMAIL
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 

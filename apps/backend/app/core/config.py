@@ -45,14 +45,15 @@ class Settings(BaseSettings):
     TELEGRAM_ADMIN_CHAT_ID: str = os.getenv("TELEGRAM_ADMIN_CHAT_ID", "318035498")
 
     # SMTP (Email)
+    NOTIFICATION_RECIPIENT_EMAIL: str = os.getenv("NOTIFICATION_RECIPIENT_EMAIL", "zakaz@tdrusstankosbyt.ru")
     SMTP_HOST: str = os.getenv("SMTP_HOST", "")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", "465"))
     SMTP_USER: str = os.getenv("SMTP_USER", "")
     SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
-    SMTP_FROM: str = os.getenv("SMTP_FROM", "zakaz@tdrusstankosbyt.ru")
+    SMTP_FROM: str = os.getenv("SMTP_FROM", "zakaz@td-rss.ru")
 
     # Directus
-    DIRECTUS_URL: str = os.getenv("DIRECTUS_URL", "https://admin.td-rss.ru")
+    DIRECTUS_URL: str = os.getenv("DIRECTUS_URL", "http://directus:8055")
     DIRECTUS_TOKEN: str = os.getenv("DIRECTUS_TOKEN") or os.getenv("DIRECTUS_KEY", "")
 
     # AmoCRM

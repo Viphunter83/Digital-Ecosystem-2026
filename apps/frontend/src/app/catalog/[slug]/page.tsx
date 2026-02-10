@@ -133,11 +133,40 @@ export default async function ProductPage({ params }: Props) {
         }
     };
 
+    const breadcrumbsJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Главная',
+                item: 'https://td-rss.ru'
+            },
+            {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Каталог',
+                item: 'https://td-rss.ru/catalog'
+            },
+            {
+                '@type': 'ListItem',
+                position: 3,
+                name: product.name,
+                item: `https://td-rss.ru/catalog/${product.slug || product.id}`
+            }
+        ]
+    };
+
     return (
         <>
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
             />
             <ProductDetail product={product} />
         </>

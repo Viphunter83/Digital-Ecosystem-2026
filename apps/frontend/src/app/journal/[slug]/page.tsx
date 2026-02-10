@@ -51,8 +51,68 @@ export default async function ArticlePage({ params }: Props) {
         );
     }
 
+    // JSON-LD Structured Data for SEO
+    const articleUrl = `https://td-rss.ru/journal/${article.slug || article.id}`;
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: article.title,
+        image: article.image_url || 'https://td-rss.ru/images/journal-placeholder.jpg',
+        datePublished: article.published_at || new Date().toISOString(),
+        author: {
+            '@type': 'Organization',
+            name: 'ТД РусСтанкоСбыт'
+        },
+        publisher: {
+            '@type': 'Organization',
+            name: 'ТД РусСтанкоСбыт',
+            logo: {
+                '@type': 'ImageObject',
+                url: 'https://td-rss.ru/icon.png'
+            }
+        },
+        description: article.summary || article.content?.substring(0, 160),
+        mainEntityOfPage: {
+            '@type': 'WebPage',
+            '@id': articleUrl
+        }
+    };
+
+    const breadcrumbsJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Главная',
+                item: 'https://td-rss.ru'
+            },
+            {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Журнал',
+                item: 'https://td-rss.ru/journal'
+            },
+            {
+                '@type': 'ListItem',
+                position: 3,
+                name: article.title,
+                item: articleUrl
+            }
+        ]
+    };
+
     return (
         <main className="min-h-screen bg-industrial-surface text-white">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
+            />
             <NavBar />
 
             {/* Hero Image */}

@@ -74,13 +74,12 @@ async def process_watermark_task(file_id: str):
     """
     lock_key = f"processing_watermark:{file_id}"
     try:
-        # 1. Check if already processing by another task
-        if r.get(lock_key):
-            logger.info(f"Background: File {file_id} is already being processed by another task. Skipping.")
+        # 1. Atomic lock using SET with NX and EX
+        # This ensures that only one task processes this file at a time.
+        # We use a 120s expiration to allow for network/Directus lag.
+        if not r.set(lock_key, "true", nx=True, ex=120):
+            logger.info(f"Background: File {file_id} is already being processed. Skipping.")
             return
-
-        # 2. Set lock with 60s expiration
-        r.setex(lock_key, 60, "true")
         
         logger.info(f"Background: Starting watermark processing for {file_id}")
         auth_header = {"Authorization": f"Bearer {settings.DIRECTUS_TOKEN}"}
@@ -160,12 +159,6 @@ async def watermark_webhook(payload: dict, background_tasks: BackgroundTasks):
         if not file_id:
             logger.warning(f"No file ID in watermark payload: {payload}")
             return {"status": "error_no_id", "message": "No file ID provided"}
-
-        lock_key = f"processing_watermark:{file_id}"
-        # Atomic lock using NX (set if not exists)
-        if not r.set(lock_key, "true", nx=True, ex=60):
-            logger.info(f"Watermark Webhook: File {file_id} is already being processed. Skipping webhook trigger.")
-            return {"status": "skipped", "message": "Already processing"}
 
         logger.info(f"Watermark Webhook: Initiating background task for file_id: {file_id}")
         background_tasks.add_task(process_watermark_task, file_id)
