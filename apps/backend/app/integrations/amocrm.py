@@ -185,7 +185,8 @@ class AmoCRMClient:
         price: int = 0,
         custom_fields: Optional[Dict[str, Any]] = None,
         contact_id: Optional[int] = None,
-        status_id: Optional[int] = None
+        status_id: Optional[int] = None,
+        tags: Optional[list] = None
     ) -> Optional[Dict[str, Any]]:
         """Create a new lead in AmoCRM."""
         payload = [{"name": name, "price": int(price)}]
@@ -208,6 +209,10 @@ class AmoCRMClient:
             
         if contact_id:
             payload[0]["_embedded"] = {"contacts": [{"id": contact_id}]}
+            
+        if tags:
+            payload[0]["_embedded"] = payload[0].get("_embedded", {})
+            payload[0]["_embedded"]["tags"] = [{"name": t} for t in tags]
         
         data = await self._request("POST", "leads", json=payload)
         if data and "_embedded" in data:
