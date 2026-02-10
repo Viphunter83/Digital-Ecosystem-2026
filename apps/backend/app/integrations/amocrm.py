@@ -17,6 +17,8 @@ from datetime import datetime, timedelta, timezone
 
 from apps.backend.app.core.config import settings
 from apps.backend.app.core.database import SessionLocal
+import json
+import base64
 from packages.database.models import AmoCRMSettings
 
 logger = logging.getLogger(__name__)
@@ -45,26 +47,49 @@ class AmoCRMClient:
         self._tokens_loaded = False
         self._expires_at: Optional[datetime] = None
 
+    def _get_token_expiry(self, token: str) -> Optional[datetime]:
+        """Decode JWT to get 'exp' claim."""
+        try:
+            parts = token.split('.')
+            if len(parts) == 3:
+                payload = parts[1]
+                # Add padding
+                payload += '=' * (4 - len(payload) % 4)
+                data = json.loads(base64.b64decode(payload).decode())
+                if 'exp' in data:
+                    return datetime.fromtimestamp(data['exp'], tz=timezone.utc)
+        except Exception as e:
+            logger.debug(f"Could not decode token expiry: {e}")
+        return None
+
     async def _ensure_loaded(self):
         """Ensure tokens are loaded from DB or ENV."""
-        if self._tokens_loaded:
+        if self._tokens_loaded and self._expires_at and self._expires_at > datetime.now(timezone.utc):
             return
 
         db = SessionLocal()
         try:
             db_settings = db.query(AmoCRMSettings).filter(AmoCRMSettings.subdomain == self.subdomain).first()
             if db_settings:
-                logger.info("Loaded AmoCRM tokens from database")
                 self.access_token = db_settings.access_token
                 self.refresh_token = db_settings.refresh_token
                 self._expires_at = db_settings.expires_at
-            else:
-                logger.info("No AmoCRM tokens in DB, using ENV defaults")
-                # If no DB entry, we use ENV and will save it on first refresh
-                # We don't save yet to avoid creating empty entries if ENV is missing too
-                if self.access_token:
-                    # Assume 24h for fresh ENV token if not specified
-                    self._expires_at = datetime.now(timezone.utc) + timedelta(hours=23)
+                logger.info("Loaded AmoCRM tokens from database")
+            elif self.access_token:
+                logger.info("Seeding AmoCRM tokens from environment to database")
+                expires_at = self._get_token_expiry(self.access_token)
+                if not expires_at:
+                    expires_at = datetime.now(timezone.utc) + timedelta(hours=23)
+                
+                new_settings = AmoCRMSettings(
+                    subdomain=self.subdomain,
+                    access_token=self.access_token,
+                    refresh_token=self.refresh_token,
+                    expires_at=expires_at
+                )
+                db.add(new_settings)
+                db.commit()
+                self._expires_at = expires_at
             
             self._tokens_loaded = True
         finally:
@@ -133,7 +158,8 @@ class AmoCRMClient:
         await self._ensure_loaded()
         
         # Check if nearly expired (within 5 minutes)
-        if self._expires_at and datetime.now(timezone.utc) > (self._expires_at - timedelta(minutes=5)):
+        # Only attempt automatic refresh if we have a refresh token
+        if self.refresh_token and self._expires_at and datetime.now(timezone.utc) > (self._expires_at - timedelta(minutes=5)):
             logger.info("AmoCRM token is near expiration, refreshing...")
             await self.refresh_auth_token()
             
@@ -154,7 +180,7 @@ class AmoCRMClient:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.request(method, url, headers=headers, **kwargs) as resp:
-                    if resp.status == 401:
+                    if resp.status == 401 and self.refresh_token:
                         logger.warning("AmoCRM returned 401, attempting token refresh...")
                         if await self.refresh_auth_token():
                             # Retry once with new token

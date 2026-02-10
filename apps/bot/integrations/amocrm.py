@@ -1,6 +1,8 @@
 import os
 import logging
 import aiohttp
+import json
+import base64
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, update
@@ -30,6 +32,21 @@ class AmoCRMClient:
         self._tokens_loaded = False
         self._expires_at: Optional[datetime] = None
 
+    def _get_token_expiry(self, token: str) -> Optional[datetime]:
+        """Decode JWT to get 'exp' claim."""
+        try:
+            parts = token.split('.')
+            if len(parts) == 3:
+                payload = parts[1]
+                # Add padding
+                payload += '=' * (4 - len(payload) % 4)
+                data = json.loads(base64.b64decode(payload).decode())
+                if 'exp' in data:
+                    return datetime.fromtimestamp(data['exp'], tz=timezone.utc)
+        except Exception as e:
+            logger.debug(f"Could not decode token expiry: {e}")
+        return None
+
     async def _ensure_loaded(self):
         """Lazy load tokens from DB if not already loaded or expired."""
         if self._tokens_loaded and self._expires_at and self._expires_at > datetime.now(timezone.utc):
@@ -46,17 +63,22 @@ class AmoCRMClient:
                 self._expires_at = settings.expires_at
                 self._tokens_loaded = True
                 logger.info("AmoCRM tokens loaded from database")
-            elif self.access_token or self.refresh_token:
+            elif self.access_token:
                 # Seed DB from env if empty
                 logger.info("Seeding AmoCRM tokens from environment to database")
+                expires_at = self._get_token_expiry(self.access_token)
+                if not expires_at:
+                    expires_at = datetime.now(timezone.utc) + timedelta(hours=23)
+                
                 new_settings = AmoCRMSettings(
                     subdomain=self.subdomain,
                     access_token=self.access_token,
                     refresh_token=self.refresh_token,
-                    expires_at=datetime.now(timezone.utc) + timedelta(hours=24) # Initial guess
+                    expires_at=expires_at
                 )
                 session.add(new_settings)
                 await session.commit()
+                self._expires_at = expires_at
                 self._tokens_loaded = True
 
     async def _update_db_tokens(self, access_token: str, refresh_token: str, expires_in: int):
@@ -114,6 +136,12 @@ class AmoCRMClient:
 
     async def _get_headers(self):
         await self._ensure_loaded()
+        
+        # Only attempt automatic refresh if we have a refresh token
+        if self.refresh_token and self._expires_at and datetime.now(timezone.utc) > (self._expires_at - timedelta(minutes=5)):
+            logger.info("AmoCRM token is near expiration, refreshing...")
+            await self.refresh_auth_token()
+            
         return {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
@@ -131,7 +159,7 @@ class AmoCRMClient:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.request(method, url, headers=headers, **kwargs) as resp:
-                    if resp.status == 401:
+                    if resp.status == 401 and self.refresh_token:
                         logger.warning("AmoCRM returned 401, attempting token refresh...")
                         if await self.refresh_auth_token():
                             # Retry once with new token
