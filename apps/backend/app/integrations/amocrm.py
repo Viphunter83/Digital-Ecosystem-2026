@@ -13,30 +13,172 @@ import os
 import logging
 from typing import Optional, Dict, Any
 import aiohttp
+from datetime import datetime, timedelta, timezone
+
+from apps.backend.app.core.config import settings
+from apps.backend.app.core.database import SessionLocal
+from packages.database.models import AmoCRMSettings
 
 logger = logging.getLogger(__name__)
 
 
 class AmoCRMClient:
-    """Client for AmoCRM API v4."""
+    """Client for AmoCRM API v4 with automated token refresh."""
     
     def __init__(self):
-        self.subdomain = os.getenv("AMOCRM_SUBDOMAIN", "")
-        self.access_token = os.getenv("AMOCRM_ACCESS_TOKEN", "")
-        self.pipeline_id = os.getenv("AMOCRM_PIPELINE_ID")
-        self.status_id = os.getenv("AMOCRM_STATUS_ID")
-        self.responsible_user_id = os.getenv("AMOCRM_RESPONSIBLE_USER_ID")
+        self.subdomain = settings.AMOCRM_SUBDOMAIN
+        self.access_token = settings.AMOCRM_ACCESS_TOKEN
+        self.refresh_token = settings.AMOCRM_REFRESH_TOKEN
+        self.client_id = settings.AMOCRM_CLIENT_ID
+        self.client_secret = settings.AMOCRM_CLIENT_SECRET
+        self.redirect_uri = settings.AMOCRM_REDIRECT_URI
+        
+        self.pipeline_id = settings.AMOCRM_PIPELINE_ID
+        self.status_id = settings.AMOCRM_STATUS_ID
+        self.responsible_user_id = settings.AMOCRM_RESPONSIBLE_USER_ID
         
         self.base_url = f"https://{self.subdomain}.amocrm.ru/api/v4"
-        self.enabled = bool(self.subdomain and self.access_token)
+        self.auth_url = f"https://{self.subdomain}.amocrm.ru/oauth2/access_token"
+        self.enabled = bool(self.subdomain and (self.access_token or self.refresh_token))
         
-    @property
-    def headers(self) -> Dict[str, str]:
+        # Cache for tokens in memory to avoid DB hits on every request
+        self._tokens_loaded = False
+        self._expires_at: Optional[datetime] = None
+
+    async def _ensure_loaded(self):
+        """Ensure tokens are loaded from DB or ENV."""
+        if self._tokens_loaded:
+            return
+
+        db = SessionLocal()
+        try:
+            db_settings = db.query(AmoCRMSettings).filter(AmoCRMSettings.subdomain == self.subdomain).first()
+            if db_settings:
+                logger.info("Loaded AmoCRM tokens from database")
+                self.access_token = db_settings.access_token
+                self.refresh_token = db_settings.refresh_token
+                self._expires_at = db_settings.expires_at
+            else:
+                logger.info("No AmoCRM tokens in DB, using ENV defaults")
+                # If no DB entry, we use ENV and will save it on first refresh
+                # We don't save yet to avoid creating empty entries if ENV is missing too
+                if self.access_token:
+                    # Assume 24h for fresh ENV token if not specified
+                    self._expires_at = datetime.now(timezone.utc) + timedelta(hours=23)
+            
+            self._tokens_loaded = True
+        finally:
+            db.close()
+
+    async def _update_db_tokens(self, access_token: str, refresh_token: str, expires_in_sec: int):
+        """Save new tokens to database."""
+        db = SessionLocal()
+        try:
+            self.access_token = access_token
+            self.refresh_token = refresh_token
+            self._expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in_sec)
+            
+            db_settings = db.query(AmoCRMSettings).filter(AmoCRMSettings.subdomain == self.subdomain).first()
+            if not db_settings:
+                db_settings = AmoCRMSettings(subdomain=self.subdomain)
+                db.add(db_settings)
+            
+            db_settings.access_token = access_token
+            db_settings.refresh_token = refresh_token
+            db_settings.expires_at = self._expires_at
+            
+            db.commit()
+            logger.info("Successfully updated AmoCRM tokens in database")
+        except Exception as e:
+            logger.error(f"Failed to update AmoCRM tokens in DB: {e}")
+            db.rollback()
+        finally:
+            db.close()
+
+    async def refresh_auth_token(self) -> bool:
+        """Refresh the access token using the refresh token."""
+        if not self.refresh_token or not self.client_id or not self.client_secret:
+            logger.error("AmoCRM refresh failed: Missing refresh_token, client_id or client_secret")
+            return False
+
+        payload = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": self.refresh_token,
+            "redirect_uri": self.redirect_uri
+        }
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(self.auth_url, json=payload) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        await self._update_db_tokens(
+                            data["access_token"],
+                            data["refresh_token"],
+                            data["expires_in"]
+                        )
+                        return True
+                    else:
+                        error_text = await resp.text()
+                        logger.error(f"AmoCRM token refresh error: {resp.status} - {error_text}")
+                        return False
+        except Exception as e:
+            logger.error(f"AmoCRM token refresh exception: {e}")
+            return False
+
+    async def _get_headers(self) -> Dict[str, str]:
+        """Get headers with an ensured valid token."""
+        await self._ensure_loaded()
+        
+        # Check if nearly expired (within 5 minutes)
+        if self._expires_at and datetime.now(timezone.utc) > (self._expires_at - timedelta(minutes=5)):
+            logger.info("AmoCRM token is near expiration, refreshing...")
+            await self.refresh_auth_token()
+            
         return {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
         }
-    
+
+    async def _request(self, method: str, path: str, **kwargs) -> Optional[Dict[str, Any]]:
+        """Internal helper for making authorized requests with auto-retry on 401."""
+        if not self.enabled:
+            logger.warning("AmoCRM integration is not configured")
+            return None
+
+        url = f"{self.base_url}/{path}"
+        headers = await self._get_headers()
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.request(method, url, headers=headers, **kwargs) as resp:
+                    if resp.status == 401:
+                        logger.warning("AmoCRM returned 401, attempting token refresh...")
+                        if await self.refresh_auth_token():
+                            # Retry once with new token
+                            headers = await self._get_headers()
+                            async with session.request(method, url, headers=headers, **kwargs) as retry_resp:
+                                if retry_resp.status in (200, 201, 204):
+                                    return await retry_resp.json() if retry_resp.status != 204 else {"success": True}
+                                error_text = await retry_resp.text()
+                                logger.error(f"AmoCRM API error (retry {method} {path}): {retry_resp.status} - {error_text}")
+                                return None
+                        return None
+                    
+                    if resp.status in (200, 201, 204):
+                        if resp.status == 204:
+                            return {"success": True}
+                        return await resp.json()
+                    else:
+                        error_text = await resp.text()
+                        logger.error(f"AmoCRM API error ({method} {path}): {resp.status} - {error_text}")
+                        return None
+        except Exception as e:
+            logger.error(f"AmoCRM request exception ({method} {path}): {e}")
+            return None
+
     async def create_lead(
         self,
         name: str,
@@ -45,37 +187,15 @@ class AmoCRMClient:
         contact_id: Optional[int] = None,
         status_id: Optional[int] = None
     ) -> Optional[Dict[str, Any]]:
-        """
-        Create a new lead in AmoCRM.
-        
-        Args:
-            name: Lead name (e.g., "Заявка на ТО: CNC-2026-X")
-            price: Expected deal value
-            custom_fields: Additional custom field values
-            contact_id: ID of associated contact
-            status_id: ID of the lead status
-            
-        Returns:
-            Created lead data or None on error
-        """
-        if not self.enabled:
-            logger.warning("AmoCRM integration is not configured")
-            return None
-            
-        payload = [
-            {
-                "name": name,
-                "price": price,
-            }
-        ]
+        """Create a new lead in AmoCRM."""
+        payload = [{"name": name, "price": int(price)}]
         
         if self.pipeline_id:
             payload[0]["pipeline_id"] = int(self.pipeline_id)
             
-        if status_id:
-            payload[0]["status_id"] = int(status_id)
-        elif os.getenv("AMOCRM_STATUS_ID"):
-            payload[0]["status_id"] = int(os.getenv("AMOCRM_STATUS_ID"))
+        final_status_id = status_id or self.status_id
+        if final_status_id:
+            payload[0]["status_id"] = int(final_status_id)
 
         if self.responsible_user_id:
             payload[0]["responsible_user_id"] = int(self.responsible_user_id)
@@ -87,77 +207,25 @@ class AmoCRMClient:
             ]
             
         if contact_id:
-            payload[0]["_embedded"] = {
-                "contacts": [{"id": contact_id}]
-            }
+            payload[0]["_embedded"] = {"contacts": [{"id": contact_id}]}
         
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/leads",
-                    headers=self.headers,
-                    json=payload
-                ) as resp:
-                    if resp.status in (200, 201):
-                        data = await resp.json()
-                        lead = data.get("_embedded", {}).get("leads", [{}])[0]
-                        logger.info(f"Created AmoCRM lead: {lead.get('id')}")
-                        return lead
-                    else:
-                        error_text = await resp.text()
-                        logger.error(f"AmoCRM create_lead error: {resp.status} - {error_text}")
-                        return None
-        except Exception as e:
-            logger.error(f"AmoCRM connection error: {e}")
-            return None
+        data = await self._request("POST", "leads", json=payload)
+        if data and "_embedded" in data:
+            lead = data["_embedded"]["leads"][0]
+            logger.info(f"Created AmoCRM lead: {lead.get('id')}")
+            return lead
+        return None
     
-    async def add_note(
-        self,
-        entity_type: str,
-        entity_id: int,
-        text: str
-    ) -> bool:
-        """
-        Add a note to an entity (lead or contact) in AmoCRM.
+    async def add_note(self, entity_type: str, entity_id: int, text: str) -> bool:
+        """Add a note to an entity (lead or contact) in AmoCRM."""
+        payload = [{
+            "entity_id": entity_id,
+            "note_type": "common",
+            "params": {"text": text}
+        }]
         
-        Args:
-            entity_type: 'leads' or 'contacts'
-            entity_id: ID of the entity
-            text: Note content
-            
-        Returns:
-            True on success
-        """
-        if not self.enabled:
-            return False
-            
-        payload = [
-            {
-                "entity_id": entity_id,
-                "note_type": "common",
-                "params": {
-                    "text": text
-                }
-            }
-        ]
-        
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/{entity_type}/notes",
-                    headers=self.headers,
-                    json=payload
-                ) as resp:
-                    if resp.status in (200, 201):
-                        logger.info(f"Added note to {entity_type} {entity_id}")
-                        return True
-                    else:
-                        error = await resp.text()
-                        logger.error(f"AmoCRM add_note error: {resp.status} - {error}")
-                        return False
-        except Exception as e:
-            logger.error(f"AmoCRM connection error (add_note): {e}")
-            return False
+        data = await self._request("POST", f"{entity_type}/notes", json=payload)
+        return data is not None
     
     async def create_contact(
         self,
@@ -166,161 +234,57 @@ class AmoCRMClient:
         email: Optional[str] = None,
         telegram_username: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
-        """
-        Create a new contact in AmoCRM.
-        
-        Args:
-            name: Contact name
-            phone: Phone number
-            email: Email address
-            telegram_username: Telegram username
-            
-        Returns:
-            Created contact data or None on error
-        """
-        if not self.enabled:
-            logger.warning("AmoCRM integration is not configured")
-            return None
-            
+        """Create a new contact in AmoCRM."""
         custom_fields = []
-        
         if phone:
             custom_fields.append({
                 "field_code": "PHONE",
                 "values": [{"value": phone, "enum_code": "WORK"}]
             })
-            
         if email:
             custom_fields.append({
                 "field_code": "EMAIL",
                 "values": [{"value": email, "enum_code": "WORK"}]
             })
             
-        payload = [
-            {
-                "name": name,
-                "custom_fields_values": custom_fields
-            }
-        ]
+        payload = [{
+            "name": name,
+            "custom_fields_values": custom_fields
+        }]
         
         if self.responsible_user_id:
             payload[0]["responsible_user_id"] = int(self.responsible_user_id)
         
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{self.base_url}/contacts",
-                    headers=self.headers,
-                    json=payload
-                ) as resp:
-                    if resp.status in (200, 201):
-                        data = await resp.json()
-                        contact = data.get("_embedded", {}).get("contacts", [{}])[0]
-                        logger.info(f"Created AmoCRM contact: {contact.get('id')}")
-                        return contact
-                    else:
-                        error = await resp.text()
-                        logger.error(f"AmoCRM create_contact error: {resp.status} - {error}")
-                        return None
-        except Exception as e:
-            logger.error(f"AmoCRM connection error: {e}")
-            return None
+        data = await self._request("POST", "contacts", json=payload)
+        if data and "_embedded" in data:
+            contact = data["_embedded"]["contacts"][0]
+            logger.info(f"Created AmoCRM contact: {contact.get('id')}")
+            return contact
+        return None
     
     async def find_contact_by_phone(self, phone: str) -> Optional[Dict[str, Any]]:
-        """
-        Find existing contact by phone number.
-        
-        Args:
-            phone: Phone number to search
-            
-        Returns:
-            Contact data or None if not found
-        """
-        if not self.enabled:
-            return None
-            
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self.base_url}/contacts",
-                    headers=self.headers,
-                    params={"query": phone}
-                ) as resp:
-                    if resp.status == 200:
-                        data = await resp.json()
-                        contacts = data.get("_embedded", {}).get("contacts", [])
-                        return contacts[0] if contacts else None
-                    return None
-        except Exception as e:
-            logger.error(f"AmoCRM search error: {e}")
-            return None
-
+        """Find existing contact by phone number."""
+        data = await self._request("GET", "contacts", params={"query": phone})
+        if data and "_embedded" in data:
+            contacts = data["_embedded"]["contacts"]
+            return contacts[0] if contacts else None
+        return None
 
     async def update_lead_status(self, lead_id: str, status_id: int) -> bool:
         """Update the status of a lead in AmoCRM."""
-        if not self.enabled:
-            return False
-            
-        payload = [
-            {
-                "id": int(lead_id),
-                "status_id": status_id
-            }
-        ]
-        
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.patch(
-                    f"{self.base_url}/leads",
-                    headers=self.headers,
-                    json=payload
-                ) as resp:
-                    return resp.status in (200, 204)
-        except Exception as e:
-            logger.error(f"AmoCRM update_lead_status error: {e}")
-            return False
+        payload = [{"id": int(lead_id), "status_id": status_id}]
+        data = await self._request("PATCH", "leads", json=payload)
+        return data is not None
 
     async def update_contact(self, contact_id: int, custom_fields: list) -> bool:
         """Update contact custom fields."""
-        if not self.enabled:
-            return False
-            
-        payload = [
-            {
-                "id": contact_id,
-                "custom_fields_values": custom_fields
-            }
-        ]
-        
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.patch(
-                    f"{self.base_url}/contacts",
-                    headers=self.headers,
-                    json=payload
-                ) as resp:
-                    return resp.status in (200, 204)
-        except Exception as e:
-            logger.error(f"AmoCRM update_contact error: {e}")
-            return False
+        payload = [{"id": int(contact_id), "custom_fields_values": custom_fields}]
+        data = await self._request("PATCH", "contacts", json=payload)
+        return data is not None
 
     async def get_lead(self, lead_id: int) -> Optional[Dict[str, Any]]:
         """Fetch full lead details including custom fields."""
-        if not self.enabled:
-            return None
-            
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{self.base_url}/leads/{lead_id}?with=contacts",
-                    headers=self.headers
-                ) as resp:
-                    if resp.status == 200:
-                        return await resp.json()
-                    return None
-        except Exception as e:
-            logger.error(f"AmoCRM get_lead error: {e}")
-            return None
+        return await self._request("GET", f"leads/{lead_id}?with=contacts")
 
 
 # Singleton instance

@@ -1,6 +1,6 @@
 import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+from typing import List, Optional
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Digital Ecosystem 2026 API"
@@ -54,6 +54,17 @@ class Settings(BaseSettings):
     # Directus
     DIRECTUS_URL: str = os.getenv("DIRECTUS_URL", "https://admin.td-rss.ru")
     DIRECTUS_TOKEN: str = os.getenv("DIRECTUS_TOKEN") or os.getenv("DIRECTUS_KEY", "")
+
+    # AmoCRM
+    AMOCRM_SUBDOMAIN: str = os.getenv("AMOCRM_SUBDOMAIN", "")
+    AMOCRM_CLIENT_ID: str = os.getenv("AMOCRM_CLIENT_ID", "")
+    AMOCRM_CLIENT_SECRET: str = os.getenv("AMOCRM_CLIENT_SECRET", "")
+    AMOCRM_REDIRECT_URI: str = os.getenv("AMOCRM_REDIRECT_URI", "")
+    AMOCRM_ACCESS_TOKEN: str = os.getenv("AMOCRM_ACCESS_TOKEN", "")
+    AMOCRM_REFRESH_TOKEN: str = os.getenv("AMOCRM_REFRESH_TOKEN", "")
+    AMOCRM_PIPELINE_ID: Optional[str] = os.getenv("AMOCRM_PIPELINE_ID")
+    AMOCRM_STATUS_ID: Optional[str] = os.getenv("AMOCRM_STATUS_ID")
+    AMOCRM_RESPONSIBLE_USER_ID: Optional[str] = os.getenv("AMOCRM_RESPONSIBLE_USER_ID")
 
     model_config = SettingsConfigDict(
         env_file=".env",
