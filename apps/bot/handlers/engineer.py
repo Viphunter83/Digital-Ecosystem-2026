@@ -3,12 +3,14 @@ import aiohttp
 from aiogram import Router, F, types
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import select
 from packages.database.models import MachineInstance, Product, ClientEquipment, TelegramUser, ServiceTicket
 from apps.bot.database import AsyncSessionLocal
 import datetime
 import uuid
 
+from integrations.knowledge import get_articles, get_article_by_slug
 from .common import BACKEND_URL, logger
 from apps.bot.keyboards import engineer_kb, get_service_request_kb
 
@@ -17,18 +19,29 @@ router = Router()
 @router.message(F.text == "🏭 Мой Парк")
 async def engineer_machines(message: Message):
     async with AsyncSessionLocal() as session:
-        stmt = select(MachineInstance).limit(15)
+        # Resolve client_id for the user
+        user_stmt = select(TelegramUser).where(TelegramUser.tg_id == message.from_user.id)
+        user_res = await session.execute(user_stmt)
+        user = user_res.scalar_one_or_none()
+        
+        if not user or not user.client_id:
+             await message.answer("⚠️ Вы не привязаны ни к одной компании. Обратитесь к администратору.")
+             return
+
+        # Fetch only equipment belonging to this client
+        stmt = select(MachineInstance).where(MachineInstance.client_id == user.client_id).limit(20)
         result = await session.execute(stmt)
         instances = result.scalars().all()
         
         if not instances:
-             await message.answer("Список оборудования пуст.")
+             await message.answer("В вашем парке пока нет зарегистрированного оборудования.")
              return
 
         response = "🏭 *Ваше Оборудование:*\n\n"
         for inst in instances:
              prod_res = await session.execute(select(Product).where(Product.id == inst.product_id))
-             prod = prod_res.scalar_one()
+             prod = prod_res.scalar_one_or_none()
+             if not prod: continue
              
              status_icons = {
                 "operational": "🟢",
@@ -40,7 +53,7 @@ async def engineer_machines(message: Message):
              
              is_soon = False
              if inst.next_maintenance_date:
-                 days_diff = (inst.next_maintenance_date - datetime.datetime.now(datetime.timezone.utc)).days
+                 days_diff = (inst.next_maintenance_date - datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)).days
                  if 0 < days_diff <= 30:
                      is_soon = True
 
@@ -111,12 +124,43 @@ async def engineer_status(message: Message):
 
 @router.message(F.text == "📚 База Знаний")
 async def engineer_knowledge(message: Message):
-    await message.answer(
-        "📚 *База Знаний РУССТАНКО*\n\n"
-        "Здесь вы найдете инструкции, чертежи и руководства по эксплуатации.\n"
-        "В данный момент раздел наполняется.",
-        parse_mode="Markdown"
+    articles = await get_articles(limit=5)
+    
+    if not articles:
+        await message.answer("📭 В базе знаний пока нет статей. Попробуйте зайти позже.")
+        return
+
+    text = "📚 *Последние инструкции и статьи:*\n\n"
+    builder = InlineKeyboardBuilder()
+    
+    for art in articles:
+        text += f"🔹 {art['title']}\n"
+        builder.row(InlineKeyboardButton(
+            text=f"📖 {art['title']}", 
+            callback_data=f"kb_read_{art['slug']}"
+        ))
+    
+    await message.answer(text, reply_markup=builder.as_markup(), parse_mode="Markdown")
+
+@router.callback_query(F.data.startswith("kb_read_"))
+async def read_article(callback: CallbackQuery):
+    slug = callback.data.replace("kb_read_", "")
+    article = await get_article_by_slug(slug)
+    
+    if not article:
+        await callback.answer("❌ Статья не найдена.")
+        return
+    
+    # Simple HTML to Markdown-ish conversion
+    content = article['content']
+    if len(content) > 3000:
+        content = content[:3000] + "... (полная версия на сайте)"
+        
+    await callback.message.answer(
+        f"📑 *{article['title']}*\n\n{content}",
+        parse_mode="HTML"
     )
+    await callback.answer()
 
 async def show_machine_status(message: Message, serial_number: str, state: FSMContext, http_session: aiohttp.ClientSession):
     """Integrated machine status view (from QR/deep links)."""

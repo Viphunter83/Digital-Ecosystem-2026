@@ -18,9 +18,18 @@ This document summarizes the current state of the **Digital Ecosystem 2026** pro
     - AI-powered parsing for Excel/PDF.
     - Demo Data Seeding with consistent Project Backgrounds.
 
-## 2. Critical Fixes & Updates (2026-01-20)
+### 🔧 Infrastructure & Stability (2026-02-10)
+1.  **Dokploy Port Conflict Resolved**:
+    *   **Issue**: Frontend container failed to start due to port 3000 conflict with Dokploy's internal services.
+    *   **Fix**: Removed `3000:3000` host mapping in `docker-compose.prod.yml`. Traefik now routes traffic to the container port via labels.
+2.  **API URL Hybrid Detection (FAQ Fix)**:
+    *   **Issue**: FAQ (Client Component) failed to fetch data because it tried to use an internal Docker URL (`backend:8000`) leaked via env vars.
+    *   **Fix**: Refactored `lib/api.ts` to detect `window` type. It now uses `https://api.td-rss.ru` for browser requests and `http://backend:8000` for server-side requests.
+3.  **AmoCRM Long-lived Auth**:
+    *   **Issue**: Recurring 401 errors due to token refresh fragility.
+    *   **Fix**: Integrated a long-lived token valid until **2031**. Updated `amocrm.py` to handle persistence and expiry checks.
 
-### 🔧 Infrastructure & Stability
+### 🔧 Previous Fixes (2026-01-20)
 1.  **Service Discovery Fixed (Directus/Redis)**:
     *   **Issue**: Directus crashed (`ECONNREFUSED`) because it used a hardcoded IP for Redis (`172.18.0.5`) which changed after a container restart.
     *   **Fix**: Updated `docker-compose.prod.yml` to use Docker service names (`redis`, `db`) instead of hardcoded IPs. This ensures automatic DNS resolution regardless of internal IP changes.
@@ -64,7 +73,8 @@ This document summarizes the current state of the **Digital Ecosystem 2026** pro
 
 ### Environment Variables (`.env`)
 - **Database**: `DATABASE_URL`
-- **Frontend**: `NEXT_PUBLIC_API_URL=/api` (Relative path for proxying).
+- **Frontend**: `NEXT_PUBLIC_API_URL=https://api.td-rss.ru` (Explicit public URL for client components).
+- **Backend Internal**: `INTERNAL_API_URL=http://backend:8000` (Fast communication within Docker).
 - **AI**: ProxyAPI (OpenAI compatible).
 
 ### Telegram Integration (New)

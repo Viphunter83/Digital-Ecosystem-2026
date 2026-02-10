@@ -110,7 +110,7 @@ async def start_redis_listener(bot: Bot):
                                 logger.error(f"Failed to send to {tg_id}: {send_err}")
                     
                     elif event_type == "maintenance_reminder":
-                        tg_id = payload.get("tg_id")
+                        client_id = payload.get("client_id")
                         sn = payload.get("serial_number")
                         date = payload.get("date")
                         name = payload.get("machine_name", "Оборудование")
@@ -120,15 +120,20 @@ async def start_redis_listener(bot: Bot):
                             f"⚙️ *Станок:* {name} (`{sn}`)\n"
                             f"🕒 *Плановое ТО:* {date}\n\n"
                             f"💡 До планового обслуживания осталось *30 дней*. "
-                            f"Рекомендуем заранее проверить наличие необходимых расходных материалов."
+                            f"Рекомендуем заранее проверить наличие расходных материалов."
                         )
-                        
-                        if tg_id:
-                            try:
-                                await bot.send_message(chat_id=int(tg_id), text=text, parse_mode="Markdown")
-                                logger.info(f"Maintenance reminder sent to {tg_id}")
-                            except Exception as send_err:
-                                logger.error(f"Failed to send reminder to {tg_id}: {send_err}")
+
+                        async with AsyncSessionLocal() as session:
+                            stmt = select(TelegramUser).where(TelegramUser.client_id == client_id)
+                            res = await session.execute(stmt)
+                            users = res.scalars().all()
+                            
+                            for u in users:
+                                try:
+                                    await bot.send_message(chat_id=u.tg_id, text=text, parse_mode="Markdown")
+                                    logger.info(f"Maintenance reminder sent to {u.tg_id}")
+                                except Exception as send_err:
+                                    logger.error(f"Failed to send reminder to {u.tg_id}: {send_err}")
                         
                         # Phase 3: Create AmoCRM Lead for Sales followup
                         client_name = payload.get("client_name", "Клиент")

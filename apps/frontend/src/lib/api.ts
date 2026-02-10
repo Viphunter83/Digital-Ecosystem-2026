@@ -246,20 +246,25 @@ export function getImageUrl(item: Product | Project | Article | ProductImage | u
 
 const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
-        // Client-side: use relative path or env var
-        return process.env.NEXT_PUBLIC_API_URL || '/api';
+        // Client-side: use explicitly set public API URL or fallback to relative /api
+        // This ensures the browser doesn't try to use internal Docker hostnames
+        const publicUrl = process.env.NEXT_PUBLIC_API_URL;
+        if (publicUrl && publicUrl.startsWith('http')) {
+            return publicUrl;
+        }
+        return '/api';
     }
-    // Server-side: use internal docker hostname
-    // We can try to use an env var for internal URL if available, otherwise default to backend:8000
-    // Note: 'localhost' won't work inside docker container unless using host network.
-    // We should use 'backend' service name.
-    return process.env.INTERNAL_API_URL || 'http://backend:8000';
+    // Server-side: use internal docker hostname for direct communication
+    return process.env.INTERNAL_API_URL || process.env.BACKEND_URL || 'http://backend:8000';
 };
 
 export const API_URL = getBaseUrl();
+if (typeof window !== 'undefined') {
+    console.log('[API] Client-side Base URL:', API_URL);
+}
 
 const api = axios.create({
-    baseURL: getBaseUrl(),
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
