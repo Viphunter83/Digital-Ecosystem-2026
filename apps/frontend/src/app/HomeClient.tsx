@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import dynamic from 'next/dynamic';
-import { Project, Article, Product, sanitizeUrl } from '@/lib/api';
+import { Project, Article, Product, sanitizeUrl, getImageUrl } from '@/lib/api';
 import { useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { HeroSection } from "@/components/home/HeroSection";
