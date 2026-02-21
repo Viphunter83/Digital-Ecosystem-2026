@@ -1,9 +1,8 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { fetchArticleById } from '@/lib/api';
-import { NavBar } from '@/components/NavBar';
-import { Footer } from '@/components/Footer';
+import { fetchArticleById, sanitizeUrl } from '@/lib/api';
+import { VideoPlayer } from '@/components/VideoPlayer';
 
 type Props = {
     params: { slug: string }
@@ -53,7 +52,7 @@ export default async function ArticlePage({ params }: Props) {
 
     // JSON-LD Structured Data for SEO
     const articleUrl = `https://td-rss.ru/journal/${article.slug || article.id}`;
-    const jsonLd = {
+    const jsonLd: any = {
         '@context': 'https://schema.org',
         '@type': 'BlogPosting',
         headline: article.title,
@@ -77,6 +76,19 @@ export default async function ArticlePage({ params }: Props) {
             '@id': articleUrl
         }
     };
+
+    // Add Video Schema if exists
+    if (article.video_url) {
+        jsonLd.video = {
+            '@type': 'VideoObject',
+            name: article.title,
+            description: article.summary || article.title,
+            thumbnailUrl: [sanitizeUrl(article.image_url) || 'https://td-rss.ru/images/journal-placeholder.jpg'],
+            uploadDate: article.published_at || new Date().toISOString(),
+            contentUrl: sanitizeUrl(article.video_url),
+            embedUrl: sanitizeUrl(article.video_url)
+        };
+    }
 
     const breadcrumbsJsonLd = {
         '@context': 'https://schema.org',
@@ -113,13 +125,12 @@ export default async function ArticlePage({ params }: Props) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
             />
-            <NavBar />
 
             {/* Hero Image */}
             <div className="relative w-full h-[60vh] mt-0">
                 {article.image_url ? (
                     <Image
-                        src={article.image_url}
+                        src={sanitizeUrl(article.image_url) || '/images/journal-placeholder.jpg'}
                         alt={article.title}
                         fill
                         className="object-cover opacity-60"
@@ -154,6 +165,21 @@ export default async function ArticlePage({ params }: Props) {
             <div className="container mx-auto px-6 py-12 md:py-20">
                 <div className="max-w-3xl mx-auto">
                     <article className="prose prose-invert prose-lg prose-headings:font-black prose-headings:uppercase prose-p:font-light prose-p:leading-relaxed prose-a:text-safety-orange focus:outline-none">
+                        {/* Video Section */}
+                        {article.video_url && (
+                            <div className="mb-12 not-prose">
+                                <VideoPlayer
+                                    url={article.video_url}
+                                    title={article.title}
+                                    poster={sanitizeUrl(article.image_url) || undefined}
+                                />
+                                <div className="mt-2 text-xs font-mono text-muted-foreground uppercase flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-safety-orange animate-pulse" />
+                                    VIDEO_SOURCE_ACTIVE // 4K_READY
+                                </div>
+                            </div>
+                        )}
+
                         {article.content?.split('\n').map((paragraph, idx) => (
                             <p key={idx} className="mb-6 indent-8 text-gray-300">
                                 {paragraph}
@@ -170,8 +196,6 @@ export default async function ArticlePage({ params }: Props) {
                     </div>
                 </div>
             </div>
-
-            <Footer />
         </main>
     );
 }

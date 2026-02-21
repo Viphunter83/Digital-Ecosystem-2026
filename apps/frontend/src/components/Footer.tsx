@@ -48,6 +48,7 @@ export function Footer() {
                         <ul className="space-y-3 text-sm text-muted-foreground">
                             {[
                                 { label: t('ui_nav_catalog', "Каталог"), href: "/catalog" },
+                                { label: t('ui_nav_service', "Сервис"), href: "/service" },
                                 { label: t('ui_nav_solutions', "Решения"), href: "/solutions" },
                                 { label: t('ui_nav_company', "О компании"), href: "/company" },
                                 { label: t('ui_nav_contacts', "Контакты"), href: "/contacts" },

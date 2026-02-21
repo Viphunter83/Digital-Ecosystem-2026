@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 import { fetchSiteContent, fetchProductionSites } from "@/lib/api";
-import { NavBar } from "@/components/NavBar";
-import { Footer } from "@/components/Footer";
 import CompanyClient from './CompanyClient';
+
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
     const content = await fetchSiteContent();
@@ -53,12 +53,11 @@ export default async function CompanyPage() {
     };
 
     return (
-        <main className="min-h-screen bg-industrial-surface text-white pt-24 pb-20">
+        <div className="pb-20">
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
             />
-            <NavBar />
 
             {/* Header */}
             <div className="container mx-auto px-6 mb-16">
@@ -75,8 +74,6 @@ export default async function CompanyPage() {
             </div>
 
             <CompanyClient initialContent={content} initialSites={sites} />
-
-            <Footer />
-        </main>
+        </div>
     );
 }

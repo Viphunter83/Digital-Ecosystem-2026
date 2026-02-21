@@ -57,6 +57,15 @@ const nextConfig = {
             },
         ];
     },
+    async redirects() {
+        return [
+            {
+                source: '/projects',
+                destination: '/solutions',
+                permanent: true,
+            },
+        ];
+    },
 };
 
 export default nextConfig;

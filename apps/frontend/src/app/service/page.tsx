@@ -1,9 +1,9 @@
 import { Metadata } from 'next';
 import { fetchServiceBySlug, fetchFeaturedInstance } from "@/lib/api";
-import { NavBar } from "@/components/NavBar";
-import { Footer } from "@/components/Footer";
 import ServiceClient from './ServiceClient';
 import { Wrench, Cog } from "lucide-react";
+
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
     const service = await fetchServiceBySlug('remont-i-modernizatsiya');
@@ -51,12 +51,11 @@ export default async function ServicePage() {
     };
 
     return (
-        <main className="min-h-screen bg-industrial-surface text-white">
+        <>
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbsJsonLd) }}
             />
-            <NavBar />
 
             {/* Hero Section */}
             <section className="relative py-20 overflow-hidden border-b border-white/5">
@@ -83,8 +82,6 @@ export default async function ServicePage() {
             </section>
 
             <ServiceClient initialService={service || null} initialMachine={featuredMachine || null} />
-
-            <Footer />
-        </main>
+        </>
     );
 }
