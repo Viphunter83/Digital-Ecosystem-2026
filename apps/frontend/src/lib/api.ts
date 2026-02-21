@@ -199,6 +199,10 @@ export function sanitizeUrl(url: string | undefined | null): string | null {
 
     // Handle relative paths (e.g., /assets/...)
     if (sanitized.startsWith('/')) {
+        // Skip prefixing for local assets served by Next.js from /public
+        if (sanitized.startsWith('/images/') || sanitized.startsWith('/fonts/')) {
+            return sanitized;
+        }
         sanitized = `${publicDirectusUrl}${sanitized}`;
     }
 
