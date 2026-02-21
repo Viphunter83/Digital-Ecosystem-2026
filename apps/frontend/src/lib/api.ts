@@ -41,6 +41,7 @@ export interface Product {
     product_type?: 'machine' | 'spare';
     compatible_parts?: Product[];
     compatible_products?: Product[];
+    video_url?: string; // New field for video support
 }
 
 export interface Article {
@@ -53,6 +54,7 @@ export interface Article {
     author?: string;
     image_url?: string;
     image_file?: string;
+    video_url?: string; // New field for video support
 }
 
 // Shared Constants for Specs
@@ -183,17 +185,40 @@ export function parseSpecs(specs: any | undefined | null): ParsedSpec[] {
 }
 
 /**
- * Generates a full URL for a Directus asset
- * @param fileId Directus file UUID
- * @returns Full URL to the asset or undefined
+ * Sanitizes a URL by converting internal Directus hostnames to public ones 
+ * and ensuring HTTPS for security and browser compatibility (Mixed Content).
  */
-export function getAssetUrl(fileId: string | undefined | null): string | undefined {
-    if (!fileId) return undefined;
-    // If it's already a full URL (from backend), return it
-    if (fileId.startsWith('http')) return fileId;
+export function sanitizeUrl(url: string | undefined | null): string | null {
+    if (!url) return null;
 
-    const baseUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://admin.td-rss.ru';
-    return `${baseUrl.replace(/\/$/, '')}/assets/${fileId}`;
+    // Hardcoded public domain for Directus to avoid environment-specific failures
+    const publicDirectusUrl = 'https://admin.td-rss.ru';
+
+    // Convert to string in case it's somehow not (though type says string)
+    let sanitized = String(url);
+
+    // Resolve internal Docker URLs to public ones
+    // We check for both with and without protocol and port
+    if (sanitized.includes('directus:8055')) {
+        sanitized = sanitized.replace(/https?:\/\/directus:8055/g, publicDirectusUrl);
+        sanitized = sanitized.replace(/directus:8055/g, publicDirectusUrl);
+    }
+
+    // Ensure HTTPS if it's on the main domains but comes as HTTP from DB
+    if (sanitized.startsWith('http://td-rss.ru') ||
+        sanitized.startsWith('http://admin.td-rss.ru') ||
+        sanitized.startsWith('http://api.td-rss.ru')) {
+        sanitized = sanitized.replace('http://', 'https://');
+    }
+
+    // Convert Directus Admin UI links to direct asset links
+    // From: https://admin.td-rss.ru/admin/files/ID
+    // To:   https://admin.td-rss.ru/assets/ID
+    if (sanitized.includes('/admin/files/')) {
+        sanitized = sanitized.replace('/admin/files/', '/assets/');
+    }
+
+    return sanitized;
 }
 
 /**
@@ -209,39 +234,44 @@ export function getImageUrl(item: Product | Project | Article | ProductImage | u
 
     // Explicitly handle ProductImage / SparePartImage object
     if ('image_file' in item || 'directus_id' in item) {
-        if ('image_file' in item && item.image_file) return `${cleanedBaseUrl}/assets/${item.image_file}`;
-        if ('directus_id' in item && item.directus_id) return `${cleanedBaseUrl}/assets/${item.directus_id}`;
+        if ('image_file' in item && item.image_file) return sanitizeUrl(`/assets/${item.image_file}`);
+        if ('directus_id' in item && item.directus_id) return sanitizeUrl(`/assets/${item.directus_id}`);
     }
 
     // Handle legacy 'url' property if present
     if ('url' in item && item.url) {
-        if (item.url.startsWith('http')) return item.url;
-        // If it's a UUID string in the url field
-        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.url)) {
-            return `${cleanedBaseUrl}/assets/${item.url}`;
-        }
-        return item.url;
+        return sanitizeUrl(item.url);
     }
 
     // Handle other types (Product, Project, Article)
     // Prioritize image_url if it's a full URL
-    if ('image_url' in item && item.image_url && item.image_url.startsWith('http')) return item.image_url;
+    if ('image_url' in item && item.image_url) {
+        return sanitizeUrl(item.image_url);
+    }
 
     // Then check for image_file (Directus asset ID)
     if ('image_file' in item && item.image_file) {
-        return `${cleanedBaseUrl}/assets/${item.image_file}`;
-    }
-
-    // Finally, check for image_url if it's not a full URL (might be a relative path or Directus ID)
-    if ('image_url' in item && item.image_url) {
-        // If image_url is not a full URL, treat it as a Directus asset ID
-        if (!item.image_url.startsWith('http')) {
-            return `${cleanedBaseUrl}/assets/${item.image_url}`;
-        }
-        return item.image_url; // Should have been caught by the first check, but as a fallback
+        return sanitizeUrl(`/assets/${item.image_file}`);
     }
 
     return null;
+}
+
+/**
+ * Returns the best available video URL for a product or article
+ */
+export function getVideoUrl(item: Product | Article | undefined | null): string | null {
+    if (!item || !item.video_url) return null;
+
+    const url = item.video_url.trim();
+
+    // Check if it's a UUID (Directus file ID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(url)) {
+        return sanitizeUrl(`/assets/${url}`);
+    }
+
+    return sanitizeUrl(url);
 }
 
 const getBaseUrl = () => {
@@ -327,6 +357,7 @@ export const fetchCatalog = async (
     category?: string
 ): Promise<{ results: Product[], total: number }> => {
     try {
+        console.log(`[API] fetchCatalog Request: type=${type}, category=${category}, limit=${limit}`);
         // Catalog search defined as @router.get("/search") -> /catalog/search
         const params = new URLSearchParams();
         if (query) params.append('q', query);
@@ -337,6 +368,7 @@ export const fetchCatalog = async (
 
         const url = `/catalog/search?${params.toString()}`;
         const response = await api.get(url);
+        console.log(`[API] fetchCatalog Success: ${response.data.results?.length || 0} items found`);
 
         // Response format: { results: Product[], total: number }
         return {
@@ -346,6 +378,18 @@ export const fetchCatalog = async (
     } catch (error) {
         console.error('[API] Error fetching catalog:', error);
         return { results: [], total: 0 };
+    }
+};
+
+export const fetchArticles = async (): Promise<Article[]> => {
+    try {
+        console.log(`[API] fetchArticles Request: /journal`);
+        const response = await api.get('/journal');
+        console.log(`[API] fetchArticles Success: ${response.data.articles?.length || 0} articles found`);
+        return response.data.articles || [];
+    } catch (error) {
+        console.error('Error fetching articles:', error);
+        return [];
     }
 };
 
@@ -360,15 +404,6 @@ export const fetchProductById = async (idOrSlug: string): Promise<Product | unde
     }
 };
 
-export const fetchArticles = async (): Promise<Article[]> => {
-    try {
-        const response = await api.get('/journal');
-        return response.data.articles || [];
-    } catch (error) {
-        console.error('Error fetching articles:', error);
-        return [];
-    }
-};
 
 export const fetchArticleById = async (idOrSlug: string): Promise<Article | undefined> => {
     try {
