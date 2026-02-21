@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import dynamic from 'next/dynamic';
-import { Project, Article, Product } from '@/lib/api';
+import { Project, Article, Product, sanitizeUrl } from '@/lib/api';
 import { useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { HeroSection } from "@/components/home/HeroSection";
@@ -104,13 +104,13 @@ export default function HomeClient({ projects, articles, products, siteContent }
                         <span className="hidden md:block font-mono text-safety-orange text-xl">/// 2026.04</span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="flex grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {articles.slice(0, 3).map((article) => (
                             <Link href={`/journal/${article.id}`} key={article.id} className="group cursor-pointer flex flex-col h-full border border-transparent hover:border-white/10 p-4 -mx-4 transition-all hover:bg-white/5 rounded-none">
                                 <div className="relative aspect-[16/9] overflow-hidden mb-6 bg-industrial-panel border border-white/5 group-hover:border-safety-orange/50 transition-colors">
-                                    {article.image_url ? (
+                                    {getImageUrl(article) ? (
                                         <Image
-                                            src={article.image_url}
+                                            src={getImageUrl(article) || "/images/journal-placeholder.jpg"}
                                             alt={article.title}
                                             fill
                                             className="object-cover transition-transform duration-700 group-hover:scale-105 grayscale group-hover:grayscale-0"
@@ -124,6 +124,11 @@ export default function HomeClient({ projects, articles, products, siteContent }
                                     <div className="absolute top-0 right-0 bg-white/90 text-black px-2 py-1 text-[10px] font-bold uppercase font-mono opacity-0 group-hover:opacity-100 transition-opacity">
                                         Читать статью
                                     </div>
+                                    {article.video_url && (
+                                        <div className="absolute bottom-2 left-2 bg-safety-orange text-white px-1.5 py-0.5 text-[9px] font-bold uppercase font-mono tracking-tighter">
+                                            VIDEO_CONTENT
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex-grow">
                                     <div className="flex gap-2 mb-4">
@@ -134,13 +139,23 @@ export default function HomeClient({ projects, articles, products, siteContent }
                                 </div>
                             </Link>
                         ))}
-
-                        {articles.length === 0 && (
-                            <div className="col-span-3 py-10 text-center text-muted-foreground font-mono text-sm">
-                                [ЗАПИСИ ЖУРНАЛА НЕ НАЙДЕНЫ]
-                            </div>
-                        )}
                     </div>
+
+                    {articles.length > 0 && (
+                        <div className="mt-16 flex justify-center">
+                            <Link href="/journal">
+                                <Button className="bg-transparent hover:bg-white/5 text-white border border-white/10 rounded-none font-mono text-xs uppercase tracking-[0.2em] px-12 py-6 h-auto group transition-all group">
+                                    Посмотреть все статьи <span className="ml-4 group-hover:translate-x-2 transition-transform">:: [➔]</span>
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+
+                    {articles.length === 0 && (
+                        <div className="py-10 text-center text-muted-foreground font-mono text-sm border border-dashed border-white/10">
+                            [ЗАПИСИ ЖУРНАЛА НЕ НАЙДЕНЫ]
+                        </div>
+                    )}
                 </div>
             </section>
 

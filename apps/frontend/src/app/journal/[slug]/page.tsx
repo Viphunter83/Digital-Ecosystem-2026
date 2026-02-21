@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { fetchArticleById, sanitizeUrl } from '@/lib/api';
+import { fetchArticleById, sanitizeUrl, getImageUrl, getVideoUrl } from '@/lib/api';
 import { VideoPlayer } from '@/components/VideoPlayer';
 
 type Props = {
@@ -128,9 +128,9 @@ export default async function ArticlePage({ params }: Props) {
 
             {/* Hero Image */}
             <div className="relative w-full h-[60vh] mt-0">
-                {article.image_url ? (
+                {getImageUrl(article) ? (
                     <Image
-                        src={sanitizeUrl(article.image_url) || '/images/journal-placeholder.jpg'}
+                        src={getImageUrl(article) || '/images/journal-placeholder.jpg'}
                         alt={article.title}
                         fill
                         className="object-cover opacity-60"
@@ -166,12 +166,12 @@ export default async function ArticlePage({ params }: Props) {
                 <div className="max-w-3xl mx-auto">
                     <article className="prose prose-invert prose-lg prose-headings:font-black prose-headings:uppercase prose-p:font-light prose-p:leading-relaxed prose-a:text-safety-orange focus:outline-none">
                         {/* Video Section */}
-                        {article.video_url && (
+                        {getVideoUrl(article) && (
                             <div className="mb-12 not-prose">
                                 <VideoPlayer
-                                    url={article.video_url}
+                                    url={getVideoUrl(article) || ''}
                                     title={article.title}
-                                    poster={sanitizeUrl(article.image_url) || undefined}
+                                    poster={getImageUrl(article) || undefined}
                                 />
                                 <div className="mt-2 text-xs font-mono text-muted-foreground uppercase flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-safety-orange animate-pulse" />

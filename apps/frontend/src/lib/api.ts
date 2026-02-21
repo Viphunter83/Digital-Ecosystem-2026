@@ -195,16 +195,20 @@ export function sanitizeUrl(url: string | undefined | null): string | null {
     const publicDirectusUrl = 'https://admin.td-rss.ru';
 
     // Convert to string in case it's somehow not (though type says string)
-    let sanitized = String(url);
+    let sanitized = String(url).trim();
+
+    // Handle relative paths (e.g., /assets/...)
+    if (sanitized.startsWith('/')) {
+        sanitized = `${publicDirectusUrl}${sanitized}`;
+    }
 
     // Resolve internal Docker URLs to public ones
-    // We check for both with and without protocol and port
     if (sanitized.includes('directus:8055')) {
         sanitized = sanitized.replace(/https?:\/\/directus:8055/g, publicDirectusUrl);
         sanitized = sanitized.replace(/directus:8055/g, publicDirectusUrl);
     }
 
-    // Ensure HTTPS if it's on the main domains but comes as HTTP from DB
+    // Ensure HTTPS for production domains
     if (sanitized.startsWith('http://td-rss.ru') ||
         sanitized.startsWith('http://admin.td-rss.ru') ||
         sanitized.startsWith('http://api.td-rss.ru')) {
@@ -212,8 +216,6 @@ export function sanitizeUrl(url: string | undefined | null): string | null {
     }
 
     // Convert Directus Admin UI links to direct asset links
-    // From: https://admin.td-rss.ru/admin/files/ID
-    // To:   https://admin.td-rss.ru/assets/ID
     if (sanitized.includes('/admin/files/')) {
         sanitized = sanitized.replace('/admin/files/', '/assets/');
     }
@@ -229,29 +231,22 @@ export function sanitizeUrl(url: string | undefined | null): string | null {
 export function getImageUrl(item: Product | Project | Article | ProductImage | undefined | null): string | null {
     if (!item) return null;
 
-    const baseUrl = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://admin.td-rss.ru';
-    const cleanedBaseUrl = baseUrl.replace(/\/$/, '');
-
-    // Explicitly handle ProductImage / SparePartImage object
-    if ('image_file' in item || 'directus_id' in item) {
-        if ('image_file' in item && item.image_file) return sanitizeUrl(`/assets/${item.image_file}`);
-        if ('directus_id' in item && item.directus_id) return sanitizeUrl(`/assets/${item.directus_id}`);
-    }
-
-    // Handle legacy 'url' property if present
-    if ('url' in item && item.url) {
-        return sanitizeUrl(item.url);
-    }
-
-    // Handle other types (Product, Project, Article)
-    // Prioritize image_url if it's a full URL
+    // Project/Article might have direct image_url or image_file
     if ('image_url' in item && item.image_url) {
         return sanitizeUrl(item.image_url);
     }
 
-    // Then check for image_file (Directus asset ID)
     if ('image_file' in item && item.image_file) {
         return sanitizeUrl(`/assets/${item.image_file}`);
+    }
+
+    // ProductImage/Directus asset
+    if ('directus_id' in item && item.directus_id) {
+        return sanitizeUrl(`/assets/${item.directus_id}`);
+    }
+
+    if ('url' in item && item.url) {
+        return sanitizeUrl(item.url);
     }
 
     return null;

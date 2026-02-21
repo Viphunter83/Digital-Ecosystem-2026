@@ -48,7 +48,7 @@ export default async function JournalArchivePage() {
                                 }
                             }
 
-                            const safeImageUrl = sanitizeUrl(image_url) || "/images/journal-placeholder.jpg";
+                            const safeImageUrl = getImageUrl(article) || "/images/journal-placeholder.jpg";
                             const description = summary || content.substring(0, 150);
 
                             return (
@@ -58,7 +58,7 @@ export default async function JournalArchivePage() {
                                     className="group cursor-pointer flex flex-col h-full border border-transparent hover:border-white/10 p-4 -mx-4 transition-all hover:bg-white/5 rounded-none"
                                 >
                                     <div className="relative aspect-[16/9] overflow-hidden mb-6 bg-industrial-panel border border-white/5 group-hover:border-safety-orange/50 transition-colors">
-                                        {image_url ? (
+                                        {getImageUrl(article) ? (
                                             <Image
                                                 src={safeImageUrl}
                                                 alt={title}
