@@ -6,6 +6,7 @@ const nextConfig = {
         appIsrStatus: false,
     },
     output: 'standalone',
+    trailingSlash: false,
     images: {
         unoptimized: true,
         remotePatterns: [

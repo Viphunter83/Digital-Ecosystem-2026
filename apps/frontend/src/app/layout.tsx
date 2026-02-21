@@ -36,18 +36,21 @@ export const metadata: Metadata = {
     description: "Продажа и обслуживание промышленного оборудования высокого класса. Цифровой контроль и сервис в одной платформе.",
     images: [
       {
-        url: "/apple-icon.png",
+        url: "https://td-rss.ru/apple-touch-icon.png",
         width: 1200,
         height: 630,
         alt: "ТД РусСтанкоСбыт",
       },
     ],
   },
+  alternates: {
+    canonical: 'https://td-rss.ru',
+  },
   twitter: {
     card: "summary_large_image",
     title: "ТД РусСтанкоСбыт | Промышленная Экосистема",
     description: "Цифровая платформа для выбора и обслуживания промышленного оборудования.",
-    images: ["/apple-icon.png"],
+    images: ["https://td-rss.ru/apple-touch-icon.png"],
   },
   robots: {
     index: true,
@@ -61,8 +64,8 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "yandex-metrika-id-placeholder", // Replace with real ID when available
-    yandex: "yandex-verification-id-placeholder",
+    yandex: "d88e68ec2e6efcee",
+    google: "jT6pBRtb-mUD8yAkManflKZD1UZD8_K_Xxq4QTqOYG0",
   }
 };
 
@@ -115,6 +118,33 @@ export default function RootLayout({
           <BottomNav />
           <Toaster richColors position="top-center" />
           <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+
+          {/* Yandex Metrica */}
+          <Script
+            id="yandex-metrica"
+            strategy="afterInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+                m[i].l=1*new Date();
+                for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+                k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+                (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+                ym(106851505, "init", {
+                     clickmap:true,
+                     trackLinks:true,
+                     accurateTrackBounce:true,
+                     webvisor:true
+                });
+              `,
+            }}
+          />
+          <noscript>
+            <div>
+              <img src="https://mc.yandex.ru/watch/106851505" style={{ position: 'absolute', left: '-9999px' }} alt="" />
+            </div>
+          </noscript>
         </TelegramProvider>
       </body>
     </html>

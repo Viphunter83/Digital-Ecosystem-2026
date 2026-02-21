@@ -2,12 +2,21 @@ import { fetchProjects, fetchArticles, fetchCatalog, fetchSiteContent } from '@/
 import HomeClient from './HomeClient';
 import { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
-  title: "ТД РусСтанкоСбыт | Главная",
-  description: "Торговый Дом РусСтанкоСбыт - ведущий центр промышленной модернизации. Поставка станков, сервис ЧПУ и цифровые решения для промышленности.",
+  title: "ТД РусСтанкоСбыт — Станки с ЧПУ, Сервис и Модернизация Оборудования",
+  description: "Торговый Дом РусСтанкоСбыт — ведущий центр промышленной модернизации. Поставка металлообрабатывающих станков, сервис ЧПУ и цифровые решения для промышленности 4.0.",
+  alternates: {
+    canonical: 'https://td-rss.ru',
+  },
   openGraph: {
-    title: "ТД РусСтанкоСбыт | Цифровая Экосистема",
-    description: "Комплексные поставки и обслуживание промышленного оборудования.",
+    title: "ТД РусСтанкоСбыт — Промышленная Экосистема",
+    description: "Комплексные поставки, сервис и цифровизация промышленного оборудования.",
+    url: 'https://td-rss.ru',
+    siteName: 'ТД РусСтанкоСбыт',
+    locale: 'ru_RU',
+    type: 'website',
   }
 };
 
@@ -40,6 +49,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
       />
+      <h1 className="sr-only">ТД РусСтанкоСбыт — Промышленные инженерные решения и станки с ЧПУ</h1>
       <HomeClient
         projects={projects}
         articles={articles}
