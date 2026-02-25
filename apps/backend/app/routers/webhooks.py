@@ -116,6 +116,13 @@ async def process_watermark_task(file_id: str):
             logger.info(f"Background: File {file_id} already has tag for current content. Skipping.")
             r.delete(lock_key)
             return
+            
+        # 3.5 Check cooldown (loop protection)
+        cooldown_key = f"watermark_cooldown:{file_id}"
+        if r.get(cooldown_key):
+            logger.info(f"Background: File {file_id} is in cooldown. Skipping.")
+            r.delete(lock_key)
+            return
 
         # 4. Add Watermark
         logger.info(f"Background: Adding watermark to file {file_id}...")
@@ -138,6 +145,8 @@ async def process_watermark_task(file_id: str):
         content_resp.raise_for_status()
 
         logger.info(f"Background: Successfully watermarked file: {file_id}. Final Hash: {new_md5}")
+        # Set cooldown for 30s to allow Directus webhooks to settle
+        r.setex(f"watermark_cooldown:{file_id}", 30, "true")
 
     except Exception as e:
         logger.error(f"Background: Watermarking error for {file_id}: {e}")
