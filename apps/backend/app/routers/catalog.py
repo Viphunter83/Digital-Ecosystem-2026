@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import Session, joinedload
 from typing import Optional, List
 
@@ -53,6 +53,39 @@ async def get_filters(db: Session = Depends(get_db)):
             
     return FiltersResponse(groups=groups)
 
+def normalize_query(q: str) -> str:
+    """
+    Normalizes query by converting common Latin homoglyphs to Cyrillic
+    to ensure better matching for industrial model numbers.
+    """
+    if not q:
+        return ""
+    
+    # Latin -> Cyrillic mapping for common technical characters
+    mapping = {
+        'M': 'М', 'm': 'м',
+        'H': 'Н', 'h': 'н',
+        'A': 'А', 'a': 'а',
+        'C': 'С', 'c': 'с',
+        'T': 'Т', 't': 'т',
+        'K': 'К', 'k': 'к',
+        'X': 'Х', 'x': 'х',
+        'O': 'О', 'o': 'о',
+        'P': 'Р', 'p': 'р',
+        'E': 'Е', 'e': 'е',
+        'B': 'В', 'b': 'в',
+        'y': 'у', 'Y': 'У',
+        'u': 'у', 'U': 'У',
+        'i': 'и', 'I': 'И',
+    }
+    
+    # Also standardize some common variations
+    norm = q.strip()
+    for lat, cyr in mapping.items():
+        norm = norm.replace(lat, cyr)
+    
+    return norm
+
 @router.get("/search")
 @cache(expire=60) # 1 minute cache for faster content updates
 async def search_products(
@@ -77,10 +110,34 @@ async def search_products(
 
     # SPARE PARTS MODE
     if type == "spares":
-        # 1. Keyword search
+        norm_q = normalize_query(q)
         kw_query = select(SparePart).where(SparePart.is_published == True)
         if q:
-            kw_query = kw_query.where(SparePart.name.ilike(f"%{q}%"))
+            # Tokenized search: all words in query (or normalized) must match
+            words = [w.strip() for w in q.split() if len(w.strip()) > 1]
+            norm_words = [w.strip() for w in norm_q.split() if len(w.strip()) > 1]
+            
+            # Combine words from both original and normalized to catch homoglyphs per token
+            from sqlalchemy import and_
+            
+            # For each word position, try original or normalized
+            clauses = []
+            for i in range(min(len(words), len(norm_words))):
+                w = words[i]
+                nw = norm_words[i]
+                clauses.append(or_(
+                    SparePart.name.ilike(f"%{w}%"),
+                    SparePart.name.ilike(f"%{nw}%")
+                ))
+            
+            if clauses:
+                kw_query = kw_query.where(and_(*clauses))
+            else:
+                # Fallback to simple ILIKE if split failed
+                kw_query = kw_query.where(
+                    (SparePart.name.ilike(f"%{q}%")) | 
+                    (SparePart.name.ilike(f"%{norm_q}%"))
+                )
         if category_name:
             kw_query = kw_query.where(SparePart.category.ilike(category_name))
         
@@ -95,6 +152,24 @@ async def search_products(
                 expanded_q = await ai_service.expand_query(q)
                 print(f"DEBUG: Expanded spare query '{q}' -> '{expanded_q}'")
                 
+                # Use expanded keywords for better recall in ILIKE if semantic fails
+                # This handles singular/plural and synonyms better
+                import re
+                exp_keywords = re.split(r'[,\s\'\"]+', expanded_q)
+                # Filter noise words and short tokens
+                noise_words = {'станок', 'запчасти', 'модель', 'оборудование', 'инструмент'}
+                exp_keywords = [k.strip() for k in exp_keywords if len(k.strip()) > 2 and k.strip().lower() not in noise_words]
+                
+                if exp_keywords:
+                    # Search for top 8 keywords found in expansion
+                    kw_clauses = [SparePart.name.ilike(f"%{k}%") for k in exp_keywords[:8]]
+                    kw_secondary = select(SparePart).where(SparePart.is_published == True).where(or_(*kw_clauses))
+                    if category_name:
+                        kw_secondary = kw_secondary.where(SparePart.category.ilike(category_name))
+                    
+                    secondary_results = await run_in_threadpool(lambda: db.execute(kw_secondary.options(joinedload(SparePart.images))).unique().scalars().all())
+                    kw_results.extend(secondary_results)
+
                 query_embedding = await ai_service.get_embedding(expanded_q)
                 
                 distance_expr = SparePart.embedding.cosine_distance(query_embedding).label("distance")
@@ -109,7 +184,7 @@ async def search_products(
                 sem_raw = await run_in_threadpool(lambda: db.execute(sem_stmt).unique().all())
                 
                 for spare, dist in sem_raw:
-                    if dist is not None and dist < 0.42: # Optimized threshold
+                    if dist is not None and dist < 0.52: # Further increased threshold for better recall
                         semantic_results.append(spare)
             except Exception as e:
                 print(f"Semantic search for spares failed: {e}")
@@ -162,9 +237,30 @@ async def search_products(
     # We combine Keyword match (ILIKE) and Semantic match (pgvector)
     
     # 1. Keyword search (always performed as it's fast and precise for model numbers)
+    norm_q = normalize_query(q)
     kw_query = select(Product).where(Product.is_published == True)
     if q:
-        kw_query = kw_query.where(Product.name.ilike(f"%{q}%"))
+        # Tokenized search: all words in query (or normalized) must match
+        words = [w.strip() for w in q.split() if len(w.strip()) > 1]
+        norm_words = [w.strip() for w in norm_q.split() if len(w.strip()) > 1]
+        
+        from sqlalchemy import and_
+        clauses = []
+        for i in range(min(len(words), len(norm_words))):
+            w = words[i]
+            nw = norm_words[i]
+            clauses.append(or_(
+                Product.name.ilike(f"%{w}%"),
+                Product.name.ilike(f"%{nw}%")
+            ))
+        
+        if clauses:
+            kw_query = kw_query.where(and_(*clauses))
+        else:
+            kw_query = kw_query.where(
+                (Product.name.ilike(f"%{q}%")) | 
+                (Product.name.ilike(f"%{norm_q}%"))
+            )
     if category_name:
         kw_query = kw_query.where(Product.category.ilike(category_name))
     
@@ -179,6 +275,22 @@ async def search_products(
             expanded_q = await ai_service.expand_query(q)
             print(f"DEBUG: Expanded product query '{q}' -> '{expanded_q}'")
             
+            # Add multi-keyword matching to fallback
+            import re
+            exp_keywords = re.split(r'[,\s\'\"]+', expanded_q)
+            # Filter noise words and short tokens
+            noise_words = {'станок', 'запчасти', 'модель', 'оборудование', 'инструмент'}
+            exp_keywords = [k.strip() for k in exp_keywords if len(k.strip()) > 2 and k.strip().lower() not in noise_words]
+            
+            if exp_keywords:
+                kw_clauses = [Product.name.ilike(f"%{k}%") for k in exp_keywords[:8]]
+                kw_secondary = select(Product).where(Product.is_published == True).where(or_(*kw_clauses))
+                if category_name:
+                    kw_secondary = kw_secondary.where(Product.category.ilike(category_name))
+                
+                secondary_results = await run_in_threadpool(lambda: db.execute(kw_secondary.options(joinedload(Product.images))).unique().scalars().all())
+                kw_results.extend(secondary_results)
+
             query_embedding = await ai_service.get_embedding(expanded_q)
             
             distance_expr = Product.embedding.cosine_distance(query_embedding).label("distance")
@@ -196,7 +308,7 @@ async def search_products(
             
             # Threshold for semantic relevance
             for product, dist in sem_raw:
-                if dist is not None and dist < 0.42: # Optimized threshold
+                if dist is not None and dist < 0.52: # Further increased threshold for better recall
                     semantic_results.append(product)
                     
         except Exception as e:

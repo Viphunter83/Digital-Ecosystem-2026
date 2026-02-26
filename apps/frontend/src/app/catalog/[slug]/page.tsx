@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { fetchProductById } from '@/lib/api';
+import { fetchProductById, sanitizeUrl } from '@/lib/api';
 import { ProductDetail } from '@/components/ProductDetail';
 import Link from 'next/link';
 
@@ -106,7 +106,7 @@ export default async function ProductPage({ params }: Props) {
         ? product.image_url
         : `https://td-rss.ru${product.image_url || '/images/products/product_cnc.png'}`;
 
-    const jsonLd = {
+    const jsonLd: any = {
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: product.name,
@@ -132,6 +132,19 @@ export default async function ProductPage({ params }: Props) {
             }
         }
     };
+
+    // Add Video Schema if exists
+    if (product.video_url) {
+        jsonLd.subjectOf = {
+            '@type': 'VideoObject',
+            name: `Обзор ${product.name}`,
+            description: `Видеообзор оборудования ${product.name}`,
+            thumbnailUrl: [imageUrl],
+            uploadDate: new Date().toISOString(),
+            contentUrl: sanitizeUrl(product.video_url),
+            embedUrl: sanitizeUrl(product.video_url)
+        };
+    }
 
     const breadcrumbsJsonLd = {
         '@context': 'https://schema.org',

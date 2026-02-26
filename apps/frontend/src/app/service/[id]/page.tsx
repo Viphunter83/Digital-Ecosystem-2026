@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { fetchMachineInstance, MachineInstance, fetchRecommendedSpares, Product, parseSpecs } from "@/lib/api";
+import { fetchMachineInstance, MachineInstance, fetchRecommendedSpares, Product, parseSpecs, sanitizeUrl } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     CheckCircle2,
@@ -269,7 +269,7 @@ export default function MachinePassportPage() {
                                                     <div>
                                                         <div className="aspect-square bg-white/5 mb-4 overflow-hidden">
                                                             <img
-                                                                src={spare.image_url || "/images/products/spare_placeholder.png"}
+                                                                src={sanitizeUrl(spare.image_url) || "/images/products/spare_placeholder.png"}
                                                                 alt={spare.name}
                                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                                             />

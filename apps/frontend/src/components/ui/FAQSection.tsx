@@ -8,25 +8,23 @@ import { useEffect, useState } from "react"
 import { fetchSiteContent } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 
-export function FAQSection() {
+export function FAQSection({ faqJsonStr }: { faqJsonStr?: string }) {
     const [faqData, setFaqData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        fetchSiteContent().then(content => {
-            if (content.faq_json) {
-                try {
-                    const parsed = JSON.parse(content.faq_json);
-                    if (Array.isArray(parsed)) {
-                        setFaqData(parsed);
-                    }
-                } catch (e) {
-                    console.error("Failed to parse FAQ JSON", e);
+        if (faqJsonStr) {
+            try {
+                const parsed = JSON.parse(faqJsonStr);
+                if (Array.isArray(parsed)) {
+                    setFaqData(parsed);
                 }
+            } catch (e) {
+                console.error("Failed to parse FAQ JSON", e);
             }
-            setIsLoading(false);
-        });
-    }, []);
+        }
+        setIsLoading(false);
+    }, [faqJsonStr]);
 
     const jsonLd = {
         "@context": "https://schema.org",

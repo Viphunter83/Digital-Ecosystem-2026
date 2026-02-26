@@ -24,6 +24,8 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_amocrm_settings_updated_at ON amocrm_settings;
+DROP TRIGGER IF EXISTS update_amocrm_settings_updated_at ON amocrm_settings;
 CREATE TRIGGER update_amocrm_settings_updated_at
     BEFORE UPDATE ON amocrm_settings
     FOR EACH ROW

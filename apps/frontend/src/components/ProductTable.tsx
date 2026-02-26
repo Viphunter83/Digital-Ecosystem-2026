@@ -2,7 +2,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { ShimmerButton } from "@/components/ShimmerButton";
-import { Product } from "@/lib/api";
+import { Product, sanitizeUrl } from "@/lib/api";
 
 interface ProductTableProps {
     products: Product[];
@@ -15,7 +15,7 @@ function ProductTableImage({ url, name }: { url?: string; name: string }) {
         <div className="relative w-12 h-12 bg-industrial-surface border border-industrial-border overflow-hidden">
             {url ? (
                 <Image
-                    src={imageError ? "/images/placeholder_machine.jpg" : url}
+                    src={imageError ? "/images/placeholder_machine.jpg" : sanitizeUrl(url)!}
                     alt={name}
                     fill
                     className="object-cover"

@@ -46,6 +46,7 @@ class Product(Base):
     meta_description = Column(Text, nullable=True)
     is_published = Column(Boolean, default=True)
     image_file = Column(UUID(as_uuid=True), nullable=True)
+    video_url = Column(String, nullable=True)
     embedding = Column(Vector(1536))
 
     images = relationship("ProductImage", back_populates="product")
@@ -56,7 +57,8 @@ class ProductImage(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"))
-    image_file = Column(UUID(as_uuid=True), ForeignKey("directus_files.id"), nullable=True)
+    url = Column(String, nullable=False)
+    image_file = Column(UUID(as_uuid=True), nullable=True)
     is_primary = Column(Boolean, default=False)
     order = Column(Integer, default=0)
     directus_id = Column(UUID(as_uuid=True), nullable=True)
@@ -85,7 +87,8 @@ class SparePartImage(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     spare_part_id = Column(UUID(as_uuid=True), ForeignKey("spare_parts.id"))
-    image_file = Column(UUID(as_uuid=True), ForeignKey("directus_files.id"), nullable=True)
+    url = Column(String, nullable=False)
+    image_file = Column(UUID(as_uuid=True), nullable=True)
     is_primary = Column(Boolean, default=False)
     order = Column(Integer, default=0)
     directus_id = Column(UUID(as_uuid=True), nullable=True)
@@ -128,6 +131,7 @@ class Article(Base):
     tags = Column(ARRAY(String))
     cover_image = Column(String)
     image_file = Column(UUID(as_uuid=True), nullable=True)
+    video_url = Column(String, nullable=True)
     # embedding = Column(Vector(1536))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

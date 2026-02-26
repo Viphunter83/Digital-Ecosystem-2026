@@ -55,7 +55,7 @@ export function RequestCallModal({ children }: { children: React.ReactNode }) {
                 }
             }
 
-            const res = await fetch(`${API_URL}/leads`, {
+            const res = await fetch(`${API_URL}/ingest/leads`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)

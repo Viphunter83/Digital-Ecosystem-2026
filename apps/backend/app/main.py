@@ -1,5 +1,5 @@
 # Deploy Trigger: Cleaning up catalog
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -14,9 +14,25 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+# Legacy Lead Redirects
+@app.post("/leads")
+@app.post("/leads/leads")
+async def lead_legacy_redirect(request: Request, background_tasks: BackgroundTasks):
+    from apps.backend.app.routers.leads import create_lead, LeadCreate
+    from apps.backend.app.core.database import SessionLocal
+    body = await request.json()
+    db = SessionLocal()
+    try:
+        res = await create_lead(LeadCreate(**body), background_tasks, db)
+        return {"status": "ok", "lead_id": res.get("lead_id")}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
+    finally:
+        db.close()
+
 # Logging Middleware
 @app.middleware("http")
-async def log_requests(request, call_next):
+async def log_requests(request: Request, call_next):
     import logging
     logger = logging.getLogger("uvicorn")
     

@@ -47,31 +47,33 @@ class ProductImageSchema(BaseModel):
     image_file: Optional[UUID] = None
     is_primary: bool = False
     order: Optional[int] = 0
+    db_url: Optional[str] = Field(None, alias="url")
 
     @computed_field
     @property
     def url(self) -> Optional[str]:
         if self.image_file:
-            base_url = settings.DIRECTUS_URL
+            base_url = settings.DIRECTUS_URL.rstrip('/')
             return f"{base_url}/assets/{self.image_file}"
-        return None
+        return self.db_url
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class SparePartImageSchema(BaseModel):
     image_file: Optional[UUID] = None
     is_primary: bool = False
     order: Optional[int] = 0
+    db_url: Optional[str] = Field(None, alias="url")
 
     @computed_field
     @property
     def url(self) -> Optional[str]:
         if self.image_file:
-            base_url = settings.DIRECTUS_URL
+            base_url = settings.DIRECTUS_URL.rstrip('/')
             return f"{base_url}/assets/{self.image_file}"
-        return None
+        return self.db_url
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class ProductMiniSchema(BaseModel):
     id: UUID
@@ -133,6 +135,7 @@ class ProductSchema(BaseModel):
     image_file: Optional[UUID] = None
     images: List[ProductImageSchema] = Field(default=[])
     compatible_parts: List["SparePartMiniSchema"] = []
+    video_url: Optional[str] = None
     
     @computed_field
     @property
@@ -173,6 +176,7 @@ class ArticleSchema(BaseModel):
     tags: Optional[List[str]] = None
     created_at: Optional[datetime] = None
     image_file: Optional[UUID] = None
+    video_url: Optional[str] = None
     
     @computed_field
     def image_url(self) -> Optional[str]:

@@ -1,4 +1,4 @@
-import { fetchProjectById } from "@/lib/api";
+import { fetchProjectById, sanitizeUrl } from "@/lib/api";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,7 +20,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden bg-deep-graphite">
                 {project.image_url && (
                     <Image
-                        src={project.image_url}
+                        src={sanitizeUrl(project.image_url)!}
                         alt={project.title}
                         fill
                         className="object-cover opacity-60"

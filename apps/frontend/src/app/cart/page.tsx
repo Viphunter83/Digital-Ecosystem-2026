@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { sanitizeUrl } from "@/lib/api";
 
 export default function CartPage() {
     const { items, removeItem, updateQuantity, totalAmount, clearCart, hydrated } = useCartStore();
@@ -97,7 +98,7 @@ export default function CartPage() {
                         {/* Image */}
                         <div className="w-20 h-20 bg-black border border-white/10 relative shrink-0">
                             {item.image_url ? (
-                                <Image src={item.image_url} alt={item.name} fill className="object-cover" />
+                                <Image src={sanitizeUrl(item.image_url)!} alt={item.name} fill className="object-cover" />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-white/20 text-[8px] uppercase text-center font-mono">Нет фото</div>
                             )}

@@ -170,17 +170,22 @@ class AIService:
         Expands a short user search query into a richer technical context for better semantic matching.
         """
         system_prompt = """You are an expert in industrial metalworking equipment. 
-Your goal is to expand a short user search query into a set of technical terms, synonyms, and related categories.
-This will be used for semantic search in a catalog.
+Your goal is to expand a user search query into a set of technical terms, synonyms, and related categories.
 
 RULES:
-- Return ONLY the expanded text in the same language as the query (Russian).
-- Include synonyms, technical names of the process, and related machine types.
-- Keep it concise (1-2 sentences).
+- Return ONLY a comma-separated list of 5-10 keywords/synonyms in Russian.
+- Include synonyms, technical names, both singular and plural forms, and common typos.
+- Avoid generic terms like 'станок', 'машина', 'запчасти' unless they are part of a specific phrase or the input is very short.
+- For model numbers, include variations with different separators or character sets.
 
-Example:
-Input: 'резка'
-Output: 'лазерная резка металла, плазменная резка, ленточнопильные станки, гильотины, оборудование для разделения листового и сортового металла.'"""
+Example 1:
+Input: 'ролик'
+Output: 'ролик, ролики, роликовый, валик, каток, направляющая, ролк'
+
+Example 2:
+Input: 'винторезный'
+Output: 'токарно-винторезный, резьбонарезной, нарезка резьбы, металлорежущий станок, токарный станок'
+"""
 
         try:
             response = await self.client.chat.completions.create(

@@ -160,7 +160,7 @@ export default function HomeClient({ projects, articles, products, siteContent }
             </section>
 
             <section className="py-24 bg-industrial-surface border-t border-white/5">
-                <FAQSection />
+                <FAQSection faqJsonStr={siteContent?.faq_json} />
             </section>
 
             <DiagnosticsWidget isOpen={diagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} />

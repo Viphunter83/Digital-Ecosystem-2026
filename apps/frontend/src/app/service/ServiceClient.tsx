@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, Wrench, ShieldCheck, Zap, Cog, History, ArrowRight, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Service, MachineInstance } from "@/lib/api";
+import { Service, MachineInstance, sanitizeUrl } from "@/lib/api";
 
 const ICON_MAP: Record<string, any> = {
     CheckCircle2,
@@ -78,7 +78,7 @@ export default function ServiceClient({ initialService, initialMachine }: Servic
                                         <div className="relative h-48 md:h-full overflow-hidden">
                                             <img
                                                 src={
-                                                    project.image_url ||
+                                                    sanitizeUrl(project.image_url) ||
                                                     (project.model.toLowerCase().includes('16к20') ? '/images/cases/case_16k20.png' :
                                                         project.model.toLowerCase().includes('6р12') ? '/images/cases/case_6r12.png' :
                                                             project.model.toLowerCase().includes('1м63') ? '/images/cases/case_1m63.png' :

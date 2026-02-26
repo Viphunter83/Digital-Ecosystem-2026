@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, FileText, Settings, Maximize2, ShoppingBag } from "lucide-react";
+import { ArrowLeft, CheckCircle, FileText, Settings, Maximize2, ShoppingBag, Play } from "lucide-react";
 import { ShimmerButton } from "@/components/ShimmerButton";
 import { ImageZoom } from "@/components/ImageZoom";
+import { VideoPlayer } from "@/components/VideoPlayer";
 import { useCartStore } from "@/lib/stores/useCartStore";
 import { Product, parseSpecs, getImageUrl, fetchSiteContent } from "@/lib/api";
 import { toast } from "sonner";
@@ -130,6 +131,21 @@ export function ProductDetail({ product }: ProductDetailProps) {
                                     />
                                 </button>
                             ))}
+                        </div>
+                    )}
+
+                    {/* Video Player Section */}
+                    {product.video_url && (
+                        <div className="mt-8 pt-8 border-t border-white/5">
+                            <h3 className="text-xs font-mono uppercase text-safety-orange mb-4 flex items-center gap-2">
+                                <Play className="w-3 h-3 animate-pulse" />
+                                Видеообзор оборудования
+                            </h3>
+                            <VideoPlayer
+                                url={product.video_url || ""}
+                                title={`Обзор ${cleanName}`}
+                                poster={activeImage || undefined}
+                            />
                         </div>
                     )}
                 </div>

@@ -64,6 +64,12 @@ const nextConfig = {
                 destination: '/solutions',
                 permanent: true,
             },
+            {
+                // Redirect old Tilda URLs to the new catalog to preserve SEO weight
+                source: '/price/tproduct/:path*',
+                destination: '/catalog',
+                permanent: true,
+            }
         ];
     },
 };
