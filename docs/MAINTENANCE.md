@@ -39,5 +39,15 @@ curl -I http://localhost:8000/catalog/search
 cd /etc/dokploy/compose/russtanko-russtankoprod-colyja/code
 git status
 # Если есть "грязные" файлы, сбросьте их:
-git checkout .
-```
+## 4. Почта и Доставляемость (Mail & DNS)
+Для работы почтовых уведомлений и синхронизации с AmoCRM критически важны настройки в панели RU-CENTER:
+
+### Проверка DNS:
+- **MX**: `10 mx1.beget.com`, `20 mx2.beget.com`
+- **SPF**: `v=spf1 redirect=beget.com`
+- **DKIM**: TXT-запись `beget._domainkey` (ключ Beget)
+- **DMARC**: TXT-запись `_dmarc` со значением `v=DMARC1; p=none;`
+
+### Обслуживание ящика:
+- Основной ящик: `zakaz@tdrusstankosbyt.ru`
+- Если письма попадают в спам на стороне получателя, проверьте статус DKIM через `dig txt beget._domainkey.tdrusstankosbyt.ru`.
