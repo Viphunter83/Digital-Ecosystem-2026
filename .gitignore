@@ -43,3 +43,10 @@ apps/backend/data/
 
 # GGShield
 .cache_ggshield
+
+# Debug & Temporary Files
+test_*.py
+debug_*.py
+*_remote.py
+*_debug.html
+remote_output.txt
