@@ -2,7 +2,18 @@
 
 This document summarizes the current state of the **Digital Ecosystem 2026** project to facilitate a seamless transition for the next development iteration.
 
-## 1. Project Status (as of 2026-02-08)
+## 1. Project Status (as of 2026-03-20)
+
+### ✅ Completed (March 2026 Updates)
+1. **Global Domain & Email Migration**:
+    *   **Action**: Replaced all instances of `zakaz@tdrusstankosbyt.ru` with `zakaz@td-rss.ru`.
+    *   **Scope**: Database (6 tables), Frontend Static Bundles, Backend Config.
+    *   **Result**: 100% delivery of leads to the new mailbox and AmoCRM.
+2. **SEO & Redirect Synchronization**:
+    *   **Action**: Unified SEO meta-tags for Desktop and Mobile. Added `next.config.mjs` redirects for old Tilda/Price URLs.
+    *   **Infrastructure**: Switched Frontend to `standalone` output mode in Docker.
+3. **Repository Sync**:
+    *   **Action**: Manually backported server-side "live patches" to the local repository to ensure consistency for future deployments.
 
 ### ✅ Completed
 - **Infrastructure**: Production-ready setup with **Dokploy** and **Traefik**. Automatic SSL via LetsEncrypt.

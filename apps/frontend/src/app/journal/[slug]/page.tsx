@@ -180,11 +180,19 @@ export default async function ArticlePage({ params }: Props) {
                             </div>
                         )}
 
-                        {article.content?.split('\n').map((paragraph, idx) => (
-                            <p key={idx} className="mb-6 indent-8 text-gray-300">
-                                {paragraph}
-                            </p>
-                        ))}
+                        {/* Render HTML content from Directus if available, otherwise fallback to plain text paragraphs */}
+                        {article.content?.startsWith('<') ? (
+                            <div
+                                className="description-content"
+                                dangerouslySetInnerHTML={{ __html: article.content }}
+                            />
+                        ) : (
+                            article.content?.split('\n').map((paragraph, idx) => (
+                                <p key={idx} className="mb-6 indent-8 text-gray-300">
+                                    {paragraph}
+                                </p>
+                            ))
+                        )}
                     </article>
 
                     <div className="mt-16 pt-8 border-t border-industrial-border">

@@ -1,0 +1,15 @@
+#!/usr/bin/expect -f
+set timeout 60
+set ip "194.156.118.128"
+set user "root"
+set password "MaksimNiretin2602201213!"
+
+spawn scp -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ./apps/frontend/next.config.mjs $user@$ip:/etc/dokploy/compose/russtanko-russtankoprod-colyja/code/apps/frontend/next.config.mjs
+
+expect {
+  "password:" {
+    send "$password\r"
+    exp_continue
+  }
+  eof
+}

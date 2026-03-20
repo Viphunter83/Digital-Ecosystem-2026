@@ -66,7 +66,23 @@ const nextConfig = {
             },
             {
                 // Redirect old Tilda URLs to the new catalog to preserve SEO weight
-                source: '/price/tproduct/:path*',
+                // Broadly catch anything under /price, /tproduct, or old catalog patterns
+                source: '/price/:path*',
+                destination: '/catalog',
+                permanent: true,
+            },
+            {
+                source: '/tproduct/:path*',
+                destination: '/catalog',
+                permanent: true,
+            },
+            {
+                source: '/catalog/tproduct/:path*',
+                destination: '/catalog',
+                permanent: true,
+            },
+            {
+                source: '/c/:path*',
                 destination: '/catalog',
                 permanent: true,
             }

@@ -102,8 +102,8 @@ export default function ContactsPage() {
                             <Mail className="w-6 h-6 text-safety-orange mb-4" />
                             <div className="flex flex-col">
                                 <h3 className="font-mono text-xs text-muted-foreground uppercase mb-1">E-mail</h3>
-                                <a href="mailto:zakaz@tdrusstankosbyt.ru" className="text-lg font-bold hover:text-safety-orange transition-colors block break-all">
-                                    zakaz@tdrusstankosbyt.ru
+                                <a href="mailto:zakaz@td-rss.ru" className="text-lg font-bold hover:text-safety-orange transition-colors block break-all">
+                                    zakaz@td-rss.ru
                                 </a>
                             </div>
                             <p className="text-sm text-gray-500 mt-1">Для заявок и КП</p>

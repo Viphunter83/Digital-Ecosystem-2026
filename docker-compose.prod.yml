@@ -1,20 +1,22 @@
 version: "3.8"
-
 services:
   backend:
     build:
       context: .
-      dockerfile: infra/Dockerfile.backend
+      dockerfile: apps/backend/Dockerfile
     env_file:
       - .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      - PYTHONPATH=/app
-    command: sh -c "python apps/backend/scripts/apply_migrations.py && uvicorn apps.backend.app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - db
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8000/health
       interval: 30s
       timeout: 10s
       retries: 3
@@ -35,7 +37,7 @@ services:
       - traefik.enable=true
     networks:
       - dokploy-network
-
+      - default
   bot:
     build:
       context: .
@@ -51,7 +53,6 @@ services:
     restart: always
     networks:
       - dokploy-network
-
   frontend:
     build:
       context: .
@@ -66,12 +67,12 @@ services:
       - PORT=3000
     restart: always
     labels:
-      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.rule=Host(`td-rss.ru`) || Host(`tdrusstankosbyt.ru`) || Host(`www.tdrusstankosbyt.ru`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.rule=Host(`td-rss.ru`) || Host(`www.td-rss.ru`) || Host(`tdrusstankosbyt.ru`) || Host(`www.tdrusstankosbyt.ru`)
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.entrypoints=web
       - traefik.http.services.russtanko-russtankoprod-colyja-28009-web.loadbalancer.server.port=3000
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.service=russtanko-russtankoprod-colyja-28009-web
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-web.middlewares=redirect-to-https@file
-      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.rule=Host(`td-rss.ru`) || Host(`tdrusstankosbyt.ru`) || Host(`www.tdrusstankosbyt.ru`)
+      - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.rule=Host(`td-rss.ru`) || Host(`www.td-rss.ru`) || Host(`tdrusstankosbyt.ru`) || Host(`www.tdrusstankosbyt.ru`)
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.entrypoints=websecure
       - traefik.http.services.russtanko-russtankoprod-colyja-28009-websecure.loadbalancer.server.port=3000
       - traefik.http.routers.russtanko-russtankoprod-colyja-28009-websecure.service=russtanko-russtankoprod-colyja-28009-websecure
@@ -80,7 +81,7 @@ services:
       - traefik.enable=true
     networks:
       - dokploy-network
-
+      - default
   db:
     image: ankane/pgvector
     environment:
@@ -92,20 +93,21 @@ services:
     restart: always
     networks:
       - dokploy-network
-
   redis:
     image: redis:alpine
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test:
+        - CMD
+        - redis-cli
+        - ping
       interval: 10s
       timeout: 5s
       retries: 5
     restart: always
     networks:
       - dokploy-network
-
   directus:
     image: directus/directus:latest
     volumes:
@@ -149,7 +151,7 @@ services:
       - traefik.enable=true
     networks:
       - dokploy-network
-
+      - default
 volumes:
   db_data:
     external: true
@@ -160,7 +162,6 @@ volumes:
   directus_uploads:
     external: true
     name: russtanko-russtankoprod-colyja_directus_uploads
-
 networks:
   dokploy-network:
     external: true
