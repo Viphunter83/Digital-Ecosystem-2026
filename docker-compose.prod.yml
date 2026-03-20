@@ -154,8 +154,18 @@ services:
       - default
 volumes:
   db_data:
+    external: true
+    name: russtanko-russtankoprod-colyja_db_data
   redis_data:
+    external: true
+    name: russtanko-russtankoprod-colyja_redis_data
   directus_uploads:
+    external: true
+    name: russtanko-russtankoprod-colyja_directus_uploads
+  letsencrypt_data:
+    external: true
+    name: russtanko-russtankoprod-colyja_traefik_certificates
+
 networks:
   dokploy-network:
     external: true
