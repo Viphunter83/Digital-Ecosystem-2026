@@ -102,6 +102,7 @@ class SparePartMiniSchema(BaseModel):
     id: UUID
     name: str
     slug: Optional[str] = None
+    category: Optional[str] = None
     price: Optional[float] = None
     image_file: Optional[UUID] = None
     images: List[SparePartImageSchema] = Field(default=[])
