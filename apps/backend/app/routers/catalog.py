@@ -605,7 +605,8 @@ async def reindex_spare(spare_id: str, db: Session = Depends(get_db)):
         else:
             specs_str = str(specs)
         # Including description if available for better semantic matching
-        text_to_embed = f"Spare Part: {spare.name}. Description: {spare.description or ''}. Specs: {specs_str}."
+        category_str = spare.category or "Spare Parts"
+        text_to_embed = f"Spare Part: {spare.name}. Category: {category_str}. Description: {spare.description or ''}. Specs: {specs_str}."
         
         embedding = await ai_service.get_embedding(text_to_embed)
         spare.embedding = embedding
