@@ -3,7 +3,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: apps/backend/Dockerfile
+      dockerfile: infra/Dockerfile.backend
     env_file:
       - .env
     environment:
@@ -38,6 +38,7 @@ services:
     networks:
       - dokploy-network
       - default
+
   bot:
     build:
       context: .
@@ -53,6 +54,8 @@ services:
     restart: always
     networks:
       - dokploy-network
+      - default
+
   frontend:
     build:
       context: .
@@ -82,6 +85,7 @@ services:
     networks:
       - dokploy-network
       - default
+
   db:
     image: ankane/pgvector
     environment:
@@ -93,21 +97,17 @@ services:
     restart: always
     networks:
       - dokploy-network
+      - default
+
   redis:
     image: redis:alpine
     volumes:
       - redis_data:/data
-    healthcheck:
-      test:
-        - CMD
-        - redis-cli
-        - ping
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: always
     networks:
       - dokploy-network
+      - default
+
   directus:
     image: directus/directus:latest
     volumes:
@@ -123,7 +123,7 @@ services:
       SECRET: ${DIRECTUS_SECRET}
       PUBLIC_URL: https://admin.td-rss.ru
       REFRESH_TOKEN_COOKIE_SECURE: "true"
-      REFRESH_TOKEN_COOKIE_SAME_SITE: None
+      REFRESH_TOKEN_COOKIE_SAME_SITE: "None"
       DB_CLIENT: pg
       DB_HOST: db
       DB_PORT: "5432"
@@ -131,7 +131,8 @@ services:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       CORS_ENABLED: "true"
-      CACHE_ENABLED: "false"
+      CACHE_ENABLED: "true"
+      CACHE_STORE: "redis"
       WEBSOCKETS_ENABLED: "false"
       REDIS_HOST: redis
       REDIS_PORT: "6379"
@@ -152,6 +153,7 @@ services:
     networks:
       - dokploy-network
       - default
+
 volumes:
   db_data:
     external: true
@@ -169,3 +171,5 @@ volumes:
 networks:
   dokploy-network:
     external: true
+  default:
+    driver: bridge
